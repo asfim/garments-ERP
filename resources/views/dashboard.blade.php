@@ -1412,11 +1412,6 @@
                 <img src="{{ asset('images/crowns-it-logo.png') }}" alt="Crowns IT" class="h-4 w-auto object-contain drop-shadow-[0_0_8px_rgba(34,197,94,0.6)] group-hover:scale-110 transition-transform">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 font-extrabold tracking-wide">Crowns IT</span>
             </a>
-            <span class="text-slate-600">•</span>
-            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" 
-               class="text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors font-mono">
-                crownsit.com
-            </a>
         </div>
 
         <!-- Right Quick Actions -->
