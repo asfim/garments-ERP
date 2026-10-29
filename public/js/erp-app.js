@@ -203,7 +203,8 @@ function initCategoryDonutChart() {
 
 // ========== INIT ON DOM READY ==========
 document.addEventListener('DOMContentLoaded', () => {
-    const savedMode = localStorage.getItem('tbg_erp_mode') || 'factory';
+    const isFactory = window.location.pathname.includes('/factory');
+    const savedMode = isFactory ? 'factory' : (localStorage.getItem('tbg_erp_mode') || 'factory');
     switchErpMode(savedMode);
     updateLiveClock();
     setInterval(updateLiveClock, 1000);

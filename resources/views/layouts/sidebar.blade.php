@@ -18,12 +18,14 @@
         <nav class="space-y-1">
             
             <!-- Dashboard (Always Present) -->
-            <a href="/" class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600/90 to-cyan-600/90 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 border border-cyan-400/30">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-house text-sm"></i>
-                    <span>Dashboard</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-cyan-200"></i>
+            @php
+                $isDash = request()->routeIs('dashboard') || request()->is('/');
+            @endphp
+            <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-xs {{ $isDash ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent' }}">
+                <span class="w-6 h-6 rounded-lg {{ $isDash ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-cyan-400' }} flex items-center justify-center">
+                    <i class="fa-solid fa-house text-[11px]"></i>
+                </span>
+                <span>Dashboard</span>
             </a>
 
             <!-- PACKAGE ERP MENUS (Component) -->
