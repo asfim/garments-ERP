@@ -880,109 +880,100 @@
                 <!-- Left: Main Modules Grid (8 Cols) -->
                 <div class="lg:col-span-8 space-y-5">
                     
-                    <!-- Main Modules Card -->
+                    <!-- Factory ERP Modules Card (Renamed & Updated) -->
                     <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-grid-2 text-cyan-400"></i>
-                                    Main ERP Modules
+                                    <i class="fa-solid fa-industry text-blue-400"></i>
+                                    Factory ERP
                                 </h3>
-                                <p class="text-[11px] text-slate-400">Quick access to essential departments</p>
+                                <p class="text-[11px] text-slate-400">Comprehensive factory management modules</p>
                             </div>
-                            <span class="text-[10px] text-cyan-400 font-mono">10 Modules Online</span>
+                            <span class="text-[10px] text-blue-400 font-mono px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">9 Factory Modules</span>
                         </div>
 
-                        <!-- 2x5 Buttons Grid -->
+                        <!-- Factory ERP 9 Modules Grid -->
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                             
-                            <!-- 1. Sales & Billing -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-blue-500/20 hover:border-blue-400">
+                            <!-- 1. Product List -->
+                            <a href="#product-list" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-blue-500/20 hover:border-blue-400">
                                 <div class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
-                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <i class="fa-solid fa-boxes-stacked"></i>
                                 </div>
-                                <span class="text-xs font-bold text-white group-hover:text-cyan-300">Sales & Billing</span>
+                                <span class="text-xs font-bold text-white group-hover:text-cyan-300">Product List</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
-                            <!-- 2. Purchase -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-emerald-500/20 hover:border-emerald-400">
-                                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
-                                    <i class="fa-solid fa-truck"></i>
+                            <!-- 2. Customer -->
+                            <a href="#customer" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-cyan-500/20 hover:border-cyan-400">
+                                <div class="w-11 h-11 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/20">
+                                    <i class="fa-solid fa-user-group"></i>
                                 </div>
-                                <span class="text-xs font-bold text-white group-hover:text-emerald-300">Purchase</span>
+                                <span class="text-xs font-bold text-white group-hover:text-cyan-300">Customer</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all"></i>
+                            </a>
+
+                            <!-- 3. Price Package -->
+                            <a href="#price-package" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-emerald-500/20 hover:border-emerald-400">
+                                <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                                    <i class="fa-solid fa-tags"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-emerald-300">Price Package</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
-                            <!-- 3. Inventory -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-amber-500/20 hover:border-amber-400">
+                            <!-- 4. Order -->
+                            <a href="#order" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-amber-500/20 hover:border-amber-400">
                                 <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
-                                    <i class="fa-solid fa-boxes-packing"></i>
+                                    <i class="fa-solid fa-cart-shopping"></i>
                                 </div>
-                                <span class="text-xs font-bold text-white group-hover:text-amber-300">Inventory</span>
+                                <span class="text-xs font-bold text-white group-hover:text-amber-300">Order</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-amber-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
-                            <!-- 4. Production -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-purple-500/20 hover:border-purple-400">
+                            <!-- 5. Production -->
+                            <a href="#production" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-purple-500/20 hover:border-purple-400">
                                 <div class="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/20">
-                                    <i class="fa-solid fa-gears"></i>
+                                    <i class="fa-solid fa-industry"></i>
                                 </div>
                                 <span class="text-xs font-bold text-white group-hover:text-purple-300">Production</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-purple-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
-                            <!-- 5. Raw Material -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-teal-500/20 hover:border-teal-400">
-                                <div class="w-11 h-11 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-teal-500/20">
-                                    <i class="fa-solid fa-layer-group"></i>
-                                </div>
-                                <span class="text-xs font-bold text-white group-hover:text-teal-300">Raw Material</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-teal-400 group-hover:translate-x-1 transition-all"></i>
-                            </a>
-
-                            <!-- 6. Customer & CRM -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-sky-500/20 hover:border-sky-400">
-                                <div class="w-11 h-11 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-sky-500/20">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                </div>
-                                <span class="text-xs font-bold text-white group-hover:text-sky-300">Customer & CRM</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-sky-400 group-hover:translate-x-1 transition-all"></i>
-                            </a>
-
-                            <!-- 7. Supplier -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-cyan-500/20 hover:border-cyan-400">
-                                <div class="w-11 h-11 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/20">
-                                    <i class="fa-solid fa-handshake"></i>
-                                </div>
-                                <span class="text-xs font-bold text-white group-hover:text-cyan-300">Supplier</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all"></i>
-                            </a>
-
-                            <!-- 8. HR & Payroll -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-orange-500/20 hover:border-orange-400">
-                                <div class="w-11 h-11 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-orange-500/20">
-                                    <i class="fa-solid fa-users"></i>
-                                </div>
-                                <span class="text-xs font-bold text-white group-hover:text-orange-300">HR & Payroll</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-orange-400 group-hover:translate-x-1 transition-all"></i>
-                            </a>
-
-                            <!-- 9. Delivery & Courier -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-indigo-500/20 hover:border-indigo-400">
+                            <!-- 6. Delivery -->
+                            <a href="#delivery" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-indigo-500/20 hover:border-indigo-400">
                                 <div class="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/20">
                                     <i class="fa-solid fa-truck-fast"></i>
                                 </div>
-                                <span class="text-xs font-bold text-white group-hover:text-indigo-300">Delivery & Courier</span>
+                                <span class="text-xs font-bold text-white group-hover:text-indigo-300">Delivery</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
-                            <!-- 10. Marketing & Dealer -->
-                            <a href="#" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-rose-500/20 hover:border-rose-400">
-                                <div class="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-rose-500/20">
-                                    <i class="fa-solid fa-bullhorn"></i>
+                            <!-- 7. Stock -->
+                            <a href="#stock" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-teal-500/20 hover:border-teal-400">
+                                <div class="w-11 h-11 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-teal-500/20">
+                                    <i class="fa-solid fa-warehouse"></i>
                                 </div>
-                                <span class="text-xs font-bold text-white group-hover:text-rose-300">Marketing & Dealer</span>
+                                <span class="text-xs font-bold text-white group-hover:text-teal-300">Stock</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-teal-400 group-hover:translate-x-1 transition-all"></i>
+                            </a>
+
+                            <!-- 8. Investor -->
+                            <a href="#investor" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-pink-500/20 hover:border-pink-400">
+                                <div class="w-11 h-11 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-pink-500/20">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-pink-300">Investor</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-pink-400 group-hover:translate-x-1 transition-all"></i>
+                            </a>
+
+                            <!-- 9. Reports -->
+                            <a href="#reports" class="glass-card rounded-2xl p-3 flex flex-col items-center text-center group border border-rose-500/20 hover:border-rose-400">
+                                <div class="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-rose-500/20">
+                                    <i class="fa-solid fa-chart-pie"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-rose-300">Reports</span>
                                 <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 mt-1 group-hover:text-rose-400 group-hover:translate-x-1 transition-all"></i>
                             </a>
 
@@ -1069,59 +1060,52 @@
                 <!-- Right: Quick Actions & Recent Activities Feed (4 Cols) -->
                 <div class="lg:col-span-4 space-y-5">
                     
-                    <!-- Quick Actions Grid (3x3) -->
+                    <!-- Package ERP Quick Grid (Replacing Quick Actions) -->
                     <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
-                        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
-                            Quick Actions
-                        </h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-box-open text-cyan-400"></i>
+                                Package ERP
+                            </h3>
+                            <span class="text-[10px] text-cyan-400 font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">Modules</span>
+                        </div>
 
-                        <div class="grid grid-cols-3 gap-2.5">
-                            <!-- New Sale -->
-                            <button class="p-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-cart-plus text-base text-cyan-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">New Sale</span>
-                            </button>
-                            <!-- New Purchase -->
-                            <button class="p-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-bag-shopping text-base text-emerald-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">New Purchase</span>
-                            </button>
-                            <!-- Add Product -->
-                            <button class="p-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-shirt text-base text-purple-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Add Product</span>
-                            </button>
-                            <!-- Create Invoice -->
-                            <button class="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-file-invoice text-base text-amber-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Create Invoice</span>
-                            </button>
-                            <!-- Customer -->
-                            <button class="p-2.5 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-users text-base text-sky-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Customer</span>
-                            </button>
-                            <!-- Supplier -->
-                            <button class="p-2.5 rounded-xl bg-pink-600/20 hover:bg-pink-600/30 border border-pink-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-truck-moving text-base text-pink-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Supplier</span>
-                            </button>
-                            <!-- Payment -->
-                            <button class="p-2.5 rounded-xl bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-credit-card text-base text-teal-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Payment</span>
-                            </button>
-                            <!-- Stock Adjust -->
-                            <button class="p-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-sliders text-base text-cyan-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Stock Adjust</span>
-                            </button>
-                            <!-- Reports -->
-                            <button class="p-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 flex flex-col items-center text-center transition-all group">
-                                <i class="fa-solid fa-chart-column text-base text-indigo-400 mb-1 group-hover:scale-110 transition-transform"></i>
-                                <span class="text-[11px] font-semibold text-slate-200">Reports</span>
-                            </button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- 1. Product Name -->
+                            <a href="#product-name" class="p-3 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 flex flex-col items-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-base mb-1.5 group-hover:scale-110 transition-transform shadow-lg shadow-cyan-500/20">
+                                    <i class="fa-solid fa-tags"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-cyan-300">Product Name</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Define & Tag</span>
+                            </a>
+
+                            <!-- 2. Unit Name -->
+                            <a href="#unit-name" class="p-3 rounded-2xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 flex flex-col items-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-base mb-1.5 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/20">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-purple-300">Unit Name</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Units & Scales</span>
+                            </a>
+
+                            <!-- 3. Packaging Sizes -->
+                            <a href="#packaging-sizes" class="p-3 rounded-2xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 flex flex-col items-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-base mb-1.5 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
+                                    <i class="fa-solid fa-box-archive"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-amber-300">Packaging Sizes</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Box / Master Size</span>
+                            </a>
+
+                            <!-- 4. Barcode Generator -->
+                            <a href="#barcode-gen" class="p-3 rounded-2xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 flex flex-col items-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-base mb-1.5 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
+                                    <i class="fa-solid fa-barcode"></i>
+                                </div>
+                                <span class="text-xs font-bold text-white group-hover:text-emerald-300">Barcode Gen</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Print Labels</span>
+                            </a>
                         </div>
                     </div>
 
