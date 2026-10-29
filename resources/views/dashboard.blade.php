@@ -174,64 +174,68 @@
             z-index: 1;
         }
 
-        /* 1. BLUE CARD - Total Sales */
+        /* 1. BLUE CARD - Total Sales (Semi-Transparent Glass) */
         .kpi-exact-blue {
-            background: linear-gradient(135deg, #0264d8 0%, #0382f7 40%, #014ca5 100%);
-            border: 1.5px solid rgba(125, 211, 252, 0.65);
-            box-shadow: 0 10px 25px -4px rgba(2, 132, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(2, 100, 216, 0.55) 0%, rgba(3, 130, 247, 0.45) 45%, rgba(1, 76, 165, 0.6) 100%);
+            border: 1.5px solid rgba(125, 211, 252, 0.45);
+            box-shadow: 0 10px 25px -4px rgba(2, 132, 247, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
         }
         .kpi-exact-blue:hover {
-            box-shadow: 0 14px 32px 0 rgba(2, 132, 247, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, rgba(2, 100, 216, 0.65) 0%, rgba(3, 130, 247, 0.55) 45%, rgba(1, 76, 165, 0.7) 100%);
+            box-shadow: 0 14px 32px 0 rgba(2, 132, 247, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.7);
         }
         .kpi-orb-blue {
-            background: radial-gradient(circle at 35% 30%, #5eead4 0%, #0ea5e9 45%, #0369a1 90%);
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 18px rgba(14, 165, 233, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle at 35% 30%, rgba(94, 234, 212, 0.85) 0%, rgba(14, 165, 233, 0.75) 45%, rgba(3, 105, 161, 0.85) 90%);
+            border: 2px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 0 18px rgba(14, 165, 233, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* 2. GREEN CARD - Total Purchase */
+        /* 2. GREEN CARD - Total Purchase (Semi-Transparent Glass) */
         .kpi-exact-green {
-            background: linear-gradient(135deg, #059669 0%, #10b981 40%, #047857 100%);
-            border: 1.5px solid rgba(110, 231, 183, 0.65);
-            box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.55) 0%, rgba(16, 185, 129, 0.45) 45%, rgba(4, 120, 87, 0.6) 100%);
+            border: 1.5px solid rgba(110, 231, 183, 0.45);
+            box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
         }
         .kpi-exact-green:hover {
-            box-shadow: 0 14px 32px 0 rgba(16, 185, 129, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.65) 0%, rgba(16, 185, 129, 0.55) 45%, rgba(4, 120, 87, 0.7) 100%);
+            box-shadow: 0 14px 32px 0 rgba(16, 185, 129, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.7);
         }
         .kpi-orb-green {
-            background: radial-gradient(circle at 35% 30%, #a7f3d0 0%, #34d399 45%, #059669 90%);
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 18px rgba(52, 211, 153, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle at 35% 30%, rgba(167, 243, 208, 0.85) 0%, rgba(52, 211, 153, 0.75) 45%, rgba(5, 150, 105, 0.85) 90%);
+            border: 2px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 0 18px rgba(52, 211, 153, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* 3. PURPLE CARD - Total Due */
+        /* 3. PURPLE CARD - Total Due (Semi-Transparent Glass) */
         .kpi-exact-purple {
-            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 40%, #6b21a8 100%);
-            border: 1.5px solid rgba(216, 180, 254, 0.65);
-            box-shadow: 0 10px 25px -4px rgba(147, 51, 234, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55) 0%, rgba(147, 51, 234, 0.45) 45%, rgba(107, 33, 168, 0.6) 100%);
+            border: 1.5px solid rgba(216, 180, 254, 0.45);
+            box-shadow: 0 10px 25px -4px rgba(147, 51, 234, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
         }
         .kpi-exact-purple:hover {
-            box-shadow: 0 14px 32px 0 rgba(147, 51, 234, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.65) 0%, rgba(147, 51, 234, 0.55) 45%, rgba(107, 33, 168, 0.7) 100%);
+            box-shadow: 0 14px 32px 0 rgba(147, 51, 234, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.7);
         }
         .kpi-orb-purple {
-            background: radial-gradient(circle at 35% 30%, #f3e8ff 0%, #c084fc 45%, #7e22ce 90%);
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 18px rgba(192, 132, 252, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle at 35% 30%, rgba(243, 232, 255, 0.85) 0%, rgba(192, 132, 252, 0.75) 45%, rgba(126, 34, 206, 0.85) 90%);
+            border: 2px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 0 18px rgba(192, 132, 252, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* 4. AMBER / ORANGE CARD - Total Stock Value */
+        /* 4. AMBER / ORANGE CARD - Total Stock Value (Semi-Transparent Glass) */
         .kpi-exact-amber {
-            background: linear-gradient(135deg, #d97706 0%, #f59e0b 40%, #b45309 100%);
-            border: 1.5px solid rgba(253, 230, 138, 0.7);
-            box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.55) 0%, rgba(245, 158, 11, 0.45) 45%, rgba(180, 83, 9, 0.6) 100%);
+            border: 1.5px solid rgba(253, 230, 138, 0.5);
+            box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.55), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
         }
         .kpi-exact-amber:hover {
-            box-shadow: 0 14px 32px 0 rgba(245, 158, 11, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.85);
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.65) 0%, rgba(245, 158, 11, 0.55) 45%, rgba(180, 83, 9, 0.7) 100%);
+            box-shadow: 0 14px 32px 0 rgba(245, 158, 11, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.75);
         }
         .kpi-orb-amber {
-            background: radial-gradient(circle at 35% 30%, #fef3c7 0%, #fbbf24 45%, #d97706 90%);
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 18px rgba(251, 191, 36, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+            background: radial-gradient(circle at 35% 30%, rgba(254, 243, 199, 0.85) 0%, rgba(251, 191, 36, 0.75) 45%, rgba(217, 119, 6, 0.85) 90%);
+            border: 2px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -1409,10 +1413,7 @@
                 Crowns IT
             </a>
             <span class="text-slate-600">•</span>
-            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" 
-               class="text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors font-mono">
-                crownsit.com
-            </a>
+         
         </div>
 
         <!-- Right Quick Actions -->
