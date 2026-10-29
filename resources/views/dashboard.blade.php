@@ -278,7 +278,7 @@
                     <button id="btnFactoryERP" onclick="switchErpMode('factory')" 
                             class="mode-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition-all">
                         <i class="fa-solid fa-industry text-blue-400"></i>
-                        <span>Factory ERP</span>
+                        <span> Quick Manu Factory ERP</span>
                     </button>
                 </div>
             </div>
@@ -361,7 +361,7 @@
                     <!-- PACKAGE ERP MENUS (Visible when Package ERP is active) -->
                     <div id="packageMenuContainer" class="space-y-1 hidden pt-1">
                         <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-cyan-400/80">
-                            Package Modules
+                           Quick Manu Package Modules
                         </div>
 
                         <!-- Product Name Menu -->
