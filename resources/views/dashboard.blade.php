@@ -1387,8 +1387,8 @@
 
     </div>
 
-    <!-- BOTTOM FOOTER STATUS BAR -->
-    <footer class="glass-panel border-t border-slate-800 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 text-slate-400 select-none">
+    <!-- BOTTOM FOOTER (DEVELOPED BY CROWNS IT) -->
+    <footer class="glass-panel border-t border-slate-800/80 px-4 py-2.5 text-xs flex flex-wrap items-center justify-between gap-3 text-slate-400 select-none">
         
         <!-- Left Info -->
         <div class="flex items-center gap-3">
@@ -1396,32 +1396,32 @@
                 <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                 <span>Turkey Bangla Garments Ltd</span>
             </div>
-            <span class="text-slate-600">|</span>
-            <span class="font-mono text-cyan-400 text-[11px]">ERP V6.0</span>
+            <span class="text-slate-600">•</span>
+            <span class="text-[11px] text-slate-400">All Rights Reserved</span>
         </div>
 
-        <!-- Center Status -->
-        <div class="flex items-center gap-4 text-[11px]">
-            <div class="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-online"></span>
-                <span>System Online</span>
-            </div>
+        <!-- Center: Developed by Crowns IT -->
+        <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-400">Developed by</span>
+            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" 
+               class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[11px] text-amber-400"></i>
+                Crowns IT
+            </a>
             <span class="text-slate-600">•</span>
-            <span>Last Sync: <span class="text-slate-200 font-mono" id="lastSyncTime"></span></span>
-            <span class="text-slate-600">•</span>
-            <span>Branch: <span class="text-cyan-300 font-medium">TNG-001 (Tongi Head Branch)</span></span>
+            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" 
+               class="text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors font-mono">
+                crownsit.com
+            </a>
         </div>
 
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-3 text-[11px]">
+            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
+                <i class="fa-solid fa-globe text-cyan-400"></i> Website
+            </a>
             <button class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
-                <i class="fa-solid fa-database"></i> Backup
-            </button>
-            <button class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
-                <i class="fa-solid fa-arrows-rotate"></i> Sync
-            </button>
-            <button class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
-                <i class="fa-solid fa-circle-question"></i> Help
+                <i class="fa-solid fa-circle-question"></i> Support
             </button>
             <button class="text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors ml-2 font-medium">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
