@@ -121,6 +121,7 @@
                         <th class="pb-2.5">Date</th>
                         <th class="pb-2.5">Delivered Products & Quantities</th>
                         <th class="pb-2.5 text-right">Delivered Value</th>
+                        <th class="pb-2.5 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/80">
@@ -150,10 +151,23 @@
                         <td class="py-3 text-right font-mono font-bold text-white">
                             ৳ {{ number_format($del->total_delivered_amount, 2) }}
                         </td>
+                        <td class="py-3 text-right">
+                            <form action="{{ route('factory.deliveries.destroy', $del->id) }}" method="POST" 
+                                  onsubmit="return confirm('Cancel and delete Challan \'{{ $del->delivery_number }}\'? This will return delivered quantities back into warehouse stock and restore order pending dues.');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" 
+                                        class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                        title="Cancel Challan & Revert Stock">
+                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-6 text-center text-slate-500">No delivery challans recorded yet.</td>
+                        <td colspan="7" class="py-6 text-center text-slate-500">No delivery challans recorded yet.</td>
                     </tr>
                     @endforelse
                 </tbody>

@@ -28,6 +28,12 @@
         <span>{{ session('success') }}</span>
     </div>
     @endif
+    @if(session('error'))
+    <div class="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
 
     <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
         <div class="flex items-center justify-between mb-4">
@@ -89,16 +95,36 @@
                         <td class="py-3 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 <a href="{{ route('factory.orders.invoice', $ord->id) }}" title="View Invoice"
-                                   class="px-2.5 py-1 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-cyan-300 border border-blue-500/30 text-[11px] font-semibold transition-all">
-                                    <i class="fa-solid fa-file-invoice"></i> Invoice
+                                   class="px-2 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-cyan-300 border border-blue-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-file-invoice text-[10px]"></i>
+                                    <span>Invoice</span>
                                 </a>
 
                                 @if($ord->delivery_status !== 'delivered')
                                 <a href="{{ route('factory.deliveries.create', $ord->id) }}" title="Process Delivery"
-                                   class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold transition-all">
-                                    <i class="fa-solid fa-truck-fast"></i> Deliver
+                                   class="px-2 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-truck-fast text-[10px]"></i>
+                                    <span>Deliver</span>
                                 </a>
                                 @endif
+
+                                <button type="button" 
+                                        onclick="openEditOrderModal({{ json_encode($ord) }})"
+                                        class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                    <span>Edit</span>
+                                </button>
+
+                                <form action="{{ route('factory.orders.destroy', $ord->id) }}" method="POST" 
+                                      onsubmit="return confirm('Delete order \'{{ $ord->order_number }}\'? This will remove the invoice and line items.');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -113,5 +139,86 @@
     </div>
 
 </div>
+
+<!-- EDIT ORDER MODAL (GLASS POPUP) -->
+<div id="editOrderModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-md w-full relative shadow-2xl bg-[#0a1228]/95">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-cyan-400"></i>
+                Edit Order #<span id="modalOrderNumber"></span>
+            </h3>
+            <button type="button" onclick="closeEditOrderModal()" class="text-slate-400 hover:text-white p-1 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="editOrderForm" method="POST" class="space-y-3.5">
+            @csrf
+            @method('PUT')
+
+            <div class="bg-[#070d1e] p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                <span class="text-slate-400">Total Order Amount:</span>
+                <span id="modalTotalAmount" class="text-white font-mono font-bold text-sm"></span>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Paid Amount (৳) *</label>
+                <input type="number" step="0.01" min="0" name="paid_amount" id="edit_paid_amount" required
+                       class="w-full bg-[#070d1e] text-xs font-bold text-emerald-400 rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Delivery Status *</label>
+                <select name="delivery_status" id="edit_delivery_status" required
+                        class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                    <option value="pending">Pending</option>
+                    <option value="partial">Partial</option>
+                    <option value="delivered">Delivered</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Order Notes</label>
+                <textarea name="notes" id="edit_order_notes" rows="2"
+                          class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeEditOrderModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Update Order</span>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function openEditOrderModal(order) {
+        document.getElementById('modalOrderNumber').innerText = order.order_number;
+        document.getElementById('modalTotalAmount').innerText = '৳ ' + parseFloat(order.total_amount).toFixed(2);
+        document.getElementById('edit_paid_amount').value = parseFloat(order.paid_amount).toFixed(2);
+        document.getElementById('edit_delivery_status').value = order.delivery_status;
+        document.getElementById('edit_order_notes').value = order.notes || '';
+        document.getElementById('editOrderForm').action = `/factory/orders/${order.id}`;
+        document.getElementById('editOrderModal').classList.remove('hidden');
+    }
+
+    function closeEditOrderModal() {
+        document.getElementById('editOrderModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEditOrderModal();
+    });
+</script>
 @endsection
 

@@ -19,6 +19,7 @@ Route::prefix('factory')->name('factory.')->group(function () {
     // 2. Units (Dynamic Unit Management)
     Route::get('/units', [FactoryErpController::class, 'unitsIndex'])->name('units.index');
     Route::post('/units', [FactoryErpController::class, 'unitsStore'])->name('units.store');
+    Route::put('/units/{id}', [FactoryErpController::class, 'unitsUpdate'])->name('units.update');
     Route::delete('/units/{id}', [FactoryErpController::class, 'unitsDestroy'])->name('units.destroy');
 
     // 3. Products (Product list, prices, PDF export, edit & delete)
@@ -28,26 +29,33 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::delete('/products/{id}', [FactoryErpController::class, 'productsDestroy'])->name('products.destroy');
     Route::get('/products/pdf', [FactoryErpController::class, 'productsPdf'])->name('products.pdf');
 
-    // 4. Customers & History
+    // 4. Customers & History (with Edit & Delete)
     Route::get('/customers', [FactoryErpController::class, 'customersIndex'])->name('customers.index');
     Route::post('/customers', [FactoryErpController::class, 'customersStore'])->name('customers.store');
     Route::get('/customers/{id}', [FactoryErpController::class, 'customerDetails'])->name('customers.details');
+    Route::put('/customers/{id}', [FactoryErpController::class, 'customersUpdate'])->name('customers.update');
+    Route::delete('/customers/{id}', [FactoryErpController::class, 'customersDestroy'])->name('customers.destroy');
 
-    // 5. Orders & Invoices
+    // 5. Orders & Invoices (with Edit & Delete)
     Route::get('/orders', [FactoryErpController::class, 'ordersIndex'])->name('orders.index');
     Route::get('/orders/create', [FactoryErpController::class, 'ordersCreate'])->name('orders.create');
     Route::post('/orders', [FactoryErpController::class, 'ordersStore'])->name('orders.store');
+    Route::put('/orders/{id}', [FactoryErpController::class, 'ordersUpdate'])->name('orders.update');
+    Route::delete('/orders/{id}', [FactoryErpController::class, 'ordersDestroy'])->name('orders.destroy');
     Route::get('/orders/{id}/invoice', [FactoryErpController::class, 'orderInvoice'])->name('orders.invoice');
     Route::get('/orders/{id}/invoice/pdf', [FactoryErpController::class, 'orderInvoicePdf'])->name('orders.invoice.pdf');
 
-    // 6. Productions (Auto target from orders -> Add stock)
+    // 6. Productions (Auto target from orders -> Add stock, with Edit & Delete)
     Route::get('/productions', [FactoryErpController::class, 'productionsIndex'])->name('productions.index');
     Route::post('/productions', [FactoryErpController::class, 'productionsStore'])->name('productions.store');
+    Route::put('/productions/{id}', [FactoryErpController::class, 'productionsUpdate'])->name('productions.update');
+    Route::delete('/productions/{id}', [FactoryErpController::class, 'productionsDestroy'])->name('productions.destroy');
 
-    // 7. Deliveries (Check stock, warnings, deduct stock, update due)
+    // 7. Deliveries (Check stock, warnings, deduct stock, update due, with Delete/Rollback)
     Route::get('/deliveries', [FactoryErpController::class, 'deliveriesIndex'])->name('deliveries.index');
     Route::get('/deliveries/create/{orderId}', [FactoryErpController::class, 'deliveryCreateForOrder'])->name('deliveries.create');
     Route::post('/deliveries', [FactoryErpController::class, 'deliveryStore'])->name('deliveries.store');
+    Route::delete('/deliveries/{id}', [FactoryErpController::class, 'deliveriesDestroy'])->name('deliveries.destroy');
 
     // 8. Stocks (Auto updated & manual adjustments)
     Route::get('/stocks', [FactoryErpController::class, 'stocksIndex'])->name('stocks.index');

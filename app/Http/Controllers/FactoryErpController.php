@@ -80,9 +80,25 @@ class FactoryErpController extends Controller
         return redirect()->back()->with('success', 'Unit added successfully!');
     }
 
+    public function unitsUpdate(Request $request, $id)
+    {
+        $unit = Unit::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:100|unique:units,name,' . $unit->id,
+            'short_code' => 'nullable|string|max:20'
+        ]);
+
+        $unit->update($validated);
+        return redirect()->back()->with('success', 'Unit updated successfully!');
+    }
+
     public function unitsDestroy($id)
     {
-        Unit::findOrFail($id)->delete();
+        $unit = Unit::findOrFail($id);
+        if ($unit->products()->count() > 0) {
+            return redirect()->back()->with('error', 'Cannot delete unit because it is used by existing products.');
+        }
+        $unit->delete();
         return redirect()->back()->with('success', 'Unit deleted successfully!');
     }
 
@@ -180,6 +196,30 @@ class FactoryErpController extends Controller
 
         Customer::create($validated);
         return redirect()->back()->with('success', 'Customer created successfully!');
+    }
+
+    public function customersUpdate(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'address' => 'nullable|string',
+            'contact_person' => 'nullable|string|max:100'
+        ]);
+
+        $customer->update($validated);
+        return redirect()->back()->with('success', 'Customer details updated successfully!');
+    }
+
+    public function customersDestroy($id)
+    {
+        $customer = Customer::findOrFail($id);
+        if ($customer->orders()->count() > 0) {
+            return redirect()->back()->with('error', "Cannot delete {$customer->company_name} because they have registered orders. Please remove orders first.");
+        }
+        $customer->delete();
+        return redirect()->back()->with('success', 'Customer deleted successfully!');
     }
 
     public function customerDetails($id)
@@ -287,6 +327,45 @@ class FactoryErpController extends Controller
         return $pdf->download('Invoice-' . $order->order_number . '.pdf');
     }
 
+    public function ordersUpdate(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        $validated = $request->validate([
+            'paid_amount' => 'required|numeric|min:0',
+            'delivery_status' => 'required|in:pending,partial,delivered',
+            'notes' => 'nullable|string'
+        ]);
+
+        $order->paid_amount = $validated['paid_amount'];
+        $order->due_amount = max(0, $order->total_amount - $validated['paid_amount']);
+        $order->delivery_status = $validated['delivery_status'];
+        $order->notes = $validated['notes'] ?? null;
+        $order->save();
+
+        return redirect()->back()->with('success', "Order {$order->order_number} updated successfully!");
+    }
+
+    public function ordersDestroy($id)
+    {
+        $order = Order::with('items')->findOrFail($id);
+
+        $deliveredCount = DeliveryItem::whereIn('order_item_id', $order->items->pluck('id'))->count();
+        if ($deliveredCount > 0) {
+            return redirect()->back()->with('error', "Cannot delete order {$order->order_number} because delivery shipments have already been issued. Please delete or rollback deliveries first.");
+        }
+
+        DB::beginTransaction();
+        try {
+            $order->items()->delete();
+            $order->delete();
+            DB::commit();
+            return redirect()->back()->with('success', "Order {$order->order_number} and all items deleted successfully!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error deleting order: ' . $e->getMessage());
+        }
+    }
+
     // ==========================================
     // 6. PRODUCTIONS (Product Live Select -> Auto Target Qty from Orders -> Unit -> Add to Stock)
     // ==========================================
@@ -355,6 +434,85 @@ class FactoryErpController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Error saving production: ' . $e->getMessage());
+        }
+    }
+
+    public function productionsUpdate(Request $request, $id)
+    {
+        $production = Production::with('product.unit')->findOrFail($id);
+        $validated = $request->validate([
+            'production_date' => 'required|date',
+            'target_qty' => 'required|numeric|min:0',
+            'produced_qty' => 'required|numeric|min:1',
+            'notes' => 'nullable|string'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $oldProduced = floatval($production->produced_qty);
+            $newProduced = floatval($validated['produced_qty']);
+            $diff = $newProduced - $oldProduced;
+
+            $production->production_date = $validated['production_date'];
+            $production->target_qty = $validated['target_qty'];
+            $production->produced_qty = $newProduced;
+            $production->notes = $validated['notes'] ?? null;
+            $production->save();
+
+            // Adjust Stock by difference
+            $stock = Stock::firstOrCreate(['product_id' => $production->product_id]);
+            $prevStock = $stock->current_stock;
+            $stock->current_stock += $diff;
+            $stock->total_produced += $diff;
+            $stock->save();
+
+            StockLog::create([
+                'product_id' => $production->product_id,
+                'type' => 'production_edit',
+                'qty' => abs($diff),
+                'previous_stock' => $prevStock,
+                'new_stock' => $stock->current_stock,
+                'reference_id' => 'PROD-' . $production->id,
+                'notes' => 'Production batch updated (Qty diff: ' . ($diff >= 0 ? '+' : '') . $diff . ')'
+            ]);
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Production batch updated and stock adjusted!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error updating production: ' . $e->getMessage());
+        }
+    }
+
+    public function productionsDestroy($id)
+    {
+        $production = Production::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $stock = Stock::where('product_id', $production->product_id)->first();
+            if ($stock) {
+                $prevStock = $stock->current_stock;
+                $stock->current_stock = max(0, $stock->current_stock - $production->produced_qty);
+                $stock->total_produced = max(0, $stock->total_produced - $production->produced_qty);
+                $stock->save();
+
+                StockLog::create([
+                    'product_id' => $production->product_id,
+                    'type' => 'production_delete',
+                    'qty' => $production->produced_qty,
+                    'previous_stock' => $prevStock,
+                    'new_stock' => $stock->current_stock,
+                    'reference_id' => 'PROD-REV-' . $production->id,
+                    'notes' => 'Production batch deleted. Stock reversed.'
+                ]);
+            }
+
+            $production->delete();
+            DB::commit();
+            return redirect()->back()->with('success', 'Production record deleted and inventory reversed!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error deleting production: ' . $e->getMessage());
         }
     }
 
@@ -493,6 +651,69 @@ class FactoryErpController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Error recording delivery: ' . $e->getMessage());
+        }
+    }
+
+    public function deliveriesDestroy($id)
+    {
+        $delivery = Delivery::with(['items.product', 'order.items'])->findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            foreach ($delivery->items as $delItem) {
+                // 1. Return stock to warehouse
+                $stock = Stock::where('product_id', $delItem->product_id)->first();
+                if ($stock) {
+                    $prevStock = $stock->current_stock;
+                    $stock->current_stock += $delItem->qty;
+                    $stock->total_delivered = max(0, $stock->total_delivered - $delItem->qty);
+                    $stock->save();
+
+                    StockLog::create([
+                        'product_id' => $delItem->product_id,
+                        'type' => 'delivery_cancel',
+                        'qty' => $delItem->qty,
+                        'previous_stock' => $prevStock,
+                        'new_stock' => $stock->current_stock,
+                        'reference_id' => 'REV-' . $delivery->delivery_number,
+                        'notes' => 'Delivery cancelled. Stock returned to warehouse.'
+                    ]);
+                }
+
+                // 2. Rollback OrderItem delivered_qty & due_qty
+                $orderItem = OrderItem::find($delItem->order_item_id);
+                if ($orderItem) {
+                    $orderItem->delivered_qty = max(0, $orderItem->delivered_qty - $delItem->qty);
+                    $orderItem->due_qty = max(0, $orderItem->qty - $orderItem->delivered_qty);
+                    $orderItem->save();
+                }
+            }
+
+            // 3. Re-evaluate order delivery status
+            if ($delivery->order) {
+                $order = $delivery->order;
+                $totalDelivered = $order->items()->sum('delivered_qty');
+                $totalDue = $order->items()->sum('due_qty');
+
+                if ($totalDelivered == 0) {
+                    $order->delivery_status = 'pending';
+                } elseif ($totalDue == 0) {
+                    $order->delivery_status = 'delivered';
+                } else {
+                    $order->delivery_status = 'partial';
+                }
+                $order->save();
+            }
+
+            // 4. Delete delivery items and delivery
+            $delivery->items()->delete();
+            $delivery->delete();
+
+            DB::commit();
+            return redirect()->back()->with('success', "Delivery Challan {$delivery->delivery_number} deleted! Stock returned to warehouse and order dues restored.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error deleting delivery: ' . $e->getMessage());
         }
     }
 
