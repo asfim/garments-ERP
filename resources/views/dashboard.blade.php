@@ -1416,7 +1416,7 @@
 
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-3 text-[11px]">
-            <a href="https://crownsit.com" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
+            <a href="#" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
                 <i class="fa-solid fa-globe text-cyan-400"></i> Website
             </a>
             <button class="hover:text-cyan-400 flex items-center gap-1 transition-colors">
