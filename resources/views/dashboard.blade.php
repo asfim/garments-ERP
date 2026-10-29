@@ -143,26 +143,95 @@
             animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
-        /* Custom Gradients for KPI Cards */
-        .kpi-blue {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(30, 58, 138, 0.5));
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            box-shadow: 0 0 20px -3px rgba(14, 165, 233, 0.3);
+        /* Ultra-Realistic 3D Glowing Glassmorphism KPI Cards (Exact replica of Reference Image) */
+        .kpi-exact-card {
+            position: relative;
+            border-radius: 18px;
+            padding: 16px 18px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .kpi-green {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(6, 78, 59, 0.5));
-            border: 1px solid rgba(52, 211, 153, 0.4);
-            box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.3);
+        .kpi-exact-card:hover {
+            transform: translateY(-4px);
         }
-        .kpi-purple {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(88, 28, 135, 0.5));
-            border: 1px solid rgba(192, 132, 252, 0.4);
-            box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.3);
+
+        /* Glass top highlight sheen */
+        .kpi-exact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 17px 17px 60px 60px;
+            pointer-events: none;
+            z-index: 1;
         }
-        .kpi-amber {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.4), rgba(120, 53, 15, 0.5));
-            border: 1px solid rgba(251, 191, 36, 0.4);
-            box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.3);
+
+        /* 1. BLUE CARD - Total Sales */
+        .kpi-exact-blue {
+            background: linear-gradient(135deg, #0264d8 0%, #0382f7 40%, #014ca5 100%);
+            border: 1.5px solid rgba(125, 211, 252, 0.65);
+            box-shadow: 0 10px 25px -4px rgba(2, 132, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .kpi-exact-blue:hover {
+            box-shadow: 0 14px 32px 0 rgba(2, 132, 247, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .kpi-orb-blue {
+            background: radial-gradient(circle at 35% 30%, #5eead4 0%, #0ea5e9 45%, #0369a1 90%);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 18px rgba(14, 165, 233, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 2. GREEN CARD - Total Purchase */
+        .kpi-exact-green {
+            background: linear-gradient(135deg, #059669 0%, #10b981 40%, #047857 100%);
+            border: 1.5px solid rgba(110, 231, 183, 0.65);
+            box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .kpi-exact-green:hover {
+            box-shadow: 0 14px 32px 0 rgba(16, 185, 129, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .kpi-orb-green {
+            background: radial-gradient(circle at 35% 30%, #a7f3d0 0%, #34d399 45%, #059669 90%);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 18px rgba(52, 211, 153, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 3. PURPLE CARD - Total Due */
+        .kpi-exact-purple {
+            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 40%, #6b21a8 100%);
+            border: 1.5px solid rgba(216, 180, 254, 0.65);
+            box-shadow: 0 10px 25px -4px rgba(147, 51, 234, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .kpi-exact-purple:hover {
+            box-shadow: 0 14px 32px 0 rgba(147, 51, 234, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .kpi-orb-purple {
+            background: radial-gradient(circle at 35% 30%, #f3e8ff 0%, #c084fc 45%, #7e22ce 90%);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 18px rgba(192, 132, 252, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 4. AMBER / ORANGE CARD - Total Stock Value */
+        .kpi-exact-amber {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 40%, #b45309 100%);
+            border: 1.5px solid rgba(253, 230, 138, 0.7);
+            box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .kpi-exact-amber:hover {
+            box-shadow: 0 14px 32px 0 rgba(245, 158, 11, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.85);
+        }
+        .kpi-orb-amber {
+            background: radial-gradient(circle at 35% 30%, #fef3c7 0%, #fbbf24 45%, #d97706 90%);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
@@ -542,71 +611,105 @@
                             </div>
                         </div>
 
-                        <!-- 4 GLOWING KPI CARDS -->
+                        <!-- 4 GLOWING KPI CARDS (EXACT REPLICA OF REFERENCE IMAGE) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 relative z-10">
                         
-                        <!-- 1. Total Sales (Today) -->
-                        <div class="kpi-blue rounded-2xl p-4 flex items-center justify-between relative overflow-hidden backdrop-blur-xl">
-                            <div class="space-y-1">
-                                <p class="text-[11px] font-semibold text-cyan-200 uppercase tracking-wider">Total Sales (Today)</p>
-                                <h3 class="text-xl lg:text-2xl font-black text-white">৳ 2,45,680</h3>
-                                <p class="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                    <span>+ 12%</span>
-                                    <span class="text-slate-300 font-normal text-[10px]">vs yesterday</span>
-                                </p>
+                        <!-- 1. Total Sales (Today) - Vibrant Deep Blue Card -->
+                        <div class="kpi-exact-card kpi-exact-blue">
+                            <!-- Left: 3D Glossy Sphere Icon -->
+                            <div class="relative z-10 flex-shrink-0">
+                                <div class="w-14 h-14 rounded-full kpi-orb-blue flex items-center justify-center text-white text-xl shadow-lg">
+                                    <i class="fa-solid fa-cart-shopping drop-shadow-md"></i>
+                                </div>
                             </div>
-                            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-xl shadow-lg shadow-cyan-500/30">
-                                <i class="fa-solid fa-cart-shopping"></i>
+                            <!-- Right: Value & Details -->
+                            <div class="relative z-10 text-right flex-1 pl-3">
+                                <p class="text-[11px] font-semibold text-cyan-100 tracking-wide">Total Sales (Today)</p>
+                                <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 2,45,680</h3>
+                                <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-emerald-300">
+                                    <span>↑ 12%</span>
+                                    <!-- Mini 3-bar chart icon -->
+                                    <span class="inline-flex items-end gap-0.5 h-3 ml-1">
+                                        <span class="w-1 h-1.5 bg-emerald-300 rounded-sm"></span>
+                                        <span class="w-1 h-2.5 bg-emerald-300 rounded-sm"></span>
+                                        <span class="w-1 h-3.5 bg-emerald-300 rounded-sm"></span>
+                                    </span>
+                                </div>
                             </div>
+                            <!-- Corner decorative notch -->
+                            <span class="absolute bottom-1.5 left-2 text-[9px] text-white/30 font-mono select-none">◣</span>
                         </div>
 
-                        <!-- 2. Total Purchase (Today) -->
-                        <div class="kpi-green rounded-2xl p-4 flex items-center justify-between relative overflow-hidden backdrop-blur-xl">
-                            <div class="space-y-1">
-                                <p class="text-[11px] font-semibold text-emerald-200 uppercase tracking-wider">Total Purchase (Today)</p>
-                                <h3 class="text-xl lg:text-2xl font-black text-white">৳ 1,60,430</h3>
-                                <p class="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                    <span>+ 8%</span>
-                                    <span class="text-slate-300 font-normal text-[10px]">raw fabric</span>
-                                </p>
+                        <!-- 2. Total Purchase (Today) - Vibrant Emerald Green Card -->
+                        <div class="kpi-exact-card kpi-exact-green">
+                            <!-- Left: 3D Glossy Sphere Icon -->
+                            <div class="relative z-10 flex-shrink-0">
+                                <div class="w-14 h-14 rounded-full kpi-orb-green flex items-center justify-center text-white text-xl shadow-lg">
+                                    <i class="fa-solid fa-cart-plus drop-shadow-md"></i>
+                                </div>
                             </div>
-                            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 text-xl shadow-lg shadow-emerald-500/30">
-                                <i class="fa-solid fa-truck-ramp-box"></i>
+                            <!-- Right: Value & Details -->
+                            <div class="relative z-10 text-right flex-1 pl-3">
+                                <p class="text-[11px] font-semibold text-emerald-100 tracking-wide">Total Purchase (Today)</p>
+                                <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 1,60,430</h3>
+                                <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-emerald-200">
+                                    <span>↑ 8%</span>
+                                    <span class="inline-flex items-end gap-0.5 h-3 ml-1">
+                                        <span class="w-1 h-1.5 bg-emerald-200 rounded-sm"></span>
+                                        <span class="w-1 h-2 bg-emerald-200 rounded-sm"></span>
+                                        <span class="w-1 h-3 bg-emerald-200 rounded-sm"></span>
+                                    </span>
+                                </div>
                             </div>
+                            <span class="absolute bottom-1.5 left-2 text-[9px] text-white/30 font-mono select-none">◣</span>
                         </div>
 
-                        <!-- 3. Total Due (Customer) -->
-                        <div class="kpi-purple rounded-2xl p-4 flex items-center justify-between relative overflow-hidden backdrop-blur-xl">
-                            <div class="space-y-1">
-                                <p class="text-[11px] font-semibold text-purple-200 uppercase tracking-wider">Total Due (Customer)</p>
-                                <h3 class="text-xl lg:text-2xl font-black text-white">৳ 95,240</h3>
-                                <p class="text-[11px] font-bold text-rose-300 flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-trend-down"></i>
+                        <!-- 3. Total Due (Customer) - Vibrant Royal Purple Card -->
+                        <div class="kpi-exact-card kpi-exact-purple">
+                            <!-- Left: 3D Glossy Sphere Icon -->
+                            <div class="relative z-10 flex-shrink-0">
+                                <div class="w-14 h-14 rounded-full kpi-orb-purple flex items-center justify-center text-white text-xl shadow-lg">
+                                    <i class="fa-solid fa-user drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Right: Value & Details -->
+                            <div class="relative z-10 text-right flex-1 pl-3">
+                                <p class="text-[11px] font-semibold text-purple-100 tracking-wide">Total Due (Customer)</p>
+                                <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 95,240</h3>
+                                <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-rose-300">
                                     <span>↓ 5%</span>
-                                    <span class="text-slate-300 font-normal text-[10px]">collected</span>
-                                </p>
+                                    <span class="inline-flex items-end gap-0.5 h-3 ml-1">
+                                        <span class="w-1 h-3 bg-purple-200 rounded-sm"></span>
+                                        <span class="w-1 h-2 bg-purple-200 rounded-sm"></span>
+                                        <span class="w-1 h-1 bg-purple-200 rounded-sm"></span>
+                                    </span>
+                                </div>
                             </div>
-                            <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300 text-xl shadow-lg shadow-purple-500/30">
-                                <i class="fa-solid fa-user-clock"></i>
-                            </div>
+                            <span class="absolute bottom-1.5 left-2 text-[9px] text-white/30 font-mono select-none">◣</span>
                         </div>
 
-                        <!-- 4. Total Stock Value -->
-                        <div class="kpi-amber rounded-2xl p-4 flex items-center justify-between relative overflow-hidden backdrop-blur-xl">
-                            <div class="space-y-1">
-                                <p class="text-[11px] font-semibold text-amber-200 uppercase tracking-wider">Total Stock Value</p>
-                                <h3 class="text-xl lg:text-2xl font-black text-white">৳ 12,560</h3>
-                                <p class="text-[11px] font-bold text-amber-300 flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                    <span>+ 3%</span>
-                                    <span class="text-slate-300 font-normal text-[10px]">items updated</span>
-                                </p>
+                        <!-- 4. Total Stock Value - Vibrant Warm Amber / Orange Card -->
+                        <div class="kpi-exact-card kpi-exact-amber">
+                            <!-- Left: 3D Glossy Sphere Icon -->
+                            <div class="relative z-10 flex-shrink-0">
+                                <div class="w-14 h-14 rounded-full kpi-orb-amber flex items-center justify-center text-white text-xl shadow-lg">
+                                    <i class="fa-solid fa-box-open drop-shadow-md"></i>
+                                </div>
                             </div>
-                            <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-xl shadow-lg shadow-amber-500/30">
-                                <i class="fa-solid fa-boxes-packing"></i>
+                            <!-- Right: Value & Details -->
+                            <div class="relative z-10 text-right flex-1 pl-3">
+                                <p class="text-[11px] font-semibold text-amber-100 tracking-wide">Total Stock Value</p>
+                                <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 12,560</h3>
+                                <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-amber-200">
+                                    <span>↑ 3%</span>
+                                    <span class="inline-flex items-end gap-0.5 h-3 ml-1">
+                                        <span class="w-1 h-1 bg-amber-200 rounded-sm"></span>
+                                        <span class="w-1 h-2 bg-amber-200 rounded-sm"></span>
+                                        <span class="w-1 h-3 bg-amber-200 rounded-sm"></span>
+                                    </span>
+                                </div>
                             </div>
+                            <span class="absolute bottom-1.5 left-2 text-[9px] text-white/30 font-mono select-none">◣</span>
                         </div>
 
                     </div> <!-- /KPI grid -->
