@@ -469,38 +469,81 @@
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
                 
                 <!-- Welcome Banner (Factory Showcase) -->
-                <div class="xl:col-span-12 relative overflow-hidden rounded-3xl glass-panel border border-slate-700/60 p-6 shadow-2xl">
-                    <!-- Background Visual with Factory Aesthetic & Glow -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-[#070e24] via-[#091538]/90 to-transparent z-10"></div>
-                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1600&auto=format&fit=crop&q=80" 
-                         alt="Factory Background" class="absolute inset-0 w-full h-full object-cover object-right opacity-30 mix-blend-luminosity">
+                <div class="xl:col-span-12 relative overflow-hidden rounded-3xl glass-panel border border-slate-700/60 shadow-2xl" style="min-height: 220px;">
                     
-                    <div class="relative z-20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                                    Live Factory Monitoring
-                                </span>
-                                <span class="text-xs text-slate-400">Turkey Bangla Garments Head Office</span>
+                    <!-- === PANORAMIC FUTURISTIC CITY/FACTORY BACKGROUND === -->
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1800&auto=format&fit=crop&q=85" 
+                         alt="City Skyline" class="absolute inset-0 w-full h-full object-cover object-center opacity-50">
+                    
+                    <!-- Gradient overlays for depth -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#060b1d]/95 via-[#070e24]/80 to-[#0a1535]/50 z-[1]"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#060b1d]/90 via-transparent to-transparent z-[2]"></div>
+
+                    <!-- Neon glow accents -->
+                    <div class="absolute top-0 left-1/4 w-72 h-40 bg-cyan-500/10 rounded-full blur-3xl z-[3] pointer-events-none"></div>
+                    <div class="absolute bottom-0 right-1/4 w-72 h-40 bg-indigo-500/10 rounded-full blur-3xl z-[3] pointer-events-none"></div>
+                    
+                    <!-- === MAIN CONTENT LAYER === -->
+                    <div class="relative z-10 p-6">
+                        
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <!-- LEFT: Welcome Text -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                        Live Factory Monitoring
+                                    </span>
+                                    <span class="text-[11px] text-slate-400/80">Turkey Bangla Garments Head Office</span>
+                                </div>
+                                <p class="text-sm text-slate-400 font-medium">Welcome Back,</p>
+                                <h2 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight mt-0.5">
+                                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Kazi Jahidur Rahman</span>
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-1.5 max-w-md leading-relaxed">
+                                    Here's what's happening with your business today.
+                                </p>
                             </div>
-                            <h2 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-                                Welcome Back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Kazi Jahidur Rahman</span>
-                            </h2>
-                            <p class="text-xs lg:text-sm text-slate-300 mt-1 max-w-xl">
-                                Here's what's happening with your business today. All garment production lines and packaging units are operating at optimal capacity.
-                            </p>
+
+                            <!-- RIGHT: TBG Logo Circle + Calligraphy Motto (exactly like reference image) -->
+                            <div class="hidden lg:flex items-center gap-5 pr-4">
+                                
+                                <!-- TBG 3D Glowing Logo Circle -->
+                                <div class="relative flex-shrink-0">
+                                    <!-- Outer glow ring -->
+                                    <div class="absolute -inset-3 rounded-full bg-gradient-to-tr from-cyan-500/25 via-blue-500/20 to-indigo-500/25 blur-lg animate-pulse"></div>
+                                    
+                                    <div class="relative w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-700 p-[2.5px] shadow-xl shadow-cyan-500/30 ring-2 ring-cyan-400/20 ring-offset-2 ring-offset-[#0a1535]">
+                                        <div class="w-full h-full rounded-full bg-[#0a1128] flex items-center justify-center">
+                                            <span class="text-lg font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-indigo-400">TBG</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Decorative orbit dots -->
+                                    <div class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/60"></div>
+                                    <div class="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-lg shadow-indigo-400/60"></div>
+                                </div>
+
+                                <!-- Calligraphy Motto Text (italic handwritten style) -->
+                                <div class="text-right">
+                                    <p class="text-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-blue-300 leading-tight" style="font-family: 'Georgia', 'Times New Roman', serif;">
+                                        Quality Fashion
+                                    </p>
+                                    <p class="text-base italic text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-purple-300 leading-tight" style="font-family: 'Georgia', 'Times New Roman', serif;">
+                                        For a Better Tomorrow
+                                    </p>
+                                    <div class="mt-2 flex items-center justify-end gap-1.5">
+                                        <span class="w-8 h-[1px] bg-gradient-to-r from-transparent to-cyan-400/60"></span>
+                                        <span class="text-[9px] font-semibold uppercase tracking-[0.25em] text-cyan-400/60">Turkey Bangla Garments</span>
+                                        <span class="w-8 h-[1px] bg-gradient-to-l from-transparent to-cyan-400/60"></span>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
 
-                        <!-- Right badge in banner -->
-                        <div class="hidden lg:flex flex-col items-end justify-center px-5 py-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 backdrop-blur-md">
-                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Garments Quality Motto</span>
-                            <span class="text-sm font-bold text-cyan-300 italic">"Quality Fashion For a Better Tomorrow"</span>
-                        </div>
-                    </div>
-
-                    <!-- 4 GLOWING KPI CARDS -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 relative z-20">
+                        <!-- 4 GLOWING KPI CARDS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 relative z-10">
                         
                         <!-- 1. Total Sales (Today) -->
                         <div class="kpi-blue rounded-2xl p-4 flex items-center justify-between relative overflow-hidden backdrop-blur-xl">
@@ -566,8 +609,9 @@
                             </div>
                         </div>
 
-                    </div>
-                </div>
+                    </div> <!-- /KPI grid -->
+                    </div> <!-- /p-6 content wrapper -->
+                </div> <!-- /banner -->
 
             </div>
 
