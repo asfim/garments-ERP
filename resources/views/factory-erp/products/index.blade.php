@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-boxes-stacked text-cyan-400"></i>
                 Product List
             </h2>
-            <p class="text-xs text-slate-400">Products with dynamic units, production cost & selling prices</p>
+            <p class="text-xs text-slate-400">Manage products, dynamic units, costs, prices with instant Edit & Delete</p>
         </div>
 
         <div class="flex items-center gap-2.5">
@@ -98,7 +98,7 @@
             </form>
         </div>
 
-        <!-- Right: Product List Table -->
+        <!-- Right: Product List Table with Edit & Delete -->
         <div class="lg:col-span-8 glass-panel rounded-3xl p-5 border border-slate-700/60">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-bold text-white">Registered Products</h3>
@@ -114,7 +114,8 @@
                             <th class="pb-2.5">Unit</th>
                             <th class="pb-2.5 text-right">Production Cost</th>
                             <th class="pb-2.5 text-right">Selling Price</th>
-                            <th class="pb-2.5 text-right">Current Stock</th>
+                            <th class="pb-2.5 text-right">Stock</th>
+                            <th class="pb-2.5 text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/80">
@@ -143,10 +144,34 @@
                                     {{ number_format($prod->current_stock) }} {{ $prod->unit->short_code ?? '' }}
                                 </span>
                             </td>
+                            <td class="py-3 text-right">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <!-- Edit Button (Opens Modal) -->
+                                    <button type="button" 
+                                            onclick="openEditProductModal({{ json_encode($prod) }})"
+                                            class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                        <span>Edit</span>
+                                    </button>
+
+                                    <!-- Delete Button Form -->
+                                    <form action="{{ route('factory.products.destroy', $prod->id) }}" method="POST" 
+                                          onsubmit="return confirm('Are you sure you want to delete \'{{ $prod->name }}\'? This will remove associated stock and records.');" 
+                                          class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="py-6 text-center text-slate-500">No products created yet.</td>
+                            <td colspan="7" class="py-6 text-center text-slate-500">No products created yet.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -157,4 +182,99 @@
     </div>
 
 </div>
+
+<!-- EDIT PRODUCT MODAL (GLASS POPUP) -->
+<div id="editProductModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-lg w-full relative shadow-2xl bg-[#0a1228]/95">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-cyan-400"></i>
+                Edit Product Details
+            </h3>
+            <button type="button" onclick="closeEditProductModal()" class="text-slate-400 hover:text-white p-1 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="editProductForm" method="POST" class="space-y-3.5">
+            @csrf
+            @method('PUT')
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
+                <input type="text" name="name" id="edit_name" required
+                       class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Measurement Unit *</label>
+                <select name="unit_id" id="edit_unit_id" required
+                        class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                    @foreach($units as $unit)
+                        <option value="{{ $unit->id }}">{{ $unit->name }} ({{ $unit->short_code }})</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Production Price (৳) *</label>
+                    <input type="number" step="0.01" name="production_price" id="edit_production_price" required
+                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Selling Price (৳) *</label>
+                    <input type="number" step="0.01" name="sell_price" id="edit_sell_price" required
+                           class="w-full bg-[#070d1e] text-xs text-cyan-300 font-bold rounded-xl px-3 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Description</label>
+                <textarea name="description" id="edit_description" rows="2"
+                          class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeEditProductModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Update Product</span>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function openEditProductModal(product) {
+        document.getElementById('edit_name').value = product.name;
+        document.getElementById('edit_unit_id').value = product.unit_id;
+        document.getElementById('edit_production_price').value = parseFloat(product.production_price).toFixed(2);
+        document.getElementById('edit_sell_price').value = parseFloat(product.sell_price).toFixed(2);
+        document.getElementById('edit_description').value = product.description || '';
+
+        const form = document.getElementById('editProductForm');
+        form.action = `/factory/products/${product.id}`;
+
+        document.getElementById('editProductModal').classList.remove('hidden');
+    }
+
+    function closeEditProductModal() {
+        document.getElementById('editProductModal').classList.add('hidden');
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeEditProductModal();
+        }
+    });
+</script>
 @endsection

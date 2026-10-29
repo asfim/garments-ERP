@@ -8,3 +8,4 @@ class CompanySetting extends Model
 {
     protected $guarded = [];
 }
+

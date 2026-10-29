@@ -23,3 +23,4 @@ class Delivery extends Model
         return $this->hasMany(DeliveryItem::class);
     }
 }
+

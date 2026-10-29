@@ -18,3 +18,4 @@ class Production extends Model
         return $this->belongsTo(Unit::class);
     }
 }
+

@@ -21,9 +21,11 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::post('/units', [FactoryErpController::class, 'unitsStore'])->name('units.store');
     Route::delete('/units/{id}', [FactoryErpController::class, 'unitsDestroy'])->name('units.destroy');
 
-    // 3. Products (Product list, prices, PDF export)
+    // 3. Products (Product list, prices, PDF export, edit & delete)
     Route::get('/products', [FactoryErpController::class, 'productsIndex'])->name('products.index');
     Route::post('/products', [FactoryErpController::class, 'productsStore'])->name('products.store');
+    Route::put('/products/{id}', [FactoryErpController::class, 'productsUpdate'])->name('products.update');
+    Route::delete('/products/{id}', [FactoryErpController::class, 'productsDestroy'])->name('products.destroy');
     Route::get('/products/pdf', [FactoryErpController::class, 'productsPdf'])->name('products.pdf');
 
     // 4. Customers & History

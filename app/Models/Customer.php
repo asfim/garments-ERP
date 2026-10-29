@@ -33,3 +33,4 @@ class Customer extends Model
         return $this->orders()->sum('due_amount');
     }
 }
+

@@ -121,6 +121,32 @@ class FactoryErpController extends Controller
         return redirect()->back()->with('success', 'Product added successfully with stock tracking!');
     }
 
+    public function productsUpdate(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'unit_id' => 'required|exists:units,id',
+            'production_price' => 'required|numeric|min:0',
+            'sell_price' => 'required|numeric|min:0',
+            'description' => 'nullable|string'
+        ]);
+
+        $product->update($validated);
+
+        return redirect()->back()->with('success', "Product '{$product->name}' updated successfully!");
+    }
+
+    public function productsDestroy($id)
+    {
+        $product = Product::findOrFail($id);
+        $name = $product->name;
+        $product->delete();
+
+        return redirect()->back()->with('success', "Product '{$name}' deleted successfully!");
+    }
+
     public function productsPdf()
     {
         $products = Product::with('unit')->get();
@@ -527,3 +553,4 @@ class FactoryErpController extends Controller
         return redirect()->back()->with('success', "Stock for {$product->name} manually updated!");
     }
 }
+

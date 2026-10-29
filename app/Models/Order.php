@@ -23,3 +23,4 @@ class Order extends Model
         return $this->hasMany(Delivery::class);
     }
 }
+

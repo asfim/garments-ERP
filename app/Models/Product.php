@@ -33,3 +33,4 @@ class Product extends Model
         return $this->stock ? $this->stock->current_stock : 0;
     }
 }
+
