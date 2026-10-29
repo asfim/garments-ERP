@@ -228,12 +228,6 @@
                     <span class="text-[10px] text-slate-400" id="liveDay">Monday</span>
                 </div>
 
-                <!-- Language Toggle -->
-                <div class="flex items-center bg-[#0a1228] border border-slate-700/60 rounded-xl p-0.5 text-[11px] font-medium">
-                    <button class="px-2 py-1 rounded-lg bg-blue-600/30 text-cyan-300 font-semibold border border-blue-500/30">বাংলা</button>
-                    <button class="px-2 py-1 rounded-lg text-slate-400 hover:text-white">English</button>
-                </div>
-
                 <!-- Day/Night Toggle -->
                 <div class="hidden sm:flex items-center bg-[#0a1228] border border-slate-700/60 rounded-xl p-0.5 text-[11px]">
                     <button class="px-2 py-1 text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-regular fa-sun text-[10px]"></i> Day</button>
@@ -876,7 +870,7 @@
                                         <td class="py-2.5">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
                                         </td>
-                                        <td class="py-2.5 text-right text-slate-400">20 Apr 11:02 AM</td>
+                                        <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-1"></span></td>
                                     </tr>
                                     <tr class="hover:bg-slate-800/40 transition-colors">
                                         <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0011</td>
@@ -885,7 +879,7 @@
                                         <td class="py-2.5">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Due</span>
                                         </td>
-                                        <td class="py-2.5 text-right text-slate-400">20 Apr 09:45 AM</td>
+                                        <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-2"></span></td>
                                     </tr>
                                     <tr class="hover:bg-slate-800/40 transition-colors">
                                         <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0010</td>
@@ -894,7 +888,7 @@
                                         <td class="py-2.5">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
                                         </td>
-                                        <td class="py-2.5 text-right text-slate-400">19 Apr 04:32 PM</td>
+                                        <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-28"></span></td>
                                     </tr>
                                     <tr class="hover:bg-slate-800/40 transition-colors">
                                         <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0009</td>
@@ -903,7 +897,7 @@
                                         <td class="py-2.5">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">Processing</span>
                                         </td>
-                                        <td class="py-2.5 text-right text-slate-400">19 Apr 02:17 PM</td>
+                                        <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-30"></span></td>
                                     </tr>
                                     <tr class="hover:bg-slate-800/40 transition-colors">
                                         <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0008</td>
@@ -912,7 +906,7 @@
                                         <td class="py-2.5">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
                                         </td>
-                                        <td class="py-2.5 text-right text-slate-400">19 Apr 11:20 AM</td>
+                                        <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-33"></span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1220,9 +1214,9 @@
                             </div>
 
                             <div class="text-right">
-                                <span class="text-sm font-bold text-cyan-300 font-mono">11:24 AM</span>
-                                <p class="text-[11px] text-slate-300">20 Apr 2026</p>
-                                <p class="text-[10px] text-slate-400">Monday</p>
+                                <span class="text-sm font-bold text-cyan-300 font-mono" id="weatherTime"></span>
+                                <p class="text-[11px] text-slate-300" id="weatherDate"></p>
+                                <p class="text-[10px] text-slate-400" id="weatherDay"></p>
                             </div>
                         </div>
 
@@ -1266,7 +1260,7 @@
                 <span>System Online</span>
             </div>
             <span class="text-slate-600">•</span>
-            <span>Last Sync: <span class="text-slate-200 font-mono">20 Apr 2026 11:20 AM</span></span>
+            <span>Last Sync: <span class="text-slate-200 font-mono" id="lastSyncTime"></span></span>
             <span class="text-slate-600">•</span>
             <span>Branch: <span class="text-cyan-300 font-medium">TNG-001 (Tongi Head Branch)</span></span>
         </div>
@@ -1289,9 +1283,71 @@
 
     </footer>
 
-    <!-- INTERACTION LOGIC (MODE SWITCHER + CHARTS) -->
+    <!-- INTERACTION LOGIC (MODE SWITCHER + CHARTS + LIVE CLOCK) -->
     <script>
-        // FUNCTION: Switch ERP Mode between 'package' and 'factory'
+        // ========== DATE/TIME HELPER FUNCTIONS ==========
+        const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+        function formatDate(d) {
+            return d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()] + ' ' + d.getFullYear();
+        }
+        function formatTime12(d) {
+            let h = d.getHours(), m = d.getMinutes();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return h + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+        }
+        function formatDateTime(d) {
+            return formatDate(d) + ' | ' + formatTime12(d);
+        }
+        function formatShortDateTime(d) {
+            return d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()] + ' ' + formatTime12(d);
+        }
+        function getLast7DayLabels() {
+            const labels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                labels.push(d.getDate() + ' ' + MONTHS_SHORT[d.getMonth()]);
+            }
+            return labels;
+        }
+
+        // ========== LIVE CLOCK (updates every second) ==========
+        function updateLiveClock() {
+            const now = new Date();
+
+            // Header date/time
+            const headerDT = document.getElementById('liveDateTime');
+            const headerDay = document.getElementById('liveDay');
+            if (headerDT) headerDT.textContent = formatDateTime(now);
+            if (headerDay) headerDay.textContent = DAYS_FULL[now.getDay()];
+
+            // Weather widget date/time
+            const wTime = document.getElementById('weatherTime');
+            const wDate = document.getElementById('weatherDate');
+            const wDay = document.getElementById('weatherDay');
+            if (wTime) wTime.textContent = formatTime12(now);
+            if (wDate) wDate.textContent = formatDate(now);
+            if (wDay) wDay.textContent = DAYS_FULL[now.getDay()];
+
+            // Footer last sync
+            const lastSync = document.getElementById('lastSyncTime');
+            if (lastSync) lastSync.textContent = formatDate(now) + ' ' + formatTime12(now);
+        }
+
+        // ========== POPULATE ORDER TABLE DATES ==========
+        function populateOrderDates() {
+            document.querySelectorAll('.live-date-today-time').forEach(el => {
+                const offsetHours = parseInt(el.dataset.offsetHours || '0');
+                const d = new Date();
+                d.setHours(d.getHours() + offsetHours);
+                el.textContent = formatShortDateTime(d);
+            });
+        }
+
+        // ========== ERP MODE SWITCHER ==========
         function switchErpMode(mode) {
             const btnPackage = document.getElementById('btnPackageERP');
             const btnFactory = document.getElementById('btnFactoryERP');
@@ -1301,53 +1357,48 @@
             const modeIcon = document.getElementById('currentModeIcon');
 
             if (mode === 'package') {
-                // Activate Package Button
                 btnPackage.classList.add('active');
                 btnFactory.classList.remove('active');
-
-                // Switch Sidebar Menus
                 packageMenu.classList.remove('hidden');
                 factoryMenu.classList.add('hidden');
-
-                // Update Indicator
                 modeLabel.innerText = 'Package ERP Mode';
                 modeLabel.className = 'text-[11px] font-bold text-cyan-300 uppercase tracking-wider';
                 modeIcon.className = 'fa-solid fa-box-open text-xs text-cyan-400';
-
                 localStorage.setItem('tbg_erp_mode', 'package');
             } else {
-                // Activate Factory Button
                 btnFactory.classList.add('active');
                 btnPackage.classList.remove('active');
-
-                // Switch Sidebar Menus
                 factoryMenu.classList.remove('hidden');
                 packageMenu.classList.add('hidden');
-
-                // Update Indicator
                 modeLabel.innerText = 'Factory ERP Mode';
                 modeLabel.className = 'text-[11px] font-bold text-blue-300 uppercase tracking-wider';
                 modeIcon.className = 'fa-solid fa-industry text-xs text-blue-400';
-
                 localStorage.setItem('tbg_erp_mode', 'factory');
             }
         }
 
-        // Initialize mode from localStorage (default: factory)
+        // ========== INIT ON DOM READY ==========
         document.addEventListener('DOMContentLoaded', () => {
+            // Restore ERP mode
             const savedMode = localStorage.getItem('tbg_erp_mode') || 'factory';
             switchErpMode(savedMode);
+
+            // Start live clock
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
+            // Set order dates
+            populateOrderDates();
 
             // Initialize Charts
             initSalesOverviewChart();
             initCategoryDonutChart();
         });
 
-        // 1. Sales Overview Line / Area Chart
+        // ========== 1. Sales Overview Area Chart ==========
         function initSalesOverviewChart() {
             const ctx = document.getElementById('salesOverviewChart').getContext('2d');
             
-            // Gradient fill
             const gradient = ctx.createLinearGradient(0, 0, 0, 220);
             gradient.addColorStop(0, 'rgba(14, 165, 233, 0.45)');
             gradient.addColorStop(1, 'rgba(14, 165, 233, 0.01)');
@@ -1355,7 +1406,7 @@
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['14 Apr', '15 Apr', '16 Apr', '17 Apr', '18 Apr', '19 Apr', '20 Apr'],
+                    labels: getLast7DayLabels(),
                     datasets: [{
                         label: 'Sales (৳)',
                         data: [120000, 190000, 165000, 230000, 210000, 280000, 245680],
@@ -1410,7 +1461,7 @@
             });
         }
 
-        // 2. Category Donut Chart
+        // ========== 2. Category Donut Chart ==========
         function initCategoryDonutChart() {
             const ctx = document.getElementById('categoryDonutChart').getContext('2d');
             new Chart(ctx, {
@@ -1420,11 +1471,11 @@
                     datasets: [{
                         data: [32, 24, 15, 12, 17],
                         backgroundColor: [
-                            '#38bdf8', // Cyan
-                            '#c084fc', // Purple
-                            '#3b82f6', // Blue
-                            '#34d399', // Emerald
-                            '#f472b6'  // Pink
+                            '#38bdf8',
+                            '#c084fc',
+                            '#3b82f6',
+                            '#34d399',
+                            '#f472b6'
                         ],
                         borderWidth: 0,
                         hoverOffset: 4
@@ -1453,3 +1504,4 @@
     </script>
 </body>
 </html>
+
