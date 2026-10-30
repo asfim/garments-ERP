@@ -101,13 +101,21 @@ function initSalesOverviewChart() {
     gradient.addColorStop(0, 'rgba(14, 165, 233, 0.45)');
     gradient.addColorStop(1, 'rgba(14, 165, 233, 0.01)');
 
+    const labels = (window.ERP_DASHBOARD && window.ERP_DASHBOARD.chartDates && window.ERP_DASHBOARD.chartDates.length) 
+        ? window.ERP_DASHBOARD.chartDates 
+        : getLast7DayLabels();
+
+    const data = (window.ERP_DASHBOARD && window.ERP_DASHBOARD.chartSales && window.ERP_DASHBOARD.chartSales.length) 
+        ? window.ERP_DASHBOARD.chartSales 
+        : [0, 0, 0, 0, 0, 0, 0];
+
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: getLast7DayLabels(),
+            labels: labels,
             datasets: [{
                 label: 'Sales (৳)',
-                data: [120000, 190000, 165000, 230000, 210000, 280000, 245680],
+                data: data,
                 borderColor: '#00f2fe',
                 borderWidth: 3,
                 pointBackgroundColor: '#ffffff',
@@ -150,7 +158,10 @@ function initSalesOverviewChart() {
                         color: '#94a3b8',
                         font: { size: 10 },
                         callback: function(value) {
-                            return '৳ ' + (value / 1000) + 'k';
+                            if (value >= 1000) {
+                                return '৳ ' + (value / 1000) + 'k';
+                            }
+                            return '৳ ' + value;
                         }
                     }
                 }
@@ -163,19 +174,26 @@ function initCategoryDonutChart() {
     const el = document.getElementById('categoryDonutChart');
     if (!el) return;
     const ctx = el.getContext('2d');
+
+    const labels = (window.ERP_DASHBOARD && window.ERP_DASHBOARD.donutLabels && window.ERP_DASHBOARD.donutLabels.length)
+        ? window.ERP_DASHBOARD.donutLabels
+        : ["No Products"];
+
+    const data = (window.ERP_DASHBOARD && window.ERP_DASHBOARD.donutData && window.ERP_DASHBOARD.donutData.length)
+        ? window.ERP_DASHBOARD.donutData
+        : [100];
+
+    const colors = (window.ERP_DASHBOARD && window.ERP_DASHBOARD.donutColors && window.ERP_DASHBOARD.donutColors.length)
+        ? window.ERP_DASHBOARD.donutColors
+        : ['#00f2fe', '#a855f7', '#3b82f6', '#10b981', '#ec4899'];
+
     new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ["Men's Innerwear", "Women's Innerwear", "Socks", "T-Shirt", "Others"],
+            labels: labels,
             datasets: [{
-                data: [32, 24, 15, 12, 17],
-                backgroundColor: [
-                    '#38bdf8',
-                    '#c084fc',
-                    '#3b82f6',
-                    '#34d399',
-                    '#f472b6'
-                ],
+                data: data,
+                backgroundColor: colors,
                 borderWidth: 0,
                 hoverOffset: 4
             }]

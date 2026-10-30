@@ -75,10 +75,10 @@
                     </div>
                 </div>
 
-                <!-- 4 GLOWING KPI CARDS (SEMI-TRANSPARENT 3D GLASS) -->
+                <!-- 4 GLOWING KPI CARDS (SEMI-TRANSPARENT 3D GLASS - REAL DATABASE DATA) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 relative z-10">
                     
-                    <!-- 1. Total Sales (Today) -->
+                    <!-- 1. Total Sales (Today / Total) -->
                     <div class="kpi-exact-card kpi-exact-blue">
                         <div class="relative z-10 flex-shrink-0">
                             <div class="w-14 h-14 rounded-full kpi-orb-blue flex items-center justify-center text-white text-xl shadow-lg">
@@ -86,10 +86,14 @@
                             </div>
                         </div>
                         <div class="relative z-10 text-right flex-1 pl-3">
-                            <p class="text-[11px] font-semibold text-cyan-100 tracking-wide">Total Sales (Today)</p>
-                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 2,45,680</h3>
-                            <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-emerald-300">
-                                <span>↑ 12%</span>
+                            <p class="text-[11px] font-semibold text-cyan-100 tracking-wide">
+                                Total Sales {{ $todaySales > 0 ? '(Today)' : '(All Time)' }}
+                            </p>
+                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">
+                                ৳ {{ number_format($todaySales > 0 ? $todaySales : $allTimeSales) }}
+                            </h3>
+                            <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold {{ $salesGrowth >= 0 ? 'text-emerald-300' : 'text-rose-300' }}">
+                                <span>{{ $salesGrowth >= 0 ? '↑' : '↓' }} {{ abs($salesGrowth) }}%</span>
                                 <span class="inline-flex items-end gap-0.5 h-3 ml-1">
                                     <span class="w-1 h-1.5 bg-emerald-300 rounded-sm"></span>
                                     <span class="w-1 h-2.5 bg-emerald-300 rounded-sm"></span>
@@ -100,18 +104,22 @@
                         <span class="absolute bottom-1.5 left-2 text-[9px] text-white/30 font-mono select-none">◣</span>
                     </div>
 
-                    <!-- 2. Total Purchase (Today) -->
+                    <!-- 2. Total Production -->
                     <div class="kpi-exact-card kpi-exact-green">
                         <div class="relative z-10 flex-shrink-0">
                             <div class="w-14 h-14 rounded-full kpi-orb-green flex items-center justify-center text-white text-xl shadow-lg">
-                                <i class="fa-solid fa-cart-plus drop-shadow-md"></i>
+                                <i class="fa-solid fa-industry drop-shadow-md"></i>
                             </div>
                         </div>
                         <div class="relative z-10 text-right flex-1 pl-3">
-                            <p class="text-[11px] font-semibold text-emerald-100 tracking-wide">Total Purchase (Today)</p>
-                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 1,60,430</h3>
+                            <p class="text-[11px] font-semibold text-emerald-100 tracking-wide">
+                                Total Production {{ $todayProductionQty > 0 ? '(Today)' : '(All Time)' }}
+                            </p>
+                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">
+                                {{ number_format($todayProductionQty > 0 ? $todayProductionQty : $allTimeProductionQty) }}
+                            </h3>
                             <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-emerald-200">
-                                <span>↑ 8%</span>
+                                <span>Val: ৳ {{ number_format($todayProductionValue > 0 ? $todayProductionValue : $allTimeProductionValue) }}</span>
                                 <span class="inline-flex items-end gap-0.5 h-3 ml-1">
                                     <span class="w-1 h-1.5 bg-emerald-200 rounded-sm"></span>
                                     <span class="w-1 h-2 bg-emerald-200 rounded-sm"></span>
@@ -131,9 +139,11 @@
                         </div>
                         <div class="relative z-10 text-right flex-1 pl-3">
                             <p class="text-[11px] font-semibold text-purple-100 tracking-wide">Total Due (Customer)</p>
-                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 95,240</h3>
-                            <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-rose-300">
-                                <span>↓ 5%</span>
+                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">
+                                ৳ {{ number_format($totalCustomerDue) }}
+                            </h3>
+                            <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold {{ $totalCustomerDue > 0 ? 'text-amber-300' : 'text-emerald-300' }}">
+                                <span>{{ $totalCustomersWithDue }} Clients Due</span>
                                 <span class="inline-flex items-end gap-0.5 h-3 ml-1">
                                     <span class="w-1 h-3 bg-purple-200 rounded-sm"></span>
                                     <span class="w-1 h-2 bg-purple-200 rounded-sm"></span>
@@ -153,9 +163,11 @@
                         </div>
                         <div class="relative z-10 text-right flex-1 pl-3">
                             <p class="text-[11px] font-semibold text-amber-100 tracking-wide">Total Stock Value</p>
-                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">৳ 12,560</h3>
+                            <h3 class="text-2xl font-black text-white tracking-tight leading-tight my-0.5">
+                                ৳ {{ number_format($totalStockValue) }}
+                            </h3>
                             <div class="flex items-center justify-end gap-1.5 text-[11px] font-bold text-amber-200">
-                                <span>↑ 3%</span>
+                                <span>{{ number_format($totalStockItems) }} Items In Stock</span>
                                 <span class="inline-flex items-end gap-0.5 h-3 ml-1">
                                     <span class="w-1 h-1 bg-amber-200 rounded-sm"></span>
                                     <span class="w-1 h-2 bg-amber-200 rounded-sm"></span>
@@ -172,7 +184,7 @@
 
     </div>
 
-    <!-- ROW 2: CHARTS & STOCK STATUS -->
+    <!-- ROW 2: CHARTS & STOCK STATUS (LIVE DATA) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
         <!-- Sales Overview Area Chart (5 Cols) -->
@@ -185,71 +197,51 @@
                     </h3>
                     <p class="text-[11px] text-slate-400">Daily garments shipment & sales analytics</p>
                 </div>
-                <select class="bg-[#0b142d] text-xs text-slate-300 border border-slate-700 rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-400">
-                    <option>Last 7 Days</option>
-                    <option>Last 30 Days</option>
-                    <option>This Year</option>
-                </select>
+                <span class="bg-[#0b142d] text-xs text-cyan-300 border border-slate-700 rounded-lg px-2.5 py-1 font-semibold">
+                    Last 7 Days
+                </span>
             </div>
             <div class="relative h-56 w-full">
                 <canvas id="salesOverviewChart"></canvas>
             </div>
         </div>
 
-        <!-- Sales by Category Donut Chart (4 Cols) -->
+        <!-- Sales by Category / Product Donut Chart (4 Cols) -->
         <div class="lg:col-span-4 glass-panel rounded-3xl p-5 border border-slate-700/60 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
                 <div>
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie text-purple-400"></i>
-                        Sales by Category
+                        Sales by Product
                     </h3>
                     <p class="text-[11px] text-slate-400">Distribution among garments segments</p>
                 </div>
-                <span class="text-[10px] font-semibold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Today</span>
+                <span class="text-[10px] font-semibold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Live</span>
             </div>
 
             <div class="flex items-center justify-center relative my-auto">
-                <div class="w-44 h-44 relative">
+                <div class="w-40 h-40 relative flex-shrink-0">
                     <canvas id="categoryDonutChart"></canvas>
                     <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
                         <span class="text-[9px] uppercase font-bold text-slate-400">Total</span>
-                        <span class="text-xs font-black text-cyan-300">৳ 2,45,680</span>
-                        <span class="text-[9px] text-slate-400">(Today)</span>
+                        <span class="text-xs font-black text-cyan-300">৳ {{ number_format($donutTotal > 0 ? $donutTotal : $allTimeSales) }}</span>
+                        <span class="text-[9px] text-slate-400">Revenue</span>
                     </div>
                 </div>
 
-                <div class="ml-4 space-y-1.5 text-[11px]">
+                <div class="ml-4 space-y-1.5 text-[11px] flex-1 min-w-0">
+                    @foreach($donutLabels as $idx => $label)
                     <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                        <span class="text-slate-300">Men's Innerwear</span>
-                        <span class="font-bold text-white ml-auto">32%</span>
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: {{ $donutColors[$idx % count($donutColors)] }}"></span>
+                        <span class="text-slate-300 truncate max-w-[110px]" title="{{ $label }}">{{ $label }}</span>
+                        <span class="font-bold text-white ml-auto">{{ $donutData[$idx] ?? 0 }}%</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                        <span class="text-slate-300">Women's Innerwear</span>
-                        <span class="font-bold text-white ml-auto">24%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                        <span class="text-slate-300">Socks</span>
-                        <span class="font-bold text-white ml-auto">15%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                        <span class="text-slate-300">T-Shirt</span>
-                        <span class="font-bold text-white ml-auto">12%</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
-                        <span class="text-slate-300">Others</span>
-                        <span class="font-bold text-white ml-auto">17%</span>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
 
-        <!-- Stock Status & Alerts (3 Cols) -->
+        <!-- Stock Status & Alerts (3 Cols - REAL DATA) -->
         <div class="lg:col-span-3 glass-panel rounded-3xl p-5 border border-slate-700/60 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-3">
@@ -257,7 +249,7 @@
                         <i class="fa-solid fa-boxes-stacked text-amber-400"></i>
                         Stock Status
                     </h3>
-                    <button class="text-[10px] text-cyan-400 hover:underline">Manage</button>
+                    <a href="{{ route('factory.stocks.index') }}" class="text-[10px] text-cyan-400 hover:underline">Manage</a>
                 </div>
 
                 <div class="p-3.5 rounded-2xl bg-gradient-to-r from-blue-900/30 to-indigo-900/20 border border-blue-500/20 flex items-center gap-3 mb-4">
@@ -265,7 +257,7 @@
                         <i class="fa-solid fa-box"></i>
                     </div>
                     <div>
-                        <span class="text-lg font-black text-white">12,560</span>
+                        <span class="text-lg font-black text-white">{{ number_format($totalStockItems) }}</span>
                         <p class="text-[10px] text-slate-400">Total Stock Items in Warehouse</p>
                     </div>
                 </div>
@@ -276,10 +268,11 @@
                             <span class="flex items-center gap-1.5 text-slate-300 font-medium">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span> In Stock
                             </span>
-                            <span class="font-bold text-white">10,245</span>
+                            <span class="font-bold text-white">{{ number_format($inStockQty) }}</span>
                         </div>
+                        @php $inPct = $totalStockItems > 0 ? min(100, round(($inStockQty / $totalStockItems) * 100)) : 0; @endphp
                         <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                            <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full" style="width: 82%"></div>
+                            <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full" style="width: {{ $inPct }}%"></div>
                         </div>
                     </div>
 
@@ -288,10 +281,11 @@
                             <span class="flex items-center gap-1.5 text-slate-300 font-medium">
                                 <span class="w-2 h-2 rounded-full bg-amber-400"></span> Low Stock
                             </span>
-                            <span class="font-bold text-amber-300">1,850</span>
+                            <span class="font-bold text-amber-300">{{ number_format($lowStockQty) }}</span>
                         </div>
+                        @php $lowPct = $totalStockItems > 0 ? min(100, round(($lowStockQty / $totalStockItems) * 100)) : 0; @endphp
                         <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                            <div class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full" style="width: 15%"></div>
+                            <div class="bg-gradient-to-r from-amber-500 to-yellow-400 h-2 rounded-full" style="width: {{ $lowPct }}%"></div>
                         </div>
                     </div>
 
@@ -300,10 +294,11 @@
                             <span class="flex items-center gap-1.5 text-slate-300 font-medium">
                                 <span class="w-2 h-2 rounded-full bg-rose-400"></span> Out of Stock
                             </span>
-                            <span class="font-bold text-rose-400">465</span>
+                            <span class="font-bold text-rose-400">{{ $outOfStockCount }} Products</span>
                         </div>
+                        @php $outPct = min(100, round(($outOfStockCount / $totalProductsCount) * 100)); @endphp
                         <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                            <div class="bg-gradient-to-r from-rose-500 to-red-400 h-2 rounded-full" style="width: 3%"></div>
+                            <div class="bg-gradient-to-r from-rose-500 to-red-400 h-2 rounded-full" style="width: {{ $outPct }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -325,7 +320,7 @@
             
             @include('factory-erp.modules-grid')
 
-            <!-- Recent Orders Table -->
+            <!-- Recent Orders Table (LIVE DATABASE DATA) -->
             <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
                 <div class="flex items-center justify-between mb-4">
                     <div>
@@ -335,7 +330,7 @@
                         </h3>
                         <p class="text-[11px] text-slate-400">Live order status from showrooms & dealers</p>
                     </div>
-                    <a href="#" class="text-xs text-cyan-400 hover:underline font-semibold">View All</a>
+                    <a href="{{ route('factory.orders.index') }}" class="text-xs text-cyan-400 hover:underline font-semibold">View All</a>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -350,51 +345,39 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/80">
+                            @forelse($recentOrders as $ord)
                             <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0012</td>
-                                <td class="py-2.5 text-white font-medium">Rahim Traders</td>
-                                <td class="py-2.5 font-bold text-white">৳ 18,430</td>
                                 <td class="py-2.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
+                                    <a href="{{ route('factory.orders.invoice', $ord->id) }}" class="font-mono text-cyan-300 font-bold hover:underline">
+                                        {{ $ord->order_number }}
+                                    </a>
                                 </td>
-                                <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-1"></span></td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0011</td>
-                                <td class="py-2.5 text-white font-medium">Fashion House</td>
-                                <td class="py-2.5 font-bold text-white">৳ 25,750</td>
+                                <td class="py-2.5 text-white font-medium">
+                                    {{ $ord->customer->company_name ?? 'N/A' }}
+                                </td>
+                                <td class="py-2.5 font-bold text-white font-mono">
+                                    ৳ {{ number_format($ord->total_amount, 2) }}
+                                </td>
                                 <td class="py-2.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Due</span>
+                                    @if($ord->due_amount == 0)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
+                                    @elseif($ord->paid_amount > 0)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Partial Due</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">Unpaid</span>
+                                    @endif
                                 </td>
-                                <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-2"></span></td>
-                            </tr>
-                            <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0010</td>
-                                <td class="py-2.5 text-white font-medium">New Life Fashion</td>
-                                <td class="py-2.5 font-bold text-white">৳ 12,300</td>
-                                <td class="py-2.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
+                                <td class="py-2.5 text-right text-slate-400">
+                                    {{ date('d M, Y', strtotime($ord->order_date)) }}
                                 </td>
-                                <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-28"></span></td>
                             </tr>
-                            <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0009</td>
-                                <td class="py-2.5 text-white font-medium">City Mart</td>
-                                <td class="py-2.5 font-bold text-white">৳ 8,950</td>
-                                <td class="py-2.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">Processing</span>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-500">
+                                    No orders placed yet. <a href="{{ route('factory.orders.create') }}" class="text-cyan-400 underline">Create one now</a>
                                 </td>
-                                <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-30"></span></td>
                             </tr>
-                            <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="py-2.5 font-mono text-cyan-300 font-medium">SO-2026-0008</td>
-                                <td class="py-2.5 text-white font-medium">Al Amin Store</td>
-                                <td class="py-2.5 font-bold text-white">৳ 15,620</td>
-                                <td class="py-2.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Paid</span>
-                                </td>
-                                <td class="py-2.5 text-right text-slate-400"><span class="live-date-today-time" data-offset-hours="-33"></span></td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -407,76 +390,32 @@
             
             @include('package-erp.modules-grid')
 
-            <!-- Recent Activities List -->
+            <!-- Recent Activities List (LIVE DATABASE LOGS) -->
             <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i>
                         Recent Activities
                     </h3>
-                    <a href="#" class="text-[11px] text-cyan-400 hover:underline">View All</a>
+                    <a href="{{ route('factory.orders.index') }}" class="text-[11px] text-cyan-400 hover:underline">View All</a>
                 </div>
 
                 <div class="space-y-3">
+                    @forelse($recentActivities as $act)
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-cyan-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <div class="w-8 h-8 rounded-lg {{ $act['bg'] }} flex items-center justify-center text-xs shrink-0 mt-0.5">
+                            <i class="{{ $act['icon'] }}"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">New Sale Invoice <span class="text-cyan-300 font-mono">#S-2026-0012</span></p>
-                            <p class="text-[11px] text-slate-400">৳ 18,430 • <span class="text-slate-500">2 min ago</span></p>
+                            <p class="text-xs text-white font-medium truncate">{{ $act['title'] }}</p>
+                            <p class="text-[11px] text-slate-400 truncate">
+                                {{ $act['subtitle'] }} • <span class="text-cyan-400/80">{{ $act['time']->diffForHumans() }}</span>
+                            </p>
                         </div>
                     </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-boxes-packing"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">Purchase Received <span class="text-emerald-300 font-mono">#P-2026-0045</span></p>
-                            <p class="text-[11px] text-slate-400">৳ 56,200 • <span class="text-slate-500">12 min ago</span></p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-mobile-screen"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">Payment Received (bKash)</p>
-                            <p class="text-[11px] text-slate-400">৳ 12,500 • <span class="text-slate-500">25 min ago</span></p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">New Customer Registered</p>
-                            <p class="text-[11px] text-slate-400">Rahim Traders • <span class="text-slate-500">32 min ago</span></p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-arrows-rotate"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">Stock Adjustment</p>
-                            <p class="text-[11px] text-slate-400">T-Shirt (Blue) • <span class="text-slate-500">45 min ago</span></p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                            <i class="fa-solid fa-bell"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-white font-medium truncate">Due Payment Reminder</p>
-                            <p class="text-[11px] text-slate-400">Customer: M/S Fashion House • <span class="text-slate-500">1 hr ago</span></p>
-                        </div>
-                    </div>
+                    @empty
+                    <p class="text-xs text-slate-500 py-3 text-center">No recent activities recorded yet.</p>
+                    @endforelse
                 </div>
             </div>
 
@@ -487,84 +426,58 @@
     <!-- ROW 4: TOP SELLING PRODUCTS, DUE SUMMARY & WEATHER WIDGET -->
     <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
         
-        <!-- Top Selling Products (4 Cols) -->
+        <!-- Top Selling Products (4 Cols - REAL DATABASE DATA) -->
         <div class="md:col-span-4 glass-panel rounded-3xl p-5 border border-slate-700/60">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-crown text-amber-400"></i>
-                    Top Selling Products (Today)
+                    Top Selling Products
                 </h3>
-                <a href="#" class="text-[11px] text-cyan-400 hover:underline">View All</a>
+                <a href="{{ route('factory.products.index') }}" class="text-[11px] text-cyan-400 hover:underline">View All</a>
             </div>
 
             <div class="space-y-3">
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-cyan-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
-                            👕
+                @if($topSelling->isNotEmpty())
+                    @foreach($topSelling as $ts)
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-cyan-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
+                                👕
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-semibold text-white">{{ $ts->product->name ?? 'Product' }}</h4>
+                                <p class="text-[10px] text-slate-400">Unit: {{ $ts->product->unit->short_code ?? 'Pcs' }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-xs font-semibold text-white">Men's Cotton Inner</h4>
-                            <p class="text-[10px] text-slate-400">SKU: MCI-001</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs font-bold text-white">1,250 pcs</span>
-                        <p class="text-[10px] text-emerald-400 font-semibold">↑ 15%</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold text-xs border border-pink-500/20">
-                            👚
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-semibold text-white">Women's Bra</h4>
-                            <p class="text-[10px] text-slate-400">SKU: WB-002</p>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-white font-mono">{{ number_format($ts->total_sold_qty) }} {{ $ts->product->unit->short_code ?? 'Pcs' }}</span>
+                            <p class="text-[10px] text-emerald-400 font-semibold font-mono">৳ {{ number_format($ts->total_sold_amount, 2) }}</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xs font-bold text-white">980 pcs</span>
-                        <p class="text-[10px] text-emerald-400 font-semibold">↑ 12%</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/20">
-                            👶
+                    @endforeach
+                @elseif($topProducts)
+                    @foreach($topProducts as $tp)
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-cyan-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
+                                👕
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-semibold text-white">{{ $tp->name }}</h4>
+                                <p class="text-[10px] text-slate-400">Available: {{ number_format($tp->current_stock) }} {{ $tp->unit->short_code ?? 'Pcs' }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-xs font-semibold text-white">Kids Innerwear</h4>
-                            <p class="text-[10px] text-slate-400">SKU: KI-003</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs font-bold text-white">760 pcs</span>
-                        <p class="text-[10px] text-emerald-400 font-semibold">↑ 10%</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-xs border border-purple-500/20">
-                            🧦
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-semibold text-white">Socks (Pack)</h4>
-                            <p class="text-[10px] text-slate-400">SKU: SK-004</p>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-cyan-300 font-mono">৳ {{ number_format($tp->sell_price, 2) }}</span>
+                            <p class="text-[10px] text-slate-400 font-semibold">Active</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xs font-bold text-white">620 pcs</span>
-                        <p class="text-[10px] text-emerald-400 font-semibold">↑ 8%</p>
-                    </div>
-                </div>
+                    @endforeach
+                @endif
             </div>
         </div>
 
-        <!-- Due Summary (4 Cols) -->
+        <!-- Due Summary (4 Cols - REAL DATABASE DATA) -->
         <div class="md:col-span-4 glass-panel rounded-3xl p-5 border border-slate-700/60 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-3">
@@ -572,36 +485,30 @@
                         <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
                         Due Summary
                     </h3>
-                    <a href="#" class="text-[11px] text-cyan-400 hover:underline">View All</a>
+                    <a href="{{ route('factory.customers.index') }}" class="text-[11px] text-cyan-400 hover:underline">View All</a>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2.5 mb-4">
+                <div class="grid grid-cols-2 gap-2.5 mb-4">
                     <div class="p-2.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-center">
                         <p class="text-[10px] text-purple-300 font-medium">Customer Due</p>
-                        <span class="text-xs font-black text-white">৳ 95,240</span>
-                        <p class="text-[9px] text-slate-400 mt-0.5">42 customers</p>
-                    </div>
-
-                    <div class="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-center">
-                        <p class="text-[10px] text-rose-300 font-medium">Supplier Due</p>
-                        <span class="text-xs font-black text-white">৳ 68,750</span>
-                        <p class="text-[9px] text-slate-400 mt-0.5">12 suppliers</p>
+                        <span class="text-xs font-black text-white font-mono">৳ {{ number_format($totalCustomerDue) }}</span>
+                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $totalCustomersWithDue }} clients</p>
                     </div>
 
                     <div class="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-center">
-                        <p class="text-[10px] text-indigo-300 font-medium">Advance</p>
-                        <span class="text-xs font-black text-white">৳ 24,500</span>
-                        <p class="text-[9px] text-slate-400 mt-0.5">8 customers</p>
+                        <p class="text-[10px] text-indigo-300 font-medium">Total Paid</p>
+                        <span class="text-xs font-black text-white font-mono">৳ {{ number_format($totalPaidAmount) }}</span>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Collected</p>
                     </div>
                 </div>
 
                 <div>
                     <div class="flex justify-between text-xs mb-1.5 font-medium">
                         <span class="text-slate-300">Due Collection Progress</span>
-                        <span class="font-bold text-cyan-300">68%</span>
+                        <span class="font-bold text-cyan-300 font-mono">{{ $collectionProgress }}%</span>
                     </div>
                     <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
-                        <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-2 rounded-full shadow-lg shadow-cyan-400/50" style="width: 68%"></div>
+                        <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-2 rounded-full shadow-lg shadow-cyan-400/50" style="width: {{ $collectionProgress }}%"></div>
                     </div>
                 </div>
             </div>
@@ -651,4 +558,13 @@
 
     </div>
 
+<script>
+    window.ERP_DASHBOARD = {
+        chartDates: @json($chartDates),
+        chartSales: @json($chartSales),
+        donutLabels: @json($donutLabels),
+        donutData: @json($donutData),
+        donutColors: @json($donutColors),
+    };
+</script>
 @endsection
