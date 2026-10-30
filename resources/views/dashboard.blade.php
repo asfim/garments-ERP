@@ -43,36 +43,6 @@
                             Here's what's happening with your business today.
                         </p>
                     </div>
-
-                    <!-- Right: TBG Logo Circle + Calligraphy Motto -->
-                    <div class="hidden lg:flex items-center gap-5 pr-4">
-                        <div class="relative flex-shrink-0">
-                            <div class="absolute -inset-3 rounded-full bg-gradient-to-tr from-cyan-500/25 via-blue-500/20 to-indigo-500/25 blur-lg animate-pulse"></div>
-                            
-                            <div class="relative w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-700 p-[2.5px] shadow-xl shadow-cyan-500/30 ring-2 ring-cyan-400/20 ring-offset-2 ring-offset-[#0a1535]">
-                                <div class="w-full h-full rounded-full bg-[#0a1128] flex items-center justify-center">
-                                    <span class="text-lg font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-indigo-400">TBG</span>
-                                </div>
-                            </div>
-
-                            <div class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/60"></div>
-                            <div class="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-lg shadow-indigo-400/60"></div>
-                        </div>
-
-                        <div class="text-right">
-                            <p class="text-lg font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-blue-300 leading-tight" style="font-family: 'Georgia', 'Times New Roman', serif;">
-                                Quality Fashion
-                            </p>
-                            <p class="text-base italic text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-purple-300 leading-tight" style="font-family: 'Georgia', 'Times New Roman', serif;">
-                                For a Better Tomorrow
-                            </p>
-                            <div class="mt-2 flex items-center justify-end gap-1.5">
-                                <span class="w-8 h-[1px] bg-gradient-to-r from-transparent to-cyan-400/60"></span>
-                                <span class="text-[9px] font-semibold uppercase tracking-[0.25em] text-cyan-400/60">Turkey Bangla Garments</span>
-                                <span class="w-8 h-[1px] bg-gradient-to-l from-transparent to-cyan-400/60"></span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- 4 GLOWING KPI CARDS (SEMI-TRANSPARENT 3D GLASS - REAL DATABASE DATA) -->
