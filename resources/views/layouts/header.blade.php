@@ -46,7 +46,6 @@
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" placeholder="Search anything... (Product, Invoice, Customer, etc.)"
                        class="w-full bg-[#0a1228]/80 text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-14 py-2 border border-slate-700/60 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition-all">
-                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] bg-slate-800/80 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-mono">Ctrl + K</span>
             </div>
         </div>
 
