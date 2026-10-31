@@ -86,14 +86,24 @@
         <!-- Right: Customers Table with Live Search & Load More -->
         <div class="lg:col-span-8 glass-panel rounded-3xl p-5 border border-slate-700/60">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-users text-cyan-400"></i>
-                        Registered Clients
-                    </h3>
-                    <span id="customerCountDisplay" class="text-[11px] text-cyan-300 font-mono">
-                        Showing <span id="visibleCount">{{ min(10, $customers->count()) }}</span> of <span id="totalCount">{{ $customers->count() }}</span> Customers
-                    </span>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-users text-cyan-400"></i>
+                            Registered Clients
+                        </h3>
+                        <span id="customerCountDisplay" class="text-[11px] text-cyan-300 font-mono">
+                            Showing <span id="visibleCount">{{ min(10, $customers->count()) }}</span> of <span id="totalCount">{{ $customers->count() }}</span> Customers
+                        </span>
+                    </div>
+
+                    <!-- Quick Due Payment Link -->
+                    <a href="{{ route('factory.customers.due.index') }}" 
+                       class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-amber-500/20 hover:from-rose-500/30 hover:to-amber-500/30 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-hand-holding-dollar text-rose-400"></i>
+                        <span>Due Payment ({{ $dueCustomersCount ?? 0 }})</span>
+                        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                    </a>
                 </div>
 
                 <!-- Live Search Box (Supports Name, Mobile e.g. 018..., Person, Address) -->

@@ -23,13 +23,28 @@
 </a>
 
 <!-- 3. Customer -->
-@php $isCust = request()->routeIs('factory.customers.*'); @endphp
+@php $isCust = request()->routeIs('factory.customers.index') || request()->routeIs('factory.customers.details'); @endphp
 <a href="{{ route('factory.customers.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isCust ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
     <span class="w-6 h-6 rounded-lg {{ $isCust ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
         <i class="fa-solid fa-user-group text-[11px]"></i>
     </span>
     <span>Customer</span>
+</a>
+
+<!-- 3.1 Due Payment -->
+@php $isDue = request()->routeIs('factory.customers.due.*'); @endphp
+<a href="{{ route('factory.customers.due.index') }}" 
+   class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all {{ $isDue ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 text-white font-bold shadow-lg shadow-rose-500/25 border border-rose-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-lg {{ $isDue ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20' }} flex items-center justify-center">
+            <i class="fa-solid fa-hand-holding-dollar text-[11px]"></i>
+        </span>
+        <span class="{{ $isDue ? 'text-white font-bold' : 'text-rose-300 font-semibold group-hover:text-white' }}">Due Payment</span>
+    </div>
+    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+        Due
+    </span>
 </a>
 
 <!-- 4. Supplier -->
