@@ -2,6 +2,19 @@
 
 @section('title', 'Orders Management | Factory ERP')
 
+@push('styles')
+<style>
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        opacity: 0.9;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="space-y-6">
 
@@ -87,12 +100,14 @@
             <div class="flex items-center gap-1.5 bg-[#070d1e] border border-slate-700 rounded-xl px-2.5 py-1">
                 <span class="text-[10px] text-slate-400 font-semibold">From:</span>
                 <input type="date" name="start_date" value="{{ $startDate ?? '' }}" required
-                       class="bg-transparent text-xs text-white focus:outline-none">
+                       style="color-scheme: dark;"
+                       class="bg-transparent text-xs text-white focus:outline-none cursor-pointer">
             </div>
             <div class="flex items-center gap-1.5 bg-[#070d1e] border border-slate-700 rounded-xl px-2.5 py-1">
                 <span class="text-[10px] text-slate-400 font-semibold">To:</span>
                 <input type="date" name="end_date" value="{{ $endDate ?? '' }}" required
-                       class="bg-transparent text-xs text-white focus:outline-none">
+                       style="color-scheme: dark;"
+                       class="bg-transparent text-xs text-white focus:outline-none cursor-pointer">
             </div>
             <button type="submit" 
                     class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all shadow-md">

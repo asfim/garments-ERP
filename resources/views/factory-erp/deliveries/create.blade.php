@@ -52,6 +52,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Delivery Date *</label>
                     <input type="date" name="delivery_date" value="{{ date('Y-m-d') }}" required
+                           style="color-scheme: dark;"
                            class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
                 </div>
             </div>

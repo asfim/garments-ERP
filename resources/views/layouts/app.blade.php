@@ -39,7 +39,7 @@
         }
     </script>
     <!-- Separate Custom ERP CSS File -->
-    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}?v=1.2">
     @stack('styles')
 </head>
 <body class="min-h-screen text-slate-200 antialiased flex flex-col justify-between">
