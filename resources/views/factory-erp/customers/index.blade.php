@@ -112,16 +112,15 @@
                                 <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('factory.customers.details', $c->id) }}" 
                                        title="View Full Ledger History"
-                                       class="px-2 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-cyan-300 border border-blue-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                                        <span>History</span>
+                                       class="w-7 h-7 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-cyan-300 border border-blue-500/30 transition-all inline-flex items-center justify-center">
+                                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                                     </a>
 
                                     <button type="button" 
                                             onclick="openEditCustomerModal({{ json_encode($c) }})"
-                                            class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                                        <span>Edit</span>
+                                            title="Edit Customer"
+                                            class="w-7 h-7 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 transition-all inline-flex items-center justify-center">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
                                     </button>
 
                                     <form action="{{ route('factory.customers.destroy', $c->id) }}" method="POST" 
@@ -129,9 +128,9 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
-                                                class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                            <span>Delete</span>
+                                                title="Delete Customer"
+                                                class="w-7 h-7 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 transition-all inline-flex items-center justify-center">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
                                         </button>
                                     </form>
                                 </div>
