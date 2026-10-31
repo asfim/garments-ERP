@@ -71,11 +71,28 @@
             </form>
         </div>
 
-        <!-- Right: Customers Table with Ledger View Links -->
+        <!-- Right: Customers Table with Live Search & Load More -->
         <div class="lg:col-span-8 glass-panel rounded-3xl p-5 border border-slate-700/60">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-white">Registered Clients</h3>
-                <span class="text-xs text-cyan-400 font-mono">{{ $customers->count() }} Customers</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-users text-cyan-400"></i>
+                        Registered Clients
+                    </h3>
+                    <span id="customerCountDisplay" class="text-[11px] text-cyan-300 font-mono">
+                        Showing <span id="visibleCount">{{ min(10, $customers->count()) }}</span> of <span id="totalCount">{{ $customers->count() }}</span> Customers
+                    </span>
+                </div>
+
+                <!-- Live Search Box -->
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="customerSearchInput" placeholder="Live search client..." 
+                           class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none transition-all">
+                    <button type="button" id="clearSearchBtn" onclick="clearCustomerSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -90,9 +107,10 @@
                             <th class="pb-2.5 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/80">
+                    <tbody id="customersTableBody" class="divide-y divide-slate-800/80">
                         @forelse($customers as $idx => $c)
-                        <tr class="hover:bg-slate-800/40 transition-colors">
+                        <tr class="customer-row hover:bg-slate-800/40 transition-colors"
+                            data-search="{{ strtolower($c->company_name . ' ' . $c->phone . ' ' . $c->contact_person . ' ' . $c->address) }}">
                             <td class="py-3 text-slate-400 font-mono">{{ $idx + 1 }}</td>
                             <td class="py-3">
                                 <span class="font-bold text-white block">{{ $c->company_name }}</span>
@@ -141,8 +159,25 @@
                             <td colspan="6" class="py-6 text-center text-slate-500">No customers registered yet.</td>
                         </tr>
                         @endforelse
+
+                        <!-- No Search Match Row -->
+                        <tr id="noSearchResultRow" class="hidden">
+                            <td colspan="6" class="py-8 text-center text-slate-500">
+                                <i class="fa-solid fa-user-slash text-2xl text-slate-600 block mb-2"></i>
+                                No matching clients found for "<span id="searchQueryDisplay" class="text-cyan-400 font-semibold"></span>"
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Load More Button (+10) -->
+            <div id="loadMoreContainer" class="mt-4 pt-3 border-t border-slate-800/80 text-center {{ $customers->count() <= 10 ? 'hidden' : '' }}">
+                <button type="button" id="loadMoreBtn" onclick="loadMoreCustomers()"
+                        class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 hover:border-cyan-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-arrow-down-long text-[11px]"></i>
+                    <span>Load More Customers (+10)</span>
+                </button>
             </div>
         </div>
 
@@ -210,6 +245,91 @@
 </div>
 
 <script>
+    // ========== LIVE SEARCH & LOAD MORE (10 AT A TIME) ==========
+    let currentLimit = 10;
+    const PAGE_SIZE = 10;
+
+    function updateCustomerVisibility() {
+        const searchInput = document.getElementById('customerSearchInput');
+        const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const rows = document.querySelectorAll('.customer-row');
+        const noResultRow = document.getElementById('noSearchResultRow');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const visibleCountEl = document.getElementById('visibleCount');
+
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', searchVal === '');
+        }
+
+        if (searchVal !== '') {
+            // Live Search Mode
+            let matchCount = 0;
+            rows.forEach(row => {
+                const data = row.getAttribute('data-search') || '';
+                if (data.includes(searchVal)) {
+                    row.classList.remove('hidden');
+                    matchCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (noResultRow) {
+                noResultRow.classList.toggle('hidden', matchCount > 0);
+                const querySpan = document.getElementById('searchQueryDisplay');
+                if (querySpan) querySpan.innerText = searchVal;
+            }
+
+            // Hide load more button while searching
+            if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
+            if (visibleCountEl) visibleCountEl.innerText = matchCount;
+
+        } else {
+            // Normal Pagination Mode (10 items per load)
+            if (noResultRow) noResultRow.classList.add('hidden');
+            
+            let visibleCount = 0;
+            rows.forEach((row, index) => {
+                if (index < currentLimit) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (visibleCountEl) visibleCountEl.innerText = visibleCount;
+
+            if (loadMoreContainer) {
+                loadMoreContainer.classList.toggle('hidden', currentLimit >= rows.length);
+            }
+        }
+    }
+
+    function loadMoreCustomers() {
+        currentLimit += PAGE_SIZE;
+        updateCustomerVisibility();
+    }
+
+    function clearCustomerSearch() {
+        const input = document.getElementById('customerSearchInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+            updateCustomerVisibility();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('customerSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', updateCustomerVisibility);
+        }
+        updateCustomerVisibility();
+    });
+
+    // ========== EDIT CUSTOMER MODAL ==========
     function openEditCustomerModal(customer) {
         document.getElementById('edit_company_name').value = customer.company_name;
         document.getElementById('edit_contact_person').value = customer.contact_person || '';
