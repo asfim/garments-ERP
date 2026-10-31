@@ -183,7 +183,130 @@ class FactoryErpController extends Controller
     public function customersIndex()
     {
         $customers = Customer::with(['orders'])->latest()->get();
-        return view('factory-erp.customers.index', compact('customers'));
+        $dueCustomersCount = $customers->filter(function ($c) {
+            return $c->total_due > 0;
+        })->count();
+
+        return view('factory-erp.customers.index', compact('customers', 'dueCustomersCount'));
+    }
+
+    public function customersDueIndex(Request $request)
+    {
+        $customers = Customer::whereHas('orders', function ($q) {
+            $q->where('due_amount', '>', 0);
+        })->with(['orders' => function ($q) {
+            $q->where('due_amount', '>', 0)->with('items.product.unit')->orderBy('order_date', 'asc');
+        }])->get();
+
+        $totalMarketDue = Order::where('due_amount', '>', 0)->sum('due_amount');
+        $totalDueInvoices = Order::where('due_amount', '>', 0)->count();
+        $totalDueCustomers = $customers->count();
+
+        return view('factory-erp.customers.due-index', compact('customers', 'totalMarketDue', 'totalDueInvoices', 'totalDueCustomers'));
+    }
+
+    public function customerDueInvoices($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $dueOrders = Order::where('customer_id', $customer->id)
+            ->where('due_amount', '>', 0)
+            ->with(['items.product.unit'])
+            ->orderBy('order_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $totalDue = $dueOrders->sum('due_amount');
+        $totalOrdered = Order::where('customer_id', $customer->id)->sum('total_amount');
+        $totalPaid = Order::where('customer_id', $customer->id)->sum('paid_amount');
+
+        return view('factory-erp.customers.due-invoices', compact('customer', 'dueOrders', 'totalDue', 'totalOrdered', 'totalPaid'));
+    }
+
+    public function customerDuePaymentStore(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'nullable|date',
+            'payment_method' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        $amountToPay = floatval($validated['amount']);
+        $totalDue = floatval(Order::where('customer_id', $customer->id)->sum('due_amount'));
+
+        if ($amountToPay > $totalDue + 0.01) {
+            return redirect()->back()->with('error', "Payment amount (৳" . number_format($amountToPay, 2) . ") exceeds total outstanding customer due (৳" . number_format($totalDue, 2) . ")!");
+        }
+
+        $paymentDate = $validated['payment_date'] ?? date('Y-m-d');
+        $method = $validated['payment_method'] ?? 'Cash';
+        $note = !empty($validated['notes']) ? " ({$validated['notes']})" : '';
+
+        // Fetch unpaid/partially paid orders ordered by date ASC (oldest first - FIFO)
+        $dueOrders = Order::where('customer_id', $customer->id)
+            ->where('due_amount', '>', 0)
+            ->orderBy('order_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $allocatedCount = 0;
+        $remaining = $amountToPay;
+        $breakdownDetails = [];
+
+        DB::transaction(function () use ($dueOrders, &$remaining, &$allocatedCount, &$breakdownDetails, $paymentDate, $method, $note) {
+            foreach ($dueOrders as $order) {
+                if ($remaining <= 0.001) {
+                    break;
+                }
+
+                $currDue = floatval($order->due_amount);
+                $allocated = min($remaining, $currDue);
+
+                $order->paid_amount += $allocated;
+                $order->due_amount = max(0, $order->due_amount - $allocated);
+
+                $logNote = "[FIFO Due Payment: ৳" . number_format($allocated, 2) . " on {$paymentDate} via {$method}{$note}]";
+                $order->notes = ($order->notes ? $order->notes . "\n" : '') . $logNote;
+                $order->save();
+
+                $allocatedCount++;
+                $breakdownDetails[] = "{$order->order_number}: ৳" . number_format($allocated, 2);
+                $remaining -= $allocated;
+            }
+        });
+
+        $detailStr = implode(', ', $breakdownDetails);
+        return redirect()->back()->with('success', "Payment of ৳" . number_format($amountToPay, 2) . " successfully applied across {$allocatedCount} invoice(s) [{$detailStr}]!");
+    }
+
+    public function customerSingleInvoicePayment(Request $request, $customerId, $orderId)
+    {
+        $customer = Customer::findOrFail($customerId);
+        $order = Order::where('customer_id', $customer->id)->where('id', $orderId)->firstOrFail();
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01|max:' . floatval($order->due_amount),
+            'payment_date' => 'nullable|date',
+            'payment_method' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        $amount = floatval($validated['amount']);
+        $paymentDate = $validated['payment_date'] ?? date('Y-m-d');
+        $method = $validated['payment_method'] ?? 'Cash';
+        $note = !empty($validated['notes']) ? " ({$validated['notes']})" : '';
+
+        $order->paid_amount += $amount;
+        $order->due_amount = max(0, $order->due_amount - $amount);
+
+        $logNote = "[Single Invoice Payment: ৳" . number_format($amount, 2) . " on {$paymentDate} via {$method}{$note}]";
+        $order->notes = ($order->notes ? $order->notes . "\n" : '') . $logNote;
+        $order->save();
+
+        return redirect()->back()->with('success', "Payment of ৳" . number_format($amount, 2) . " applied to Invoice {$order->order_number} successfully!");
     }
 
     public function customersStore(Request $request)

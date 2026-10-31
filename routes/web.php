@@ -28,8 +28,12 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::delete('/products/{id}', [FactoryErpController::class, 'productsDestroy'])->name('products.destroy');
     Route::get('/products/pdf', [FactoryErpController::class, 'productsPdf'])->name('products.pdf');
 
-    // 4. Customers & History (with Edit & Delete)
+    // 4. Customers & History (with Edit & Delete & Due Payments)
     Route::get('/customers', [FactoryErpController::class, 'customersIndex'])->name('customers.index');
+    Route::get('/customers/due-payments', [FactoryErpController::class, 'customersDueIndex'])->name('customers.due.index');
+    Route::get('/customers/{id}/due-invoices', [FactoryErpController::class, 'customerDueInvoices'])->name('customers.due.invoices');
+    Route::post('/customers/{id}/due-payment', [FactoryErpController::class, 'customerDuePaymentStore'])->name('customers.due.payment.store');
+    Route::post('/customers/{customerId}/invoice-payment/{orderId}', [FactoryErpController::class, 'customerSingleInvoicePayment'])->name('customers.invoice.payment.store');
     Route::post('/customers', [FactoryErpController::class, 'customersStore'])->name('customers.store');
     Route::get('/customers/{id}', [FactoryErpController::class, 'customerDetails'])->name('customers.details');
     Route::put('/customers/{id}', [FactoryErpController::class, 'customersUpdate'])->name('customers.update');

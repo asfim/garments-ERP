@@ -13,6 +13,18 @@
             </h2>
             <p class="text-xs text-slate-400">Company name, phone, address, and comprehensive order & payment histories</p>
         </div>
+
+        <div class="flex items-center gap-2.5">
+            <!-- Due Payment Button -->
+            <a href="{{ route('factory.customers.due.index') }}" 
+               class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2 border border-rose-400/30">
+                <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+                <span>Due Payment</span>
+                <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-black/40 font-mono font-extrabold text-white">
+                    {{ $dueCustomersCount ?? 0 }}
+                </span>
+            </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -145,6 +157,15 @@
                             </td>
                             <td class="py-3 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
+                                    @if($c->total_due > 0)
+                                    <a href="{{ route('factory.customers.due.invoices', $c->id) }}"
+                                       title="Receive Due Payment (৳{{ number_format($c->total_due, 2) }})"
+                                       class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-rose-600/30 to-amber-600/30 hover:from-rose-600/50 hover:to-amber-600/50 text-rose-300 hover:text-white border border-rose-500/40 text-[11px] font-bold transition-all inline-flex items-center gap-1 shadow-sm">
+                                        <i class="fa-solid fa-hand-holding-dollar text-[10px]"></i>
+                                        <span>Pay Due</span>
+                                    </a>
+                                    @endif
+
                                     <a href="{{ route('factory.customers.details', $c->id) }}" 
                                        title="View Full Ledger History"
                                        class="w-7 h-7 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-cyan-300 border border-blue-500/30 transition-all inline-flex items-center justify-center">

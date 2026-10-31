@@ -21,6 +21,14 @@
         </div>
 
         <div class="flex items-center gap-3">
+            @if($customer->total_due > 0)
+            <a href="{{ route('factory.customers.due.invoices', $customer->id) }}" 
+               class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-1.5 border border-rose-400/30">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+                <span>Due Payment (৳ {{ number_format($customer->total_due, 2) }})</span>
+            </a>
+            @endif
+
             <a href="{{ route('factory.orders.create') }}" 
                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-cart-plus"></i>
