@@ -464,9 +464,30 @@ class FactoryErpController extends Controller
     // ==========================================
     // 6. PRODUCTIONS (Product Live Select -> Auto Target Qty from Orders -> Unit -> Add to Stock)
     // ==========================================
-    public function productionsIndex()
+    public function productionsIndex(Request $request)
     {
-        $productions = Production::with(['product.unit', 'unit'])->latest()->get();
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Production::with(['product.unit', 'unit'])->orderBy('production_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('production_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('production_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('production_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('production_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('production_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('production_date', [$startDate, $endDate]);
+        }
+
+        $productions = $query->get();
+        $totalProductionsCount = Production::count();
         $products = Product::with('unit')->get();
 
         // Calculate pending order quantities for each product to set auto target
@@ -475,7 +496,7 @@ class FactoryErpController extends Controller
             $pendingOrderQty[$p->id] = OrderItem::where('product_id', $p->id)->sum('due_qty');
         }
 
-        return view('factory-erp.productions.index', compact('productions', 'products', 'pendingOrderQty'));
+        return view('factory-erp.productions.index', compact('productions', 'products', 'pendingOrderQty', 'range', 'startDate', 'endDate', 'totalProductionsCount'));
     }
 
     public function productionsStore(Request $request)
