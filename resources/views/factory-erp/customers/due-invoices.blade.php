@@ -121,7 +121,7 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 mb-4 border-b border-slate-700/80">
             <div>
                 <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs shadow-md">
+                    <span class="w-7 h-7 rounded-lg bg-cyan-600/25 text-cyan-400 border border-cyan-500/40 flex items-center justify-center text-xs">
                         <i class="fa-solid fa-bolt"></i>
                     </span>
                     <span>Receive Due Payment (FIFO Auto-Allocation)</span>
