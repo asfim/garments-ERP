@@ -499,6 +499,73 @@ class FactoryErpController extends Controller
         return view('factory-erp.productions.index', compact('productions', 'products', 'pendingOrderQty', 'range', 'startDate', 'endDate', 'totalProductionsCount'));
     }
 
+    public function productionsExportCsv(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Production::with(['product.unit', 'unit'])->orderBy('production_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('production_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('production_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('production_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('production_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('production_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('production_date', [$startDate, $endDate]);
+        }
+
+        $productions = $query->get();
+        $filename = 'Productions-Export-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($productions) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+            fputcsv($file, [
+                'Batch ID',
+                'Production Date',
+                'Product Name',
+                'Unit',
+                'Target Qty',
+                'Produced Qty',
+                'Status',
+                'Shift / Notes'
+            ]);
+
+            foreach ($productions as $prod) {
+                fputcsv($file, [
+                    'BATCH-' . str_pad($prod->id, 4, '0', STR_PAD_LEFT),
+                    date('d-M-Y', strtotime($prod->production_date)),
+                    $prod->product->name ?? 'N/A',
+                    $prod->unit->short_code ?? ($prod->unit->name ?? 'Pcs'),
+                    number_format($prod->target_qty, 2, '.', ''),
+                    number_format($prod->produced_qty, 2, '.', ''),
+                    'In Stock',
+                    $prod->notes ?? ''
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function productionsStore(Request $request)
     {
         $validated = $request->validate([

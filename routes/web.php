@@ -45,8 +45,9 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::get('/orders/{id}/invoice', [FactoryErpController::class, 'orderInvoice'])->name('orders.invoice');
     Route::get('/orders/{id}/invoice/pdf', [FactoryErpController::class, 'orderInvoicePdf'])->name('orders.invoice.pdf');
 
-    // 6. Productions (Auto target from orders -> Add stock, with Edit & Delete)
+    // 6. Productions (Auto target from orders -> Add stock, with Edit & Delete & CSV Export)
     Route::get('/productions', [FactoryErpController::class, 'productionsIndex'])->name('productions.index');
+    Route::get('/productions/export/csv', [FactoryErpController::class, 'productionsExportCsv'])->name('productions.export.csv');
     Route::post('/productions', [FactoryErpController::class, 'productionsStore'])->name('productions.store');
     Route::put('/productions/{id}', [FactoryErpController::class, 'productionsUpdate'])->name('productions.update');
     Route::delete('/productions/{id}', [FactoryErpController::class, 'productionsDestroy'])->name('productions.destroy');
