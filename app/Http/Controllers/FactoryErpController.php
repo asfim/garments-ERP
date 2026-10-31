@@ -1075,13 +1075,169 @@ class FactoryErpController extends Controller
     }
 
     // ==========================================
-    // 8. STOCKS (Auto Inventory Tracking + Manual Adjustment)
+    // 8. STOCKS (Auto Inventory Tracking + Manual Adjustment & CSV Export)
     // ==========================================
-    public function stocksIndex()
+    public function stocksIndex(Request $request)
     {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'balance'); // 'balance' or 'history'
+
         $products = Product::with(['unit', 'stock'])->get();
-        $stockLogs = StockLog::with('product.unit')->latest()->take(20)->get();
-        return view('factory-erp.stocks.index', compact('products', 'stockLogs'));
+
+        $stockLogsQuery = StockLog::with('product.unit')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $stockLogsQuery->whereBetween('created_at', [now()->startOfMonth()->startOfDay(), now()->endOfMonth()->endOfDay()]);
+        } elseif ($range === 'today') {
+            $stockLogsQuery->whereDate('created_at', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $stockLogsQuery->whereBetween('created_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()]);
+        } elseif ($range === 'last_month') {
+            $stockLogsQuery->whereBetween('created_at', [now()->subMonth()->startOfMonth()->startOfDay(), now()->subMonth()->endOfMonth()->endOfDay()]);
+        } elseif ($range === 'this_year') {
+            $stockLogsQuery->whereBetween('created_at', [now()->startOfYear()->startOfDay(), now()->endOfYear()->endOfDay()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $stockLogsQuery->whereBetween('created_at', [
+                \Carbon\Carbon::parse($startDate)->startOfDay(),
+                \Carbon\Carbon::parse($endDate)->endOfDay()
+            ]);
+        }
+
+        $stockLogs = $stockLogsQuery->get();
+        $totalStockLogsCount = StockLog::count();
+
+        return view('factory-erp.stocks.index', compact(
+            'products', 
+            'stockLogs', 
+            'range', 
+            'startDate', 
+            'endDate', 
+            'tab',
+            'totalStockLogsCount'
+        ));
+    }
+
+    public function stocksExportCsv(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'balance');
+
+        $filename = ($tab === 'balance' ? 'Current-Stock-Balance-' : 'Stock-Movement-History-') . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        if ($tab === 'balance') {
+            $products = Product::with(['unit', 'stock'])->get();
+
+            $callback = function() use ($products) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+                fputcsv($file, [
+                    'Product Name',
+                    'Item Code / SKU',
+                    'Unit',
+                    'Total Produced (+)',
+                    'Total Delivered (-)',
+                    'Manual Adjusted',
+                    'Available Stock',
+                    'Unit Cost / Price (BDT)',
+                    'Stock Value (BDT)',
+                    'Status'
+                ]);
+
+                foreach ($products as $p) {
+                    $stk = $p->stock;
+                    $curr = $stk ? $stk->current_stock : 0;
+                    $val = $curr * ($p->cost_price > 0 ? $p->cost_price : $p->selling_price);
+
+                    fputcsv($file, [
+                        $p->name,
+                        $p->code ?? ('PRD-' . $p->id),
+                        $p->unit->short_code ?? ($p->unit->name ?? 'Pcs'),
+                        number_format($stk ? $stk->total_produced : 0, 2, '.', ''),
+                        number_format($stk ? $stk->total_delivered : 0, 2, '.', ''),
+                        number_format($stk ? $stk->manual_adjusted : 0, 2, '.', ''),
+                        number_format($curr, 2, '.', ''),
+                        number_format($p->cost_price > 0 ? $p->cost_price : $p->selling_price, 2, '.', ''),
+                        number_format($val, 2, '.', ''),
+                        $curr > 50 ? 'In Stock' : ($curr > 0 ? 'Low Stock' : 'Out of Stock')
+                    ]);
+                }
+
+                fclose($file);
+            };
+        } else {
+            $stockLogsQuery = StockLog::with('product.unit')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+
+            if ($range === 'this_month') {
+                $stockLogsQuery->whereBetween('created_at', [now()->startOfMonth()->startOfDay(), now()->endOfMonth()->endOfDay()]);
+            } elseif ($range === 'today') {
+                $stockLogsQuery->whereDate('created_at', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $stockLogsQuery->whereBetween('created_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()]);
+            } elseif ($range === 'last_month') {
+                $stockLogsQuery->whereBetween('created_at', [now()->subMonth()->startOfMonth()->startOfDay(), now()->subMonth()->endOfMonth()->endOfDay()]);
+            } elseif ($range === 'this_year') {
+                $stockLogsQuery->whereBetween('created_at', [now()->startOfYear()->startOfDay(), now()->endOfYear()->endOfDay()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $stockLogsQuery->whereBetween('created_at', [
+                    \Carbon\Carbon::parse($startDate)->startOfDay(),
+                    \Carbon\Carbon::parse($endDate)->endOfDay()
+                ]);
+            }
+
+            $stockLogs = $stockLogsQuery->get();
+
+            $callback = function() use ($stockLogs) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+                fputcsv($file, [
+                    'Date & Time',
+                    'Product Name',
+                    'Movement Type',
+                    'Quantity',
+                    'Previous Stock',
+                    'New Balance',
+                    'Reference',
+                    'Notes'
+                ]);
+
+                foreach ($stockLogs as $log) {
+                    $typeLabel = 'Adjustment';
+                    if ($log->type === 'production') $typeLabel = 'Production In (+)';
+                    elseif ($log->type === 'delivery') $typeLabel = 'Delivery Out (-)';
+                    elseif ($log->type === 'manual_add') $typeLabel = 'Manual Add (+)';
+                    elseif ($log->type === 'manual_subtract') $typeLabel = 'Manual Subtract (-)';
+
+                    fputcsv($file, [
+                        date('d-M-Y h:i A', strtotime($log->created_at)),
+                        $log->product->name ?? 'N/A',
+                        $typeLabel,
+                        number_format($log->qty, 2, '.', ''),
+                        number_format($log->previous_stock, 2, '.', ''),
+                        number_format($log->new_stock, 2, '.', ''),
+                        $log->reference_id ?? '',
+                        $log->notes ?? ''
+                    ]);
+                }
+
+                fclose($file);
+            };
+        }
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function stocksAdjust(Request $request)
