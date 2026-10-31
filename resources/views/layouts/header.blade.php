@@ -50,29 +50,8 @@
             </div>
         </div>
 
-        <!-- Search Bar -->
-        <div class="hidden md:flex items-center flex-1 max-w-md mx-2">
-            <div class="relative w-full">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" placeholder="Search anything... (Product, Invoice, Customer, etc.)"
-                       class="w-full bg-[#0a1228]/80 text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-14 py-2 border border-slate-700/60 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition-all">
-            </div>
-        </div>
-
-        <!-- Right Controls: Date/Time, Theme, User -->
+        <!-- Right Controls: User Profile -->
         <div class="flex items-center gap-3">
-            <!-- Date Time -->
-            <div class="hidden xl:flex flex-col text-right pr-2 border-r border-slate-800">
-                <span class="text-xs font-semibold text-slate-200" id="liveDateTime"></span>
-                <span class="text-[10px] text-slate-400" id="liveDay"></span>
-            </div>
-
-            <!-- Day/Night Toggle -->
-            <div class="hidden sm:flex items-center bg-[#0a1228] border border-slate-700/60 rounded-xl p-0.5 text-[11px]">
-                <button class="px-2 py-1 text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-regular fa-sun text-[10px]"></i> Day</button>
-                <button class="px-2 py-1 rounded-lg bg-blue-600/30 text-cyan-300 font-semibold border border-blue-500/30 flex items-center gap-1"><i class="fa-solid fa-moon text-[10px]"></i> Night</button>
-            </div>
-
             <!-- User Profile -->
             <div class="flex items-center gap-2.5 pl-1">
                 <div class="relative">
