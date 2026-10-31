@@ -229,14 +229,109 @@ class FactoryErpController extends Controller
     }
 
     // ==========================================
-    // 5. ORDERS (Customer Dropdown, Dynamic Products, Qty, Total Calc, Invoice)
+    // 5. ORDERS (Customer Dropdown, Dynamic Products, Qty, Total Calc, Invoice, CSV Export)
     // ==========================================
-    public function ordersIndex()
+    public function ordersIndex(Request $request)
     {
-        $orders = Order::with(['customer', 'items.product.unit'])->latest()->get();
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Order::with(['customer', 'items.product.unit'])->orderBy('order_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('order_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('order_date', [$startDate, $endDate]);
+        }
+
+        $orders = $query->get();
+        $totalOrdersCount = Order::count();
         $customers = Customer::all();
         $products = Product::with('unit')->get();
-        return view('factory-erp.orders.index', compact('orders', 'customers', 'products'));
+
+        return view('factory-erp.orders.index', compact('orders', 'customers', 'products', 'range', 'startDate', 'endDate', 'totalOrdersCount'));
+    }
+
+    public function ordersExportCsv(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Order::with(['customer', 'items.product.unit'])->orderBy('order_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('order_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('order_date', [$startDate, $endDate]);
+        }
+
+        $orders = $query->get();
+        $filename = 'Orders-Export-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($orders) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+            fputcsv($file, [
+                'Order ID',
+                'Customer Name',
+                'Contact Person',
+                'Phone Number',
+                'Order Date',
+                'Product Types Count',
+                'Total Amount (BDT)',
+                'Paid Amount (BDT)',
+                'Due Amount (BDT)',
+                'Delivery Status',
+                'Order Notes'
+            ]);
+
+            foreach ($orders as $ord) {
+                fputcsv($file, [
+                    $ord->order_number,
+                    $ord->customer->company_name ?? 'N/A',
+                    $ord->customer->contact_person ?? '',
+                    $ord->customer->phone ?? '',
+                    date('d-M-Y', strtotime($ord->order_date)),
+                    $ord->items->count(),
+                    number_format($ord->total_amount, 2, '.', ''),
+                    number_format($ord->paid_amount, 2, '.', ''),
+                    number_format($ord->due_amount, 2, '.', ''),
+                    ucfirst($ord->delivery_status),
+                    $ord->notes ?? ''
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function ordersCreate()

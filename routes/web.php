@@ -35,8 +35,9 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::put('/customers/{id}', [FactoryErpController::class, 'customersUpdate'])->name('customers.update');
     Route::delete('/customers/{id}', [FactoryErpController::class, 'customersDestroy'])->name('customers.destroy');
 
-    // 5. Orders & Invoices (with Edit & Delete)
+    // 5. Orders & Invoices (with Edit, Delete & CSV Export)
     Route::get('/orders', [FactoryErpController::class, 'ordersIndex'])->name('orders.index');
+    Route::get('/orders/export/csv', [FactoryErpController::class, 'ordersExportCsv'])->name('orders.export.csv');
     Route::get('/orders/create', [FactoryErpController::class, 'ordersCreate'])->name('orders.create');
     Route::post('/orders', [FactoryErpController::class, 'ordersStore'])->name('orders.store');
     Route::put('/orders/{id}', [FactoryErpController::class, 'ordersUpdate'])->name('orders.update');

@@ -15,11 +15,22 @@
             <p class="text-xs text-slate-400">Manage client orders, invoice amounts, paid/due tracking, and delivery progress</p>
         </div>
 
-        <a href="{{ route('factory.orders.create') }}" 
-           class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-2">
-            <i class="fa-solid fa-cart-plus text-sm"></i>
-            <span>+ Create New Order</span>
-        </a>
+        <div class="flex items-center gap-2.5">
+            <!-- CSV Download Button -->
+            <a href="{{ route('factory.orders.export.csv', ['range' => $range, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               title="Export Current Filtered Orders to CSV"
+               class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-file-csv text-sm"></i>
+                <span>Download CSV</span>
+            </a>
+
+            <!-- Create New Order Button -->
+            <a href="{{ route('factory.orders.create') }}" 
+               class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-cart-plus text-sm"></i>
+                <span>+ Create New Order</span>
+            </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -35,6 +46,67 @@
     </div>
     @endif
 
+    <!-- DATE-WISE FILTER BAR (INITIAL: THIS MONTH) -->
+    <div class="glass-panel rounded-2xl p-3 border border-slate-700/60 flex flex-wrap items-center justify-between gap-3">
+        <!-- Quick Preset Filter Buttons -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <span class="text-slate-400 font-semibold mr-1 flex items-center gap-1.5 text-[11px]">
+                <i class="fa-regular fa-calendar-days text-cyan-400"></i>
+                Filter Date:
+            </span>
+
+            <a href="{{ route('factory.orders.index', ['range' => 'this_month']) }}" 
+               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all {{ $range === 'this_month' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20' : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700' }}">
+                This Month (Default)
+            </a>
+
+            <a href="{{ route('factory.orders.index', ['range' => 'today']) }}" 
+               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all {{ $range === 'today' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20' : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700' }}">
+                Today
+            </a>
+
+            <a href="{{ route('factory.orders.index', ['range' => 'last_7_days']) }}" 
+               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all {{ $range === 'last_7_days' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20' : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700' }}">
+                Last 7 Days
+            </a>
+
+            <a href="{{ route('factory.orders.index', ['range' => 'last_month']) }}" 
+               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all {{ $range === 'last_month' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20' : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700' }}">
+                Last Month
+            </a>
+
+            <a href="{{ route('factory.orders.index', ['range' => 'all']) }}" 
+               class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all {{ $range === 'all' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20' : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700' }}">
+                All Time ({{ $totalOrdersCount }})
+            </a>
+        </div>
+
+        <!-- Custom Date Range Form -->
+        <form action="{{ route('factory.orders.index') }}" method="GET" class="flex items-center gap-2">
+            <input type="hidden" name="range" value="custom">
+            <div class="flex items-center gap-1.5 bg-[#070d1e] border border-slate-700 rounded-xl px-2.5 py-1">
+                <span class="text-[10px] text-slate-400 font-semibold">From:</span>
+                <input type="date" name="start_date" value="{{ $startDate ?? '' }}" required
+                       class="bg-transparent text-xs text-white focus:outline-none">
+            </div>
+            <div class="flex items-center gap-1.5 bg-[#070d1e] border border-slate-700 rounded-xl px-2.5 py-1">
+                <span class="text-[10px] text-slate-400 font-semibold">To:</span>
+                <input type="date" name="end_date" value="{{ $endDate ?? '' }}" required
+                       class="bg-transparent text-xs text-white focus:outline-none">
+            </div>
+            <button type="submit" 
+                    class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all shadow-md">
+                Filter
+            </button>
+            @if($range !== 'this_month')
+            <a href="{{ route('factory.orders.index') }}" title="Reset to This Month"
+               class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs transition-colors">
+                <i class="fa-solid fa-rotate-left"></i>
+            </a>
+            @endif
+        </form>
+    </div>
+
     <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
@@ -44,6 +116,19 @@
                 </h3>
                 <span id="orderCountDisplay" class="text-[11px] text-cyan-300 font-mono">
                     Showing <span id="visibleCount">{{ min(15, $orders->count()) }}</span> of <span id="totalCount">{{ $orders->count() }}</span> Orders
+                    @if($range === 'this_month')
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-sans font-semibold">This Month</span>
+                    @elseif($range === 'today')
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-sans font-semibold">Today</span>
+                    @elseif($range === 'last_7_days')
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-sans font-semibold">Last 7 Days</span>
+                    @elseif($range === 'last_month')
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-sans font-semibold">Last Month</span>
+                    @elseif($range === 'custom')
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-sans font-semibold">{{ $startDate }} to {{ $endDate }}</span>
+                    @else
+                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-slate-700 text-slate-300 font-sans font-semibold">All Time</span>
+                    @endif
                 </span>
             </div>
 
@@ -170,7 +255,18 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-8 text-center text-slate-500">No orders created yet. Click "+ Create New Order" to start!</td>
+                        <td colspan="9" class="py-10 text-center">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <i class="fa-solid fa-calendar-xmark text-3xl text-slate-600"></i>
+                                <span class="text-slate-400 font-medium">No orders found for the selected date range.</span>
+                                @if($range !== 'all')
+                                <a href="{{ route('factory.orders.index', ['range' => 'all']) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-xl bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-600/30 text-xs font-semibold transition-all">
+                                    <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+                                    <span>View All Orders ({{ $totalOrdersCount }})</span>
+                                </a>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                     @endforelse
 
