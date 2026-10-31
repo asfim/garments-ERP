@@ -52,8 +52,9 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::put('/productions/{id}', [FactoryErpController::class, 'productionsUpdate'])->name('productions.update');
     Route::delete('/productions/{id}', [FactoryErpController::class, 'productionsDestroy'])->name('productions.destroy');
 
-    // 7. Deliveries (Check stock, warnings, deduct stock, update due, with Delete/Rollback)
+    // 7. Deliveries (Check stock, warnings, deduct stock, update due, with Delete/Rollback & CSV Export)
     Route::get('/deliveries', [FactoryErpController::class, 'deliveriesIndex'])->name('deliveries.index');
+    Route::get('/deliveries/export/csv', [FactoryErpController::class, 'deliveriesExportCsv'])->name('deliveries.export.csv');
     Route::get('/deliveries/create/{orderId}', [FactoryErpController::class, 'deliveryCreateForOrder'])->name('deliveries.create');
     Route::post('/deliveries', [FactoryErpController::class, 'deliveryStore'])->name('deliveries.store');
     Route::delete('/deliveries/{id}', [FactoryErpController::class, 'deliveriesDestroy'])->name('deliveries.destroy');

@@ -700,19 +700,193 @@ class FactoryErpController extends Controller
     }
 
     // ==========================================
-    // 7. DELIVERIES (Check Available Production/Stock -> Warning if exceeds -> Deduct Stock -> Update Due Qty)
+    // 7. DELIVERIES (Check Available Production/Stock -> Warning if exceeds -> Deduct Stock -> Update Due Qty & CSV Export)
     // ==========================================
-    public function deliveriesIndex()
+    public function deliveriesIndex(Request $request)
     {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'orders'); // 'orders' or 'challans'
+
         // Orders with pending deliveries
-        $pendingOrders = Order::with(['customer', 'items.product.unit'])
+        $ordersQuery = Order::with(['customer', 'items.product.unit'])
             ->whereIn('delivery_status', ['pending', 'partial'])
-            ->latest()
-            ->get();
+            ->orderBy('order_date', 'desc')
+            ->orderBy('id', 'desc');
 
-        $deliveries = Delivery::with(['order', 'customer', 'items.product.unit'])->latest()->get();
+        // Completed delivery challans
+        $deliveriesQuery = Delivery::with(['order', 'customer', 'items.product.unit'])
+            ->orderBy('delivery_date', 'desc')
+            ->orderBy('id', 'desc');
 
-        return view('factory-erp.deliveries.index', compact('pendingOrders', 'deliveries'));
+        if ($range === 'this_month') {
+            $ordersQuery->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            $deliveriesQuery->whereBetween('delivery_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $ordersQuery->whereDate('order_date', now()->toDateString());
+            $deliveriesQuery->whereDate('delivery_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $ordersQuery->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            $deliveriesQuery->whereBetween('delivery_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $ordersQuery->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            $deliveriesQuery->whereBetween('delivery_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $ordersQuery->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            $deliveriesQuery->whereBetween('delivery_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $ordersQuery->whereBetween('order_date', [$startDate, $endDate]);
+            $deliveriesQuery->whereBetween('delivery_date', [$startDate, $endDate]);
+        }
+
+        $pendingOrders = $ordersQuery->get();
+        $deliveries = $deliveriesQuery->get();
+
+        $totalPendingOrdersCount = Order::whereIn('delivery_status', ['pending', 'partial'])->count();
+        $totalDeliveriesCount = Delivery::count();
+
+        return view('factory-erp.deliveries.index', compact(
+            'pendingOrders', 
+            'deliveries', 
+            'range', 
+            'startDate', 
+            'endDate', 
+            'tab',
+            'totalPendingOrdersCount', 
+            'totalDeliveriesCount'
+        ));
+    }
+
+    public function deliveriesExportCsv(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'orders');
+
+        $filename = ($tab === 'orders' ? 'Pending-Shipments-' : 'Delivery-Challans-') . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        if ($tab === 'orders') {
+            $ordersQuery = Order::with(['customer', 'items.product.unit'])
+                ->whereIn('delivery_status', ['pending', 'partial'])
+                ->orderBy('order_date', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($range === 'this_month') {
+                $ordersQuery->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'today') {
+                $ordersQuery->whereDate('order_date', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $ordersQuery->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            } elseif ($range === 'last_month') {
+                $ordersQuery->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'this_year') {
+                $ordersQuery->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $ordersQuery->whereBetween('order_date', [$startDate, $endDate]);
+            }
+
+            $orders = $ordersQuery->get();
+
+            $callback = function() use ($orders) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+                fputcsv($file, [
+                    'Order Number',
+                    'Customer Name',
+                    'Phone Number',
+                    'Order Date',
+                    'Due Items & Quantities',
+                    'Total Order Amount (BDT)',
+                    'Delivery Status'
+                ]);
+
+                foreach ($orders as $ord) {
+                    $itemDetails = [];
+                    foreach ($ord->items as $itm) {
+                        $itemDetails[] = ($itm->product->name ?? 'Product') . ' (Due: ' . number_format($itm->due_qty) . ' ' . ($itm->product->unit->short_code ?? '') . ')';
+                    }
+
+                    fputcsv($file, [
+                        $ord->order_number,
+                        $ord->customer->company_name ?? 'N/A',
+                        $ord->customer->phone ?? '',
+                        date('d-M-Y', strtotime($ord->order_date)),
+                        implode(' | ', $itemDetails),
+                        number_format($ord->total_amount, 2, '.', ''),
+                        ucfirst($ord->delivery_status)
+                    ]);
+                }
+
+                fclose($file);
+            };
+        } else {
+            $deliveriesQuery = Delivery::with(['order', 'customer', 'items.product.unit'])
+                ->orderBy('delivery_date', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($range === 'this_month') {
+                $deliveriesQuery->whereBetween('delivery_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'today') {
+                $deliveriesQuery->whereDate('delivery_date', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $deliveriesQuery->whereBetween('delivery_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            } elseif ($range === 'last_month') {
+                $deliveriesQuery->whereBetween('delivery_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'this_year') {
+                $deliveriesQuery->whereBetween('delivery_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $deliveriesQuery->whereBetween('delivery_date', [$startDate, $endDate]);
+            }
+
+            $deliveries = $deliveriesQuery->get();
+
+            $callback = function() use ($deliveries) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+
+                fputcsv($file, [
+                    'Challan Number',
+                    'Order Reference',
+                    'Customer Name',
+                    'Delivery Date',
+                    'Delivered Products & Quantities',
+                    'Total Delivered Value (BDT)',
+                    'Status'
+                ]);
+
+                foreach ($deliveries as $del) {
+                    $itemDetails = [];
+                    foreach ($del->items as $dItem) {
+                        $itemDetails[] = ($dItem->product->name ?? 'Product') . ' (' . number_format($dItem->qty) . ' ' . ($dItem->product->unit->short_code ?? '') . ')';
+                    }
+
+                    fputcsv($file, [
+                        $del->delivery_number,
+                        $del->order->order_number ?? 'N/A',
+                        $del->customer->company_name ?? 'N/A',
+                        date('d-M-Y', strtotime($del->delivery_date)),
+                        implode(' | ', $itemDetails),
+                        number_format($del->total_delivered_amount, 2, '.', ''),
+                        'Delivered'
+                    ]);
+                }
+
+                fclose($file);
+            };
+        }
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function deliveryCreateForOrder($orderId)
