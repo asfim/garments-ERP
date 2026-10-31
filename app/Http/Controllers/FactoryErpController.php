@@ -7,6 +7,7 @@ use App\Models\CompanySetting;
 use App\Models\Unit;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Supplier;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Production;
@@ -226,6 +227,107 @@ class FactoryErpController extends Controller
     {
         $customer = Customer::with(['orders.items.product.unit', 'deliveries.items.product'])->findOrFail($id);
         return view('factory-erp.customers.details', compact('customer'));
+    }
+
+    // ==========================================
+    // 4.1 SUPPLIERS (Supplier name, phone, address, product dropdown with live search, CSV Export, Edit & Delete)
+    // ==========================================
+    public function suppliersIndex(Request $request)
+    {
+        $suppliers = Supplier::with(['product.unit'])->latest()->get();
+        $products = Product::with('unit')->orderBy('name', 'asc')->get();
+        $totalSuppliersCount = $suppliers->count();
+        $totalLinkedProducts = $suppliers->whereNotNull('product_id')->pluck('product_id')->unique()->count();
+
+        return view('factory-erp.suppliers.index', compact('suppliers', 'products', 'totalSuppliersCount', 'totalLinkedProducts'));
+    }
+
+    public function suppliersStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'product_id' => 'required|exists:products,id',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        Supplier::create($validated);
+
+        return redirect()->route('factory.suppliers.index')->with('success', 'Supplier created successfully!');
+    }
+
+    public function suppliersUpdate(Request $request, $id)
+    {
+        $supplier = Supplier::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'address' => 'nullable|string|max:500',
+            'product_id' => 'required|exists:products,id',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        $supplier->update($validated);
+
+        return redirect()->route('factory.suppliers.index')->with('success', 'Supplier updated successfully!');
+    }
+
+    public function suppliersDestroy($id)
+    {
+        $supplier = Supplier::findOrFail($id);
+        $supplier->delete();
+
+        return redirect()->route('factory.suppliers.index')->with('success', 'Supplier deleted successfully!');
+    }
+
+    public function suppliersExportCsv(Request $request)
+    {
+        $suppliers = Supplier::with(['product.unit'])->latest()->get();
+
+        $filename = 'Suppliers_List_' . date('Y_m_d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($suppliers) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, [
+                'SL',
+                'Supplier Name',
+                'Phone Number',
+                'Address',
+                'Product Name (Purchased)',
+                'Unit',
+                'Notes',
+                'Created At'
+            ]);
+
+            $sl = 1;
+            foreach ($suppliers as $s) {
+                fputcsv($handle, [
+                    $sl++,
+                    $s->name,
+                    $s->phone,
+                    $s->address ?? 'N/A',
+                    $s->product ? $s->product->name : 'N/A',
+                    $s->product && $s->product->unit ? $s->product->unit->name : 'N/A',
+                    $s->notes ?? '',
+                    $s->created_at ? $s->created_at->format('Y-m-d H:i') : ''
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // ==========================================

@@ -32,6 +32,16 @@
     <span>Customer</span>
 </a>
 
+<!-- 4. Supplier -->
+@php $isSupp = request()->routeIs('factory.suppliers.*'); @endphp
+<a href="{{ route('factory.suppliers.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isSupp ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isSupp ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-truck-ramp-box text-[11px]"></i>
+    </span>
+    <span>Supplier</span>
+</a>
+
 <!-- 4. Order & Invoicing -->
 @php $isOrd = request()->routeIs('factory.orders.*'); @endphp
 <a href="{{ route('factory.orders.index') }}" 

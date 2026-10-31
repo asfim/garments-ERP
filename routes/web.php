@@ -35,6 +35,13 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::put('/customers/{id}', [FactoryErpController::class, 'customersUpdate'])->name('customers.update');
     Route::delete('/customers/{id}', [FactoryErpController::class, 'customersDestroy'])->name('customers.destroy');
 
+    // 4.1 Suppliers (Supplier name, phone, address, product dropdown with live search, CSV Export, Edit & Delete)
+    Route::get('/suppliers', [FactoryErpController::class, 'suppliersIndex'])->name('suppliers.index');
+    Route::get('/suppliers/export/csv', [FactoryErpController::class, 'suppliersExportCsv'])->name('suppliers.export.csv');
+    Route::post('/suppliers', [FactoryErpController::class, 'suppliersStore'])->name('suppliers.store');
+    Route::put('/suppliers/{id}', [FactoryErpController::class, 'suppliersUpdate'])->name('suppliers.update');
+    Route::delete('/suppliers/{id}', [FactoryErpController::class, 'suppliersDestroy'])->name('suppliers.destroy');
+
     // 5. Orders & Invoices (with Edit, Delete & CSV Export)
     Route::get('/orders', [FactoryErpController::class, 'ordersIndex'])->name('orders.index');
     Route::get('/orders/export/csv', [FactoryErpController::class, 'ordersExportCsv'])->name('orders.export.csv');

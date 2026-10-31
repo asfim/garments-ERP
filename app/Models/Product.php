@@ -28,6 +28,11 @@ class Product extends Model
         return $this->hasMany(Production::class);
     }
 
+    public function suppliers()
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
     public function getCurrentStockAttribute()
     {
         return $this->stock ? $this->stock->current_stock : 0;
