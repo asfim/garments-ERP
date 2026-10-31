@@ -84,10 +84,10 @@
                     </span>
                 </div>
 
-                <!-- Live Search Box -->
-                <div class="relative w-full sm:w-64">
+                <!-- Live Search Box (Supports Name, Mobile e.g. 018..., Person, Address) -->
+                <div class="relative w-full sm:w-72">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="customerSearchInput" placeholder="Live search client..." 
+                    <input type="text" id="customerSearchInput" placeholder="Search by Name, Mobile (e.g. 018...)" 
                            class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none transition-all">
                     <button type="button" id="clearSearchBtn" onclick="clearCustomerSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
                         <i class="fa-solid fa-xmark"></i>
@@ -109,8 +109,25 @@
                     </thead>
                     <tbody id="customersTableBody" class="divide-y divide-slate-800/80">
                         @forelse($customers as $idx => $c)
+                        @php
+                            $rawDigits = preg_replace('/[^0-9]/', '', $c->phone);
+                            $localBd = preg_replace('/^880?/', '0', $rawDigits);
+                            $noZero = ltrim($localBd, '0');
+                            $searchKeywords = strtolower(implode(' ', array_filter([
+                                $c->company_name,
+                                $c->phone,
+                                $rawDigits,
+                                $localBd,
+                                $noZero,
+                                $c->contact_person,
+                                $c->address
+                            ])));
+                        @endphp
                         <tr class="customer-row hover:bg-slate-800/40 transition-colors"
-                            data-search="{{ strtolower($c->company_name . ' ' . $c->phone . ' ' . $c->contact_person . ' ' . $c->address) }}">
+                            data-search="{{ $searchKeywords }}"
+                            data-phone-digits="{{ $rawDigits }}"
+                            data-phone-local="{{ $localBd }}"
+                            data-phone-raw="{{ $c->phone }}">
                             <td class="py-3 text-slate-400 font-mono">{{ $idx + 1 }}</td>
                             <td class="py-3">
                                 <span class="font-bold text-white block">{{ $c->company_name }}</span>
@@ -263,11 +280,31 @@
         }
 
         if (searchVal !== '') {
-            // Live Search Mode
+            // Live Search Mode (matches Company Name, Mobile e.g. 018..., Contact Person, Address)
+            const cleanDigits = searchVal.replace(/[^0-9]/g, '');
             let matchCount = 0;
+
             rows.forEach(row => {
-                const data = row.getAttribute('data-search') || '';
-                if (data.includes(searchVal)) {
+                const data = (row.getAttribute('data-search') || '').toLowerCase();
+                const phoneDigits = row.getAttribute('data-phone-digits') || '';
+                const phoneLocal = row.getAttribute('data-phone-local') || '';
+                const phoneRaw = (row.getAttribute('data-phone-raw') || '').toLowerCase();
+
+                let isMatch = false;
+
+                // 1. Text match (company name, contact person, address, full raw phone)
+                if (data.includes(searchVal) || phoneRaw.includes(searchVal)) {
+                    isMatch = true;
+                }
+
+                // 2. Mobile number digit match (e.g. typing 018..., 18..., 017..., +880...)
+                if (!isMatch && cleanDigits.length >= 2) {
+                    if (phoneDigits.includes(cleanDigits) || phoneLocal.includes(cleanDigits)) {
+                        isMatch = true;
+                    }
+                }
+
+                if (isMatch) {
                     row.classList.remove('hidden');
                     matchCount++;
                 } else {
