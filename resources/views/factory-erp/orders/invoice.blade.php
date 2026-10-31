@@ -128,8 +128,8 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-700/80">
                 <div class="flex items-center gap-3.5">
                     @if(!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)))
-                        <div class="w-14 h-14 rounded-2xl bg-white/10 p-1 flex items-center justify-center border border-slate-700/70 overflow-hidden flex-shrink-0">
-                            <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo" class="max-w-full max-h-full object-contain">
+                        <div class="h-14 w-auto min-w-[56px] max-w-[200px] rounded-2xl bg-white p-1.5 flex items-center justify-center border border-slate-700/70 overflow-hidden flex-shrink-0 shadow-sm">
+                            <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo" class="h-full w-auto max-w-full object-contain">
                         </div>
                     @endif
                     <div>

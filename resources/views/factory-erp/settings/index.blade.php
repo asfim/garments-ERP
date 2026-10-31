@@ -52,7 +52,7 @@
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <div class="w-20 h-20 rounded-2xl bg-[#0a1228] border-2 border-dashed border-cyan-500/40 flex items-center justify-center overflow-hidden p-1 shadow-inner relative group">
+                        <div class="h-16 w-44 rounded-2xl bg-white border-2 border-dashed border-cyan-500/50 flex items-center justify-center overflow-hidden p-1.5 shadow-inner relative group">
                             @if(!empty($setting->logo) && file_exists(public_path('storage/' . $setting->logo)))
                                 <img id="logoPreview" src="{{ asset('storage/' . $setting->logo) }}" alt="Company Logo" class="max-w-full max-h-full object-contain">
                             @else
