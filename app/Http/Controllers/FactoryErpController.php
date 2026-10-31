@@ -1286,5 +1286,112 @@ class FactoryErpController extends Controller
 
         return redirect()->back()->with('success', "Stock for {$product->name} manually updated!");
     }
+
+    public function stocksBalanceUpdate(Request $request, $productId)
+    {
+        $validated = $request->validate([
+            'current_stock' => 'required|numeric|min:0',
+            'notes' => 'nullable|string'
+        ]);
+
+        $product = Product::with('unit')->findOrFail($productId);
+        $stock = Stock::firstOrCreate(['product_id' => $product->id], [
+            'current_stock' => 0,
+            'total_produced' => 0,
+            'total_delivered' => 0,
+            'manual_adjusted' => 0
+        ]);
+
+        $newStock = floatval($validated['current_stock']);
+        $prevStock = floatval($stock->current_stock);
+        $diff = $newStock - $prevStock;
+
+        if ($diff == 0) {
+            return redirect()->back()->with('info', 'Stock quantity unchanged.');
+        }
+
+        $stock->current_stock = $newStock;
+        $stock->manual_adjusted += $diff;
+        $stock->save();
+
+        StockLog::create([
+            'product_id' => $product->id,
+            'type' => $diff > 0 ? 'manual_add' : 'manual_subtract',
+            'qty' => abs($diff),
+            'previous_stock' => $prevStock,
+            'new_stock' => $newStock,
+            'reference_id' => 'MANUAL-EDIT',
+            'notes' => $validated['notes'] ?? 'Direct stock balance edit'
+        ]);
+
+        return redirect()->back()->with('success', "Stock for {$product->name} updated to " . number_format($newStock) . "!");
+    }
+
+    public function stocksBalanceReset($productId)
+    {
+        $product = Product::findOrFail($productId);
+        $stock = Stock::where('product_id', $product->id)->first();
+
+        if ($stock && $stock->current_stock > 0) {
+            $prevStock = $stock->current_stock;
+            $stock->current_stock = 0;
+            $stock->manual_adjusted -= $prevStock;
+            $stock->save();
+
+            StockLog::create([
+                'product_id' => $product->id,
+                'type' => 'manual_subtract',
+                'qty' => $prevStock,
+                'previous_stock' => $prevStock,
+                'new_stock' => 0,
+                'reference_id' => 'RESET-STOCK',
+                'notes' => 'Stock balance reset to 0'
+            ]);
+
+            return redirect()->back()->with('success', "Stock balance for {$product->name} has been reset to 0.");
+        }
+
+        return redirect()->back()->with('info', "Stock for {$product->name} is already 0.");
+    }
+
+    public function stocksLogUpdate(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'notes' => 'nullable|string'
+        ]);
+
+        $log = StockLog::findOrFail($id);
+        $log->notes = $validated['notes'] ?? $log->notes;
+        $log->save();
+
+        return redirect()->back()->with('success', 'Stock movement log notes updated successfully.');
+    }
+
+    public function stocksLogDestroy($id)
+    {
+        $log = StockLog::with('product')->findOrFail($id);
+        $stock = Stock::where('product_id', $log->product_id)->first();
+
+        if ($stock) {
+            if ($log->type === 'manual_add') {
+                $stock->current_stock = max(0, $stock->current_stock - $log->qty);
+                $stock->manual_adjusted -= $log->qty;
+            } elseif ($log->type === 'manual_subtract') {
+                $stock->current_stock += $log->qty;
+                $stock->manual_adjusted += $log->qty;
+            } elseif ($log->type === 'production') {
+                $stock->current_stock = max(0, $stock->current_stock - $log->qty);
+                $stock->total_produced = max(0, $stock->total_produced - $log->qty);
+            } elseif ($log->type === 'delivery') {
+                $stock->current_stock += $log->qty;
+                $stock->total_delivered = max(0, $stock->total_delivered - $log->qty);
+            }
+            $stock->save();
+        }
+
+        $log->delete();
+
+        return redirect()->back()->with('success', 'Stock movement log deleted and product stock balance reversed.');
+    }
 }
 

@@ -237,6 +237,7 @@
                                     <th class="pb-2.5 text-right">Total Delivered (-)</th>
                                     <th class="pb-2.5 text-right">Manual Adj</th>
                                     <th class="pb-2.5 text-right font-bold text-cyan-300">Available Stock</th>
+                                    <th class="pb-2.5 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/80">
@@ -269,16 +270,39 @@
                                             {{ number_format($curr) }} {{ $prod->unit->short_code ?? '' }}
                                         </span>
                                     </td>
+                                    <td class="py-3 text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <button type="button" 
+                                                    onclick="openEditStockModal({{ $prod->id }}, '{{ addslashes($prod->name) }}', {{ $curr }}, '{{ $prod->unit->short_code ?? '' }}')"
+                                                    class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                    title="Edit Stock Balance">
+                                                <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                                <span>Edit</span>
+                                            </button>
+
+                                            <form action="{{ route('factory.stocks.balance.reset', $prod->id) }}" method="POST" 
+                                                  onsubmit="return confirm('Reset available stock for \'{{ addslashes($prod->name) }}\' to 0?');" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                        title="Reset Stock to 0">
+                                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                                    <span>Reset</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="py-8 text-center text-slate-500">No products recorded in warehouse inventory.</td>
+                                    <td colspan="7" class="py-8 text-center text-slate-500">No products recorded in warehouse inventory.</td>
                                 </tr>
                                 @endforelse
 
                                 <!-- No Search Results Row -->
                                 <tr id="noBalanceSearchResultRow" class="hidden">
-                                    <td colspan="6" class="py-8 text-center text-slate-400">
+                                    <td colspan="7" class="py-8 text-center text-slate-400">
                                         <div class="flex flex-col items-center justify-center gap-1.5">
                                             <i class="fa-solid fa-box-open text-2xl text-slate-600"></i>
                                             <span class="text-xs">No products match your inventory search.</span>
@@ -339,6 +363,7 @@
                                     <th class="pb-2.5 text-right">Quantity</th>
                                     <th class="pb-2.5 text-right">Balance</th>
                                     <th class="pb-2.5">Ref / Notes</th>
+                                    <th class="pb-2.5 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/80">
@@ -372,10 +397,33 @@
                                         {{ number_format($log->new_stock) }}
                                     </td>
                                     <td class="py-2.5 text-slate-400 truncate max-w-xs">{{ $log->notes }}</td>
+                                    <td class="py-2.5 text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <button type="button" 
+                                                    onclick="openEditLogModal({{ $log->id }}, '{{ addslashes($log->product->name ?? 'Product') }}', '{{ addslashes($log->notes ?? '') }}')"
+                                                    class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                    title="Edit Log Notes">
+                                                <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                                <span>Edit</span>
+                                            </button>
+
+                                            <form action="{{ route('factory.stocks.logs.destroy', $log->id) }}" method="POST" 
+                                                  onsubmit="return confirm('Delete this movement log and reverse the stock balance for \'{{ addslashes($log->product->name ?? 'Product') }}\'?');" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                        title="Delete Log & Reverse Stock">
+                                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                                    <span>Delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="py-10 text-center">
+                                    <td colspan="7" class="py-10 text-center">
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <i class="fa-solid fa-calendar-xmark text-3xl text-slate-600"></i>
                                             <span class="text-slate-400 font-medium">No stock movements found for this date range.</span>
@@ -392,7 +440,7 @@
 
                                 <!-- No Search Results Row -->
                                 <tr id="noHistorySearchResultRow" class="hidden">
-                                    <td colspan="6" class="py-8 text-center text-slate-400">
+                                    <td colspan="7" class="py-8 text-center text-slate-400">
                                         <div class="flex flex-col items-center justify-center gap-1.5">
                                             <i class="fa-solid fa-clock-rotate-left text-2xl text-slate-600"></i>
                                             <span class="text-xs">No movement logs match your search.</span>
@@ -419,6 +467,101 @@
 
     </div>
 
+</div>
+
+<!-- EDIT STOCK MODAL -->
+<div id="editStockModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-md w-full relative shadow-2xl bg-[#0a1228]/95">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                Edit Available Stock Balance
+            </h3>
+            <button type="button" onclick="closeEditStockModal()" class="text-slate-400 hover:text-white p-1 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="editStockForm" method="POST" class="space-y-3.5">
+            @csrf
+            @method('PUT')
+
+            <div class="bg-[#070d1e] p-3 rounded-xl border border-slate-800 text-xs">
+                <span class="text-slate-400">Product:</span>
+                <span id="modalStockProdName" class="text-white font-bold block mt-0.5"></span>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Set New Available Stock *</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" step="1" min="0" name="current_stock" id="modalStockInput" required
+                           class="w-full bg-[#070d1e] text-sm font-mono font-bold text-emerald-400 rounded-xl px-3.5 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none">
+                    <span id="modalStockUnit" class="text-xs text-slate-400 font-mono"></span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Notes</label>
+                <textarea name="notes" id="modalStockNotes" rows="2" placeholder="Audit recount, physical inventory adjustment..."
+                          class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeEditStockModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save Balance</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT LOG NOTES MODAL -->
+<div id="editLogModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-md w-full relative shadow-2xl bg-[#0a1228]/95">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-cyan-400"></i>
+                Edit Movement Log Notes
+            </h3>
+            <button type="button" onclick="closeEditLogModal()" class="text-slate-400 hover:text-white p-1 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="editLogForm" method="POST" class="space-y-3.5">
+            @csrf
+            @method('PUT')
+
+            <div class="bg-[#070d1e] p-3 rounded-xl border border-slate-800 text-xs">
+                <span class="text-slate-400">Product:</span>
+                <span id="modalLogProdName" class="text-white font-bold block mt-0.5"></span>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Notes</label>
+                <textarea name="notes" id="modalLogNotes" rows="3" required
+                          class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeEditLogModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Update Notes</span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -625,5 +768,38 @@
             searchInput.focus();
         }
     }
+    // ==========================================
+    // Modals: Edit Stock Balance & Edit Log Notes
+    // ==========================================
+    function openEditStockModal(id, name, currStock, unit) {
+        document.getElementById('modalStockProdName').innerText = name + (unit ? ' (' + unit + ')' : '');
+        document.getElementById('modalStockInput').value = currStock;
+        document.getElementById('modalStockUnit').innerText = unit || '';
+        document.getElementById('modalStockNotes').value = '';
+        document.getElementById('editStockForm').action = `/factory/stocks/balance/${id}`;
+        document.getElementById('editStockModal').classList.remove('hidden');
+    }
+
+    function closeEditStockModal() {
+        document.getElementById('editStockModal').classList.add('hidden');
+    }
+
+    function openEditLogModal(id, prodName, notes) {
+        document.getElementById('modalLogProdName').innerText = prodName;
+        document.getElementById('modalLogNotes').value = notes;
+        document.getElementById('editLogForm').action = `/factory/stocks/logs/${id}`;
+        document.getElementById('editLogModal').classList.remove('hidden');
+    }
+
+    function closeEditLogModal() {
+        document.getElementById('editLogModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeEditStockModal();
+            closeEditLogModal();
+        }
+    });
 </script>
 @endsection

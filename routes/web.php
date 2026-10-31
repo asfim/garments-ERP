@@ -59,8 +59,12 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::post('/deliveries', [FactoryErpController::class, 'deliveryStore'])->name('deliveries.store');
     Route::delete('/deliveries/{id}', [FactoryErpController::class, 'deliveriesDestroy'])->name('deliveries.destroy');
 
-    // 8. Stocks (Auto updated & manual adjustments & CSV Export)
+    // 8. Stocks (Auto updated & manual adjustments & CSV Export with Edit & Delete)
     Route::get('/stocks', [FactoryErpController::class, 'stocksIndex'])->name('stocks.index');
     Route::get('/stocks/export/csv', [FactoryErpController::class, 'stocksExportCsv'])->name('stocks.export.csv');
     Route::post('/stocks/adjust', [FactoryErpController::class, 'stocksAdjust'])->name('stocks.adjust');
+    Route::put('/stocks/balance/{productId}', [FactoryErpController::class, 'stocksBalanceUpdate'])->name('stocks.balance.update');
+    Route::delete('/stocks/balance/{productId}', [FactoryErpController::class, 'stocksBalanceReset'])->name('stocks.balance.reset');
+    Route::put('/stocks/logs/{id}', [FactoryErpController::class, 'stocksLogUpdate'])->name('stocks.logs.update');
+    Route::delete('/stocks/logs/{id}', [FactoryErpController::class, 'stocksLogDestroy'])->name('stocks.logs.destroy');
 });
