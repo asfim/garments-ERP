@@ -228,16 +228,16 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
+                        <table class="w-full min-w-[760px] text-left text-xs">
                             <thead>
-                                <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                                    <th class="pb-2.5">Product Name</th>
-                                    <th class="pb-2.5 text-center">Unit</th>
-                                    <th class="pb-2.5 text-right">Total Produced (+)</th>
-                                    <th class="pb-2.5 text-right">Total Delivered (-)</th>
-                                    <th class="pb-2.5 text-right">Manual Adj</th>
-                                    <th class="pb-2.5 text-right font-bold text-cyan-300">Available Stock</th>
-                                    <th class="pb-2.5 text-right">Action</th>
+                                <tr class="text-slate-400 border-b border-slate-700/80 font-semibold bg-slate-800/20">
+                                    <th class="py-3 px-3.5 whitespace-nowrap">Product Name</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-center">Unit</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right">Total Produced (+)</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right">Total Delivered (-)</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right">Manual Adj</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right font-bold text-cyan-300">Available Stock</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right min-w-[130px]">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/80">
@@ -248,33 +248,33 @@
                                 @endphp
                                 <tr class="stock-balance-row hover:bg-slate-800/40 transition-colors"
                                     data-search="{{ strtolower($prod->name . ' ' . ($prod->unit->short_code ?? '') . ' ' . ($prod->unit->name ?? '') . ' stock ' . $curr) }}">
-                                    <td class="py-3 font-bold text-white">
+                                    <td class="py-3 px-3.5 font-bold text-white whitespace-nowrap">
                                         {{ $prod->name }}
                                     </td>
-                                    <td class="py-3 text-center">
+                                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
                                         <span class="px-2 py-0.5 rounded bg-blue-500/10 text-cyan-300 font-mono text-[11px]">
                                             {{ $prod->unit->short_code ?? 'Pcs' }}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-right font-mono text-emerald-400">
+                                    <td class="py-3 px-3.5 text-right font-mono text-emerald-400 whitespace-nowrap">
                                         + {{ number_format($stk ? $stk->total_produced : 0) }}
                                     </td>
-                                    <td class="py-3 text-right font-mono text-rose-400">
+                                    <td class="py-3 px-3.5 text-right font-mono text-rose-400 whitespace-nowrap">
                                         - {{ number_format($stk ? $stk->total_delivered : 0) }}
                                     </td>
-                                    <td class="py-3 text-right font-mono text-slate-300">
+                                    <td class="py-3 px-3.5 text-right font-mono text-slate-300 whitespace-nowrap">
                                         {{ $stk && $stk->manual_adjusted != 0 ? ($stk->manual_adjusted > 0 ? '+'.number_format($stk->manual_adjusted) : number_format($stk->manual_adjusted)) : '0' }}
                                     </td>
-                                    <td class="py-3 text-right">
+                                    <td class="py-3 px-3.5 text-right whitespace-nowrap">
                                         <span class="px-3 py-1 rounded-full text-xs font-black font-mono {{ $curr > 50 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30' }}">
                                             {{ number_format($curr) }} {{ $prod->unit->short_code ?? '' }}
                                         </span>
                                     </td>
-                                    <td class="py-3 text-right">
+                                    <td class="py-3 px-3.5 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <button type="button" 
                                                     onclick="openEditStockModal({{ $prod->id }}, '{{ addslashes($prod->name) }}', {{ $curr }}, '{{ $prod->unit->short_code ?? '' }}')"
-                                                    class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                    class="px-2.5 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
                                                     title="Edit Stock Balance">
                                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                                 <span>Edit</span>
@@ -285,7 +285,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
-                                                        class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                        class="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
                                                         title="Reset Stock to 0">
                                                     <i class="fa-solid fa-trash-can text-[10px]"></i>
                                                     <span>Reset</span>
@@ -354,16 +354,16 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
+                        <table class="w-full min-w-[780px] text-left text-xs">
                             <thead>
-                                <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                                    <th class="pb-2.5">Date</th>
-                                    <th class="pb-2.5">Product</th>
-                                    <th class="pb-2.5">Movement Type</th>
-                                    <th class="pb-2.5 text-right">Quantity</th>
-                                    <th class="pb-2.5 text-right">Balance</th>
-                                    <th class="pb-2.5">Ref / Notes</th>
-                                    <th class="pb-2.5 text-right">Action</th>
+                                <tr class="text-slate-400 border-b border-slate-700/80 font-semibold bg-slate-800/20">
+                                    <th class="py-3 px-3.5 whitespace-nowrap">Date & Time</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap">Product</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-center">Movement Type</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right">Quantity</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right">Balance</th>
+                                    <th class="py-3 px-3.5 min-w-[180px]">Ref / Notes</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-right min-w-[130px]">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/80">
@@ -375,33 +375,46 @@
                                     elseif ($log->type === 'manual_add') $typeSearchText = 'manual add';
                                     elseif ($log->type === 'manual_subtract') $typeSearchText = 'manual subtract';
                                 @endphp
-                                <tr class="stock-history-row hover:bg-slate-800/40 transition-colors"
-                                    data-search="{{ strtolower(($log->product->name ?? '') . ' ' . $typeSearchText . ' ' . ($log->reference_id ?? '') . ' ' . ($log->notes ?? '') . ' ' . date('d M, Y', strtotime($log->created_at))) }}">
-                                    <td class="py-2.5 text-slate-400 font-mono">{{ date('d M, h:i A', strtotime($log->created_at)) }}</td>
-                                    <td class="py-2.5 font-medium text-white">{{ $log->product->name ?? 'N/A' }}</td>
-                                    <td class="py-2.5">
+                                <tr class="stock-history-row hover:bg-slate-800/40 transition-colors">
+                                    <td class="py-3 px-3.5 text-slate-400 font-mono whitespace-nowrap">
+                                        {{ date('d M, h:i A', strtotime($log->created_at)) }}
+                                    </td>
+                                    <td class="py-3 px-3.5 font-bold text-white whitespace-nowrap">
+                                        {{ $log->product->name ?? 'N/A' }}
+                                    </td>
+                                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
                                         @if($log->type === 'production')
-                                            <span class="text-emerald-400 font-semibold">Production In (+)</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                                Production In (+)
+                                            </span>
                                         @elseif($log->type === 'delivery')
-                                            <span class="text-rose-400 font-semibold">Delivery Out (-)</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                                Delivery Out (-)
+                                            </span>
                                         @elseif($log->type === 'manual_add')
-                                            <span class="text-cyan-300 font-semibold">Manual Add (+)</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                                                Manual Add (+)
+                                            </span>
                                         @else
-                                            <span class="text-amber-300 font-semibold">Manual Subtract (-)</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                                Manual Subtract (-)
+                                            </span>
                                         @endif
                                     </td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-white">
+                                    <td class="py-3 px-3.5 text-right font-mono font-bold text-white whitespace-nowrap">
                                         {{ number_format($log->qty) }}
                                     </td>
-                                    <td class="py-2.5 text-right font-mono text-cyan-300">
+                                    <td class="py-3 px-3.5 text-right font-mono font-bold text-cyan-300 whitespace-nowrap">
                                         {{ number_format($log->new_stock) }}
                                     </td>
-                                    <td class="py-2.5 text-slate-400 truncate max-w-xs">{{ $log->notes }}</td>
-                                    <td class="py-2.5 text-right">
+                                    <td class="py-3 px-3.5 text-slate-300 min-w-[180px]">
+                                        <span class="text-xs">{{ $log->notes }}</span>
+                                    </td>
+                                    <td class="py-3 px-3.5 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <button type="button" 
                                                     onclick="openEditLogModal({{ $log->id }}, '{{ addslashes($log->product->name ?? 'Product') }}', '{{ addslashes($log->notes ?? '') }}')"
-                                                    class="px-2 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                    class="px-2.5 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
                                                     title="Edit Log Notes">
                                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                                 <span>Edit</span>
@@ -412,7 +425,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
-                                                        class="px-2 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
+                                                        class="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
                                                         title="Delete Log & Reverse Stock">
                                                     <i class="fa-solid fa-trash-can text-[10px]"></i>
                                                     <span>Delete</span>
