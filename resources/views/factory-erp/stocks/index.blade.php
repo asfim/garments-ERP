@@ -29,6 +29,13 @@
         </div>
 
         <div class="flex items-center gap-2.5">
+            <!-- Manual Stock Adjustment Button (Opens Modal) -->
+            <button type="button" onclick="openManualAdjustModal()"
+                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Manual Stock Adjustment</span>
+            </button>
+
             <!-- CSV Download Button -->
             <a id="csvDownloadBtn" 
                href="{{ route('factory.stocks.export.csv', ['range' => $range, 'start_date' => $startDate, 'end_date' => $endDate, 'tab' => $tab]) }}" 
@@ -116,101 +123,43 @@
         </form>
     </div>
 
-    <!-- Main Grid: Left Adjustment Form + Right Tabs & Tables -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Main Full-Width Content: Tabs & Tables -->
+    <div class="space-y-4">
         
-        <!-- Left: Manual Stock Adjustment Form -->
-        <div class="lg:col-span-4 glass-panel rounded-3xl p-5 border border-slate-700/60 h-fit">
-            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-amber-400"></i>
-                Manual Stock Adjustment
-            </h3>
-
-            <form action="{{ route('factory.stocks.adjust') }}" method="POST" class="space-y-3.5">
-                @csrf
-                
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Select Product *</label>
-                    <select name="product_id" required
-                            class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
-                        <option value="">-- Choose Product --</option>
-                        @foreach($products as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }} (Available: {{ number_format($p->current_stock) }} {{ $p->unit->short_code ?? '' }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Action Type *</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-[#0a1228] border border-slate-700 cursor-pointer text-xs">
-                            <input type="radio" name="type" value="manual_add" checked class="text-cyan-400">
-                            <span class="text-emerald-400 font-bold">+ Add Stock</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 rounded-xl bg-[#0a1228] border border-slate-700 cursor-pointer text-xs">
-                            <input type="radio" name="type" value="manual_subtract" class="text-cyan-400">
-                            <span class="text-rose-400 font-bold">- Subtract</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Adjustment Quantity *</label>
-                    <input type="number" step="1" min="1" name="qty" placeholder="e.g. 50" required
-                           class="w-full bg-[#0a1228] text-xs font-mono font-bold text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Notes</label>
-                    <textarea name="notes" rows="2" placeholder="e.g. Physical audit recount, sample deduction..."
-                              class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
-                </div>
-
-                <button type="submit" 
-                        class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500 transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i>
-                    <span>Apply Adjustment</span>
+        <!-- Section Tabs Toggle (Current Stock Balance vs Movement History) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/70 pb-3">
+            <div class="flex items-center gap-2">
+                <!-- Tab 1: Current Warehouse Stock Balance (Initial Active) -->
+                <button type="button" id="tabBtnBalance" onclick="switchStockTab('balance')"
+                        class="px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $tab === 'balance' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700' }}">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Current Stock Balance</span>
+                    <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-black/30 font-mono">
+                        {{ $products->count() }}
+                    </span>
                 </button>
-            </form>
-        </div>
 
-        <!-- Right: Tab Switcher & Display Panes -->
-        <div class="lg:col-span-8 space-y-4">
-            
-            <!-- Section Tabs Toggle (Current Stock Balance vs Movement History) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/70 pb-3">
-                <div class="flex items-center gap-2">
-                    <!-- Tab 1: Current Warehouse Stock Balance (Initial Active) -->
-                    <button type="button" id="tabBtnBalance" onclick="switchStockTab('balance')"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $tab === 'balance' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700' }}">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span>Current Stock Balance</span>
-                        <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-black/30 font-mono">
-                            {{ $products->count() }}
-                        </span>
-                    </button>
-
-                    <!-- Tab 2: Recent Stock Movement History -->
-                    <button type="button" id="tabBtnHistory" onclick="switchStockTab('history')"
-                            class="px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $tab === 'history' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700' }}">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span>Movement History</span>
-                        <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-black/30 font-mono">
-                            {{ $stockLogs->count() }}
-                        </span>
-                    </button>
-                </div>
-
-                <!-- Live Search Box -->
-                <div class="relative w-full sm:w-64">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="stockSearchInput" placeholder="Search product, unit, stock..." 
-                           class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none transition-all">
-                    <button type="button" id="clearStockSearchBtn" onclick="clearStockSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+                <!-- Tab 2: Recent Stock Movement History -->
+                <button type="button" id="tabBtnHistory" onclick="switchStockTab('history')"
+                        class="px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $tab === 'history' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25' : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700' }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Movement History</span>
+                    <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-black/30 font-mono">
+                        {{ $stockLogs->count() }}
+                    </span>
+                </button>
             </div>
+
+            <!-- Live Search Box -->
+            <div class="relative w-full sm:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="stockSearchInput" placeholder="Search product, unit, stock..." 
+                       class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none transition-all">
+                <button type="button" id="clearStockSearchBtn" onclick="clearStockSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
 
             <!-- ==========================================
                  TAB 1: Current Warehouse Stock Balance Table
@@ -480,6 +429,64 @@
 
     </div>
 
+</div>
+
+<!-- MANUAL STOCK ADJUSTMENT POPUP MODAL -->
+<div id="manualAdjustModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-md w-full relative shadow-2xl bg-[#0a1228]/95">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-amber-400"></i>
+                Manual Stock Adjustment
+            </h3>
+            <button type="button" onclick="closeManualAdjustModal()" class="text-slate-400 hover:text-white p-1 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('factory.stocks.adjust') }}" method="POST" class="space-y-3.5">
+            @csrf
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Select Product *</label>
+                <select name="product_id" required class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none">
+                    <option value="">-- Choose Product --</option>
+                    @foreach($products as $p)
+                        <option value="{{ $p->id }}">{{ $p->name }} (Available: {{ number_format($p->current_stock) }} {{ $p->unit->short_code ?? '' }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Action Type *</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 p-2 rounded-xl bg-[#070d1e] border border-slate-700 cursor-pointer text-xs">
+                        <input type="radio" name="type" value="manual_add" checked class="text-amber-400">
+                        <span class="text-emerald-400 font-bold">+ Add Stock</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 rounded-xl bg-[#070d1e] border border-slate-700 cursor-pointer text-xs">
+                        <input type="radio" name="type" value="manual_subtract" class="text-amber-400">
+                        <span class="text-rose-400 font-bold">- Subtract</span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Adjustment Quantity *</label>
+                <input type="number" step="1" min="1" name="qty" placeholder="e.g. 50" required class="w-full bg-[#070d1e] text-xs font-mono font-bold text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Notes</label>
+                <textarea name="notes" rows="2" placeholder="e.g. Physical audit recount, sample deduction..." class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none"></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeManualAdjustModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Apply Adjustment</span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- EDIT STOCK MODAL -->
@@ -782,8 +789,16 @@
         }
     }
     // ==========================================
-    // Modals: Edit Stock Balance & Edit Log Notes
+    // Modals: Manual Adjust, Edit Stock & Edit Log
     // ==========================================
+    function openManualAdjustModal() {
+        document.getElementById('manualAdjustModal').classList.remove('hidden');
+    }
+
+    function closeManualAdjustModal() {
+        document.getElementById('manualAdjustModal').classList.add('hidden');
+    }
+
     function openEditStockModal(id, name, currStock, unit) {
         document.getElementById('modalStockProdName').innerText = name + (unit ? ' (' + unit + ')' : '');
         document.getElementById('modalStockInput').value = currStock;
@@ -810,6 +825,7 @@
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            closeManualAdjustModal();
             closeEditStockModal();
             closeEditLogModal();
         }
