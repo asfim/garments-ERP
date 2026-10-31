@@ -31,17 +31,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <!-- Quick Pay Full Due Button -->
-            <button type="button" onclick="setFullDueAmount({{ $totalDue }})"
-                    title="Pay Total Due (৳ {{ number_format($totalDue, 2) }})"
-                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-extrabold text-xs shadow-lg shadow-rose-600/30 border border-rose-400/40 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer">
-                <i class="fa-solid fa-hand-holding-dollar text-base text-amber-200"></i>
-                <div class="text-left leading-tight">
-                    <span class="block text-xs font-black">Pay Due</span>
-                    <span class="block text-[10px] text-amber-200 font-mono font-bold">৳ {{ number_format($totalDue, 2) }}</span>
-                </div>
-            </button>
-
             <!-- Full Ledger Link -->
             <a href="{{ route('factory.customers.details', $customer->id) }}" 
                class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-xs font-semibold transition-all flex items-center gap-2">
@@ -143,54 +132,34 @@
             </div>
             
             <div class="flex items-center gap-2.5">
-                <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-300 font-mono text-[11px] border border-amber-500/30 flex items-center gap-1.5 font-bold">
-                    <i class="fa-solid fa-layer-group text-[10px]"></i>
+                <span class="px-3 py-1.5 rounded-xl bg-slate-800/80 text-cyan-300 font-mono text-xs border border-slate-700 flex items-center gap-1.5 font-bold">
+                    <i class="fa-solid fa-layer-group text-[11px] text-cyan-400"></i>
                     <span>Max Due: ৳ {{ number_format($totalDue, 2) }}</span>
                 </span>
-
-                <!-- Prominent Pay Due Button in Header -->
-                <button type="button" onclick="setFullDueAmount({{ $totalDue }})"
-                        title="Click to auto-fill Full Due Amount"
-                        class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-extrabold text-xs shadow-lg shadow-rose-600/30 border border-rose-400/40 flex items-center gap-2 transition-all active:scale-95 cursor-pointer">
-                    <i class="fa-solid fa-hand-holding-dollar text-sm text-amber-200"></i>
-                    <div class="text-left leading-none space-y-0.5">
-                        <div class="text-[11px] font-black">Pay Due</div>
-                        <div class="text-[9px] text-amber-200 font-mono font-bold">৳ {{ number_format($totalDue, 2) }}</div>
-                    </div>
-                </button>
             </div>
         </div>
 
         <form action="{{ route('factory.customers.due.payment.store', $customer->id) }}" method="POST" id="fifoPaymentForm" class="space-y-4">
             @csrf
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 
-                <!-- 1. Payment Amount with Dedicated Pay Due Button -->
-                <div class="lg:col-span-2">
+                <!-- 1. Payment Amount -->
+                <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-bold text-amber-300">
                             Payment Amount (৳) *
                         </label>
-                        <span class="text-[10px] text-slate-400 font-mono">Max: ৳ {{ number_format($totalDue, 2) }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-amber-400">৳</span>
-                            <input type="number" step="0.01" min="0.01" max="{{ $totalDue }}" name="amount" id="fifoPaymentAmountInput" required
-                                   placeholder="e.g. 700"
-                                   oninput="updateFifoPreview(this.value)"
-                                   class="w-full bg-[#070d1e] text-base font-mono font-black text-amber-300 rounded-xl pl-8 pr-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none">
-                        </div>
-                        <button type="button" onclick="setFullDueAmount({{ $totalDue }})"
-                                title="Click to pay entire due of ৳ {{ number_format($totalDue, 2) }}"
-                                class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-extrabold text-xs shadow-lg shadow-rose-600/30 border border-rose-400/40 flex items-center gap-2 transition-all active:scale-95 cursor-pointer flex-shrink-0">
-                            <i class="fa-solid fa-hand-holding-dollar text-base text-amber-200"></i>
-                            <div class="text-left leading-none space-y-0.5">
-                                <span class="block text-xs font-black">Pay Due</span>
-                                <span class="block text-[10px] text-amber-200 font-mono font-bold">৳ {{ number_format($totalDue, 2) }}</span>
-                            </div>
+                        <button type="button" onclick="setFullDueAmount({{ $totalDue }})" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold hover:underline">
+                            Full Due (৳{{ number_format($totalDue, 2) }})
                         </button>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-amber-400">৳</span>
+                        <input type="number" step="0.01" min="0.01" max="{{ $totalDue }}" name="amount" id="fifoPaymentAmountInput" required
+                               placeholder="e.g. 700"
+                               oninput="updateFifoPreview(this.value)"
+                               class="w-full bg-[#070d1e] text-base font-mono font-black text-amber-300 rounded-xl pl-8 pr-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
                     </div>
                 </div>
 
@@ -199,13 +168,13 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Date *</label>
                     <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
                            style="color-scheme: dark;"
-                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none cursor-pointer">
+                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none cursor-pointer">
                 </div>
 
                 <!-- 3. Payment Method -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
-                    <select name="payment_method" class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none">
+                    <select name="payment_method" class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
                         <option value="Cash">Cash (নগদ)</option>
                         <option value="Bank Transfer">Bank Transfer / Cheque</option>
                         <option value="bKash / Nagad">Mobile Banking (bKash/Nagad)</option>
@@ -217,7 +186,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Reference / Note</label>
                     <input type="text" name="notes" placeholder="e.g. Received by Manager, Slip #102"
-                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-amber-400 focus:outline-none">
+                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
                 </div>
 
             </div>
@@ -236,10 +205,10 @@
                 </div>
             </div>
 
-            <!-- Submit Button -->
+            <!-- Submit Button (Site Color: Solid Cyan, No Gradient) -->
             <div class="flex items-center justify-end pt-1">
                 <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold text-xs shadow-xl shadow-amber-500/25 transition-all flex items-center gap-2">
+                        class="px-6 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/20 transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-check-double text-sm"></i>
                     <span>Apply Due Payment Across Invoices (FIFO)</span>
                 </button>
@@ -287,11 +256,11 @@
                     @endphp
                     <tr class="hover:bg-slate-800/40 transition-colors {{ $isOldest ? 'bg-amber-950/15' : '' }}">
                         
-                        <!-- Priority Queue Tag -->
+                        <!-- Priority Queue Tag (Site Color: Solid Cyan Border/Bg, No Gradient) -->
                         <td class="py-3.5 px-3.5 whitespace-nowrap">
                             @if($isOldest)
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm flex items-center gap-1 w-fit">
-                                    <i class="fa-solid fa-star text-[9px]"></i> #1 1st in FIFO
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1 w-fit shadow-sm">
+                                    <i class="fa-solid fa-star text-[9px] text-cyan-400"></i> #1 1st in FIFO
                                 </span>
                             @else
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700/60 w-fit">
@@ -351,7 +320,7 @@
                         <td class="py-3.5 px-3.5 text-right whitespace-nowrap">
                             <div class="inline-flex items-center gap-1.5">
                                 
-                                <!-- Pay This Single Invoice Button -->
+                                <!-- Pay This Single Invoice Button (Site Color: Solid Cyan, No Gradient) -->
                                 <button type="button" 
                                         onclick="openSinglePayModal(
                                             '{{ $order->id }}',
@@ -361,7 +330,7 @@
                                             '{{ $order->total_amount }}',
                                             '{{ $order->paid_amount }}'
                                         )"
-                                        class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-bold text-[11px] shadow-md transition-all inline-flex items-center gap-1">
+                                        class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-[11px] shadow-sm transition-all inline-flex items-center gap-1 cursor-pointer">
                                     <i class="fa-solid fa-dollar-sign text-[10px]"></i>
                                     <span>Pay Invoice</span>
                                 </button>
@@ -478,7 +447,7 @@
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-1.5">
+                        class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-check"></i>
                     <span>Confirm Payment</span>
                 </button>

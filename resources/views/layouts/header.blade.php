@@ -4,21 +4,31 @@
         
         <!-- Left: Logo & Company -->
         <div class="flex items-center gap-3 min-w-[280px]">
-            <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 p-[1.5px] shadow-lg shadow-blue-500/20">
-                <div class="w-full h-full bg-[#0a1128] rounded-[10px] flex items-center justify-center">
-                    <span class="text-sm font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">TBG</span>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+                <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 p-[1.5px] shadow-lg shadow-blue-500/20 flex-shrink-0 overflow-hidden">
+                    @if(!empty($globalCompany->logo) && file_exists(public_path('storage/' . $globalCompany->logo)))
+                        <div class="w-full h-full bg-[#0a1128] rounded-[10px] flex items-center justify-center p-1 overflow-hidden">
+                            <img src="{{ asset('storage/' . $globalCompany->logo) }}" alt="Logo" class="w-full h-full object-contain">
+                        </div>
+                    @else
+                        <div class="w-full h-full bg-[#0a1128] rounded-[10px] flex items-center justify-center">
+                            <span class="text-sm font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                                {{ strtoupper(substr($globalCompany->company_name ?? 'TBG', 0, 3)) }}
+                            </span>
+                        </div>
+                    @endif
                 </div>
-            </div>
-            <div>
-                <h1 class="text-base font-extrabold tracking-wide text-white flex items-center gap-2">
-                    Turkey Bangla Garments Ltd
-                </h1>
-                <p class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
-                    <span class="text-cyan-400">Business ERP Solution</span>
-                    <span class="text-slate-600">•</span>
-                    <span class="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono text-[10px] border border-blue-500/20">V6.0</span>
-                </p>
-            </div>
+                <div>
+                    <h1 class="text-base font-extrabold tracking-wide text-white flex items-center gap-2 group-hover:text-cyan-300 transition-colors">
+                        {{ $globalCompany->company_name ?? 'Turkey Bangla Garments Ltd' }}
+                    </h1>
+                    <p class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
+                        <span class="text-cyan-400">Business ERP Solution</span>
+                        <span class="text-slate-600">•</span>
+                        <span class="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono text-[10px] border border-blue-500/20">V6.0</span>
+                    </p>
+                </div>
+            </a>
         </div>
 
         <!-- ERP MODE SWITCHER BUTTONS (KEY REQUIREMENT) -->

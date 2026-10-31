@@ -41,7 +41,8 @@ class FactoryErpController extends Controller
             'address' => 'required|string|max:500',
             'email' => 'nullable|string|max:100',
             'website' => 'nullable|string|max:100',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:4096',
+            'print_logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:4096'
         ]);
 
         $setting = CompanySetting::first() ?? new CompanySetting();
@@ -54,6 +55,11 @@ class FactoryErpController extends Controller
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('company', 'public');
             $setting->logo = $logoPath;
+        }
+
+        if ($request->hasFile('print_logo')) {
+            $printLogoPath = $request->file('print_logo')->store('company', 'public');
+            $setting->print_logo = $printLogoPath;
         }
 
         $setting->save();
@@ -453,6 +459,19 @@ class FactoryErpController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function suppliersExportPdf(Request $request)
+    {
+        $suppliers = Supplier::with(['product.unit'])->latest()->get();
+        $company = CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
+            'phone' => '+880 1712-345678'
+        ]);
+
+        $pdf = Pdf::loadView('factory-erp.suppliers.pdf', compact('suppliers', 'company'));
+        return $pdf->download('Suppliers-List-' . date('Y-m-d') . '.pdf');
+    }
+
     // ==========================================
     // 5. ORDERS (Customer Dropdown, Dynamic Products, Qty, Total Calc, Invoice, CSV Export)
     // ==========================================
@@ -557,6 +576,39 @@ class FactoryErpController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function ordersExportPdf(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Order::with(['customer', 'items.product.unit'])->orderBy('order_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('order_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('order_date', [$startDate, $endDate]);
+        }
+
+        $orders = $query->get();
+        $company = CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
+            'phone' => '+880 1712-345678'
+        ]);
+
+        $pdf = Pdf::loadView('factory-erp.orders.pdf', compact('orders', 'company', 'range'));
+        return $pdf->download('Orders-List-' . date('Y-m-d') . '.pdf');
     }
 
     public function ordersCreate()
@@ -789,6 +841,39 @@ class FactoryErpController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function productionsExportPdf(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = Production::with(['product.unit', 'unit'])->orderBy('production_date', 'desc')->orderBy('id', 'desc');
+
+        if ($range === 'this_month') {
+            $query->whereBetween('production_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'today') {
+            $query->whereDate('production_date', now()->toDateString());
+        } elseif ($range === 'last_7_days') {
+            $query->whereBetween('production_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+        } elseif ($range === 'last_month') {
+            $query->whereBetween('production_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+        } elseif ($range === 'this_year') {
+            $query->whereBetween('production_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+        } elseif ($range === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('production_date', [$startDate, $endDate]);
+        }
+
+        $productions = $query->get();
+        $company = CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
+            'phone' => '+880 1712-345678'
+        ]);
+
+        $pdf = Pdf::loadView('factory-erp.productions.pdf', compact('productions', 'company', 'range'));
+        return $pdf->download('Productions-Report-' . date('Y-m-d') . '.pdf');
     }
 
     public function productionsStore(Request $request)
@@ -1112,6 +1197,67 @@ class FactoryErpController extends Controller
         }
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function deliveriesExportPdf(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'orders');
+
+        $orders = collect();
+        $deliveries = collect();
+
+        if ($tab === 'orders') {
+            $ordersQuery = Order::with(['customer', 'items.product.unit'])
+                ->whereIn('delivery_status', ['pending', 'partial'])
+                ->orderBy('order_date', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($range === 'this_month') {
+                $ordersQuery->whereBetween('order_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'today') {
+                $ordersQuery->whereDate('order_date', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $ordersQuery->whereBetween('order_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            } elseif ($range === 'last_month') {
+                $ordersQuery->whereBetween('order_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'this_year') {
+                $ordersQuery->whereBetween('order_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $ordersQuery->whereBetween('order_date', [$startDate, $endDate]);
+            }
+            $orders = $ordersQuery->get();
+        } else {
+            $delivQuery = Delivery::with(['order.customer', 'items.product.unit'])
+                ->orderBy('delivery_date', 'desc')
+                ->orderBy('id', 'desc');
+
+            if ($range === 'this_month') {
+                $delivQuery->whereBetween('delivery_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'today') {
+                $delivQuery->whereDate('delivery_date', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $delivQuery->whereBetween('delivery_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            } elseif ($range === 'last_month') {
+                $delivQuery->whereBetween('delivery_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'this_year') {
+                $delivQuery->whereBetween('delivery_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $delivQuery->whereBetween('delivery_date', [$startDate, $endDate]);
+            }
+            $deliveries = $delivQuery->get();
+        }
+
+        $company = CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
+            'phone' => '+880 1712-345678'
+        ]);
+
+        $pdf = Pdf::loadView('factory-erp.deliveries.pdf', compact('orders', 'deliveries', 'tab', 'company', 'range'));
+        return $pdf->download(($tab === 'orders' ? 'Pending-Shipments-' : 'Delivery-Challans-') . date('Y-m-d') . '.pdf');
     }
 
     public function deliveryCreateForOrder($orderId)
@@ -1463,6 +1609,46 @@ class FactoryErpController extends Controller
         }
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function stocksExportPdf(Request $request)
+    {
+        $range = $request->get('range', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $tab = $request->get('tab', 'balance');
+
+        $products = collect();
+        $adjustments = collect();
+
+        if ($tab === 'balance') {
+            $products = Product::with(['unit', 'stock'])->get();
+        } else {
+            $query = StockAdjustment::with(['product.unit'])->orderBy('adjustment_date', 'desc')->orderBy('id', 'desc');
+            if ($range === 'this_month') {
+                $query->whereBetween('adjustment_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'today') {
+                $query->whereDate('adjustment_date', now()->toDateString());
+            } elseif ($range === 'last_7_days') {
+                $query->whereBetween('adjustment_date', [now()->subDays(6)->toDateString(), now()->toDateString()]);
+            } elseif ($range === 'last_month') {
+                $query->whereBetween('adjustment_date', [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()]);
+            } elseif ($range === 'this_year') {
+                $query->whereBetween('adjustment_date', [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()]);
+            } elseif ($range === 'custom' && $startDate && $endDate) {
+                $query->whereBetween('adjustment_date', [$startDate, $endDate]);
+            }
+            $adjustments = $query->get();
+        }
+
+        $company = CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
+            'phone' => '+880 1712-345678'
+        ]);
+
+        $pdf = Pdf::loadView('factory-erp.stocks.pdf', compact('products', 'adjustments', 'tab', 'company', 'range'));
+        return $pdf->download(($tab === 'balance' ? 'Current-Stock-Balance-' : 'Stock-Movement-History-') . date('Y-m-d') . '.pdf');
     }
 
     public function stocksAdjust(Request $request)

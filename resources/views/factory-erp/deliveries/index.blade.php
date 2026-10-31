@@ -37,6 +37,15 @@
                 <i class="fa-solid fa-file-csv text-sm"></i>
                 <span>Download CSV</span>
             </a>
+
+            <!-- PDF Download Button -->
+            <a id="pdfDownloadBtn" 
+               href="{{ route('factory.deliveries.export.pdf', ['range' => $range, 'start_date' => $startDate, 'end_date' => $endDate, 'tab' => $tab]) }}" 
+               title="Export Active Deliveries to PDF"
+               class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-sm"></i>
+                <span>Download PDF</span>
+            </a>
         </div>
     </div>
 
@@ -472,11 +481,17 @@
 
         if (dateFilterTab) dateFilterTab.value = tab;
 
-        // Update CSV link query
+        // Update CSV & PDF link query
         if (csvBtn) {
             const currentUrl = new URL(csvBtn.href);
             currentUrl.searchParams.set('tab', tab);
             csvBtn.href = currentUrl.toString();
+        }
+        const pdfBtn = document.getElementById('pdfDownloadBtn');
+        if (pdfBtn) {
+            const currentPdfUrl = new URL(pdfBtn.href);
+            currentPdfUrl.searchParams.set('tab', tab);
+            pdfBtn.href = currentPdfUrl.toString();
         }
 
         if (tab === 'orders') {

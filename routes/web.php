@@ -39,16 +39,18 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::put('/customers/{id}', [FactoryErpController::class, 'customersUpdate'])->name('customers.update');
     Route::delete('/customers/{id}', [FactoryErpController::class, 'customersDestroy'])->name('customers.destroy');
 
-    // 4.1 Suppliers (Supplier name, phone, address, product dropdown with live search, CSV Export, Edit & Delete)
+    // 4.1 Suppliers (Supplier name, phone, address, product dropdown with live search, CSV & PDF Export, Edit & Delete)
     Route::get('/suppliers', [FactoryErpController::class, 'suppliersIndex'])->name('suppliers.index');
     Route::get('/suppliers/export/csv', [FactoryErpController::class, 'suppliersExportCsv'])->name('suppliers.export.csv');
+    Route::get('/suppliers/export/pdf', [FactoryErpController::class, 'suppliersExportPdf'])->name('suppliers.export.pdf');
     Route::post('/suppliers', [FactoryErpController::class, 'suppliersStore'])->name('suppliers.store');
     Route::put('/suppliers/{id}', [FactoryErpController::class, 'suppliersUpdate'])->name('suppliers.update');
     Route::delete('/suppliers/{id}', [FactoryErpController::class, 'suppliersDestroy'])->name('suppliers.destroy');
 
-    // 5. Orders & Invoices (with Edit, Delete & CSV Export)
+    // 5. Orders & Invoices (with Edit, Delete & CSV / PDF Export)
     Route::get('/orders', [FactoryErpController::class, 'ordersIndex'])->name('orders.index');
     Route::get('/orders/export/csv', [FactoryErpController::class, 'ordersExportCsv'])->name('orders.export.csv');
+    Route::get('/orders/export/pdf', [FactoryErpController::class, 'ordersExportPdf'])->name('orders.export.pdf');
     Route::get('/orders/create', [FactoryErpController::class, 'ordersCreate'])->name('orders.create');
     Route::post('/orders', [FactoryErpController::class, 'ordersStore'])->name('orders.store');
     Route::put('/orders/{id}', [FactoryErpController::class, 'ordersUpdate'])->name('orders.update');
@@ -56,23 +58,26 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::get('/orders/{id}/invoice', [FactoryErpController::class, 'orderInvoice'])->name('orders.invoice');
     Route::get('/orders/{id}/invoice/pdf', [FactoryErpController::class, 'orderInvoicePdf'])->name('orders.invoice.pdf');
 
-    // 6. Productions (Auto target from orders -> Add stock, with Edit & Delete & CSV Export)
+    // 6. Productions (Auto target from orders -> Add stock, with Edit & Delete & CSV / PDF Export)
     Route::get('/productions', [FactoryErpController::class, 'productionsIndex'])->name('productions.index');
     Route::get('/productions/export/csv', [FactoryErpController::class, 'productionsExportCsv'])->name('productions.export.csv');
+    Route::get('/productions/export/pdf', [FactoryErpController::class, 'productionsExportPdf'])->name('productions.export.pdf');
     Route::post('/productions', [FactoryErpController::class, 'productionsStore'])->name('productions.store');
     Route::put('/productions/{id}', [FactoryErpController::class, 'productionsUpdate'])->name('productions.update');
     Route::delete('/productions/{id}', [FactoryErpController::class, 'productionsDestroy'])->name('productions.destroy');
 
-    // 7. Deliveries (Check stock, warnings, deduct stock, update due, with Delete/Rollback & CSV Export)
+    // 7. Deliveries (Check stock, warnings, deduct stock, update due, with Delete/Rollback & CSV / PDF Export)
     Route::get('/deliveries', [FactoryErpController::class, 'deliveriesIndex'])->name('deliveries.index');
     Route::get('/deliveries/export/csv', [FactoryErpController::class, 'deliveriesExportCsv'])->name('deliveries.export.csv');
+    Route::get('/deliveries/export/pdf', [FactoryErpController::class, 'deliveriesExportPdf'])->name('deliveries.export.pdf');
     Route::get('/deliveries/create/{orderId}', [FactoryErpController::class, 'deliveryCreateForOrder'])->name('deliveries.create');
     Route::post('/deliveries', [FactoryErpController::class, 'deliveryStore'])->name('deliveries.store');
     Route::delete('/deliveries/{id}', [FactoryErpController::class, 'deliveriesDestroy'])->name('deliveries.destroy');
 
-    // 8. Stocks (Auto updated & manual adjustments & CSV Export with Edit & Delete)
+    // 8. Stocks (Auto updated & manual adjustments & CSV / PDF Export with Edit & Delete)
     Route::get('/stocks', [FactoryErpController::class, 'stocksIndex'])->name('stocks.index');
     Route::get('/stocks/export/csv', [FactoryErpController::class, 'stocksExportCsv'])->name('stocks.export.csv');
+    Route::get('/stocks/export/pdf', [FactoryErpController::class, 'stocksExportPdf'])->name('stocks.export.pdf');
     Route::post('/stocks/adjust', [FactoryErpController::class, 'stocksAdjust'])->name('stocks.adjust');
     Route::put('/stocks/balance/{productId}', [FactoryErpController::class, 'stocksBalanceUpdate'])->name('stocks.balance.update');
     Route::delete('/stocks/balance/{productId}', [FactoryErpController::class, 'stocksBalanceReset'])->name('stocks.balance.reset');

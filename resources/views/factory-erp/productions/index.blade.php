@@ -35,6 +35,14 @@
                 <i class="fa-solid fa-file-csv text-sm"></i>
                 <span>Download CSV</span>
             </a>
+
+            <!-- PDF Download Button -->
+            <a href="{{ route('factory.productions.export.pdf', ['range' => $range, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               title="Export Current Filtered Productions to PDF"
+               class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-sm"></i>
+                <span>Download PDF</span>
+            </a>
         </div>
     </div>
 

@@ -11,6 +11,21 @@
             line-height: 1.4;
             padding: 20px;
         }
+        .watermark {
+            position: fixed;
+            top: 25%;
+            left: 15%;
+            width: 70%;
+            height: 50%;
+            text-align: center;
+            opacity: 0.08;
+            z-index: -1000;
+        }
+        .watermark img {
+            max-width: 400px;
+            max-height: 400px;
+            opacity: 0.08;
+        }
         .header-table {
             width: 100%;
             border-bottom: 2px solid #0284c7;
@@ -111,11 +126,42 @@
     </style>
 </head>
 <body>
+@php
+    $watermarkBase64 = null;
+    $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
+        ? public_path('storage/' . $company->print_logo)
+        : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
+
+    if ($watermarkFile && file_exists($watermarkFile)) {
+        $type = pathinfo($watermarkFile, PATHINFO_EXTENSION);
+        $data = file_get_contents($watermarkFile);
+        $watermarkBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+    }
+
+    $logoBase64 = null;
+    if (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
+        $logoFile = public_path('storage/' . $company->logo);
+        $type = pathinfo($logoFile, PATHINFO_EXTENSION);
+        $data = file_get_contents($logoFile);
+        $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+    }
+@endphp
+
+    @if($watermarkBase64)
+    <div class="watermark">
+        <img src="{{ $watermarkBase64 }}" alt="Watermark">
+    </div>
+    @endif
 
     <!-- Header bound to Company Settings -->
     <table class="header-table">
         <tr>
-            <td style="width: 65%;">
+            @if($logoBase64)
+            <td style="width: 65px; vertical-align: top; padding-right: 12px;">
+                <img src="{{ $logoBase64 }}" style="max-width: 60px; max-height: 60px;" alt="Logo">
+            </td>
+            @endif
+            <td style="vertical-align: top;">
                 <h1 class="company-title">{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</h1>
                 <p class="company-info">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
                 <p class="company-info">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'info@turkeybangla.com' }}</p>
