@@ -36,9 +36,26 @@
     @endif
 
     <div class="glass-panel rounded-3xl p-5 border border-slate-700/60">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-bold text-white">All Recorded Orders</h3>
-            <span class="text-xs text-cyan-400 font-mono">{{ $orders->count() }} Orders</span>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-cyan-400"></i>
+                    All Recorded Orders
+                </h3>
+                <span id="orderCountDisplay" class="text-[11px] text-cyan-300 font-mono">
+                    Showing <span id="visibleCount">{{ min(15, $orders->count()) }}</span> of <span id="totalCount">{{ $orders->count() }}</span> Orders
+                </span>
+            </div>
+
+            <!-- Live Search Box (Order #, Customer, Phone) -->
+            <div class="relative w-full sm:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="orderSearchInput" placeholder="Search by Order #, Customer, Phone..." 
+                       class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none transition-all">
+                <button type="button" id="clearOrderSearchBtn" onclick="clearOrderSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -56,9 +73,32 @@
                         <th class="pb-2.5 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80">
+                <tbody id="ordersTableBody" class="divide-y divide-slate-800/80">
                     @forelse($orders as $ord)
-                    <tr class="hover:bg-slate-800/40 transition-colors">
+                    @php
+                        $cPhone = $ord->customer->phone ?? '';
+                        $rawDigits = preg_replace('/[^0-9]/', '', $cPhone);
+                        $localBd = preg_replace('/^880?/', '0', $rawDigits);
+                        $noZero = ltrim($localBd, '0');
+                        $searchKeywords = strtolower(implode(' ', array_filter([
+                            $ord->order_number,
+                            $ord->customer->company_name ?? '',
+                            $ord->customer->contact_person ?? '',
+                            $cPhone,
+                            $rawDigits,
+                            $localBd,
+                            $noZero,
+                            date('d M Y', strtotime($ord->order_date)),
+                            $ord->delivery_status
+                        ])));
+                    @endphp
+                    <tr class="order-row hover:bg-slate-800/40 transition-colors"
+                        data-search="{{ $searchKeywords }}"
+                        data-order-num="{{ strtolower($ord->order_number) }}"
+                        data-customer="{{ strtolower($ord->customer->company_name ?? '') }}"
+                        data-phone-digits="{{ $rawDigits }}"
+                        data-phone-local="{{ $localBd }}"
+                        data-phone-raw="{{ $cPhone }}">
                         <td class="py-3 font-mono font-bold text-cyan-300">
                             {{ $ord->order_number }}
                         </td>
@@ -133,8 +173,25 @@
                         <td colspan="9" class="py-8 text-center text-slate-500">No orders created yet. Click "+ Create New Order" to start!</td>
                     </tr>
                     @endforelse
+
+                    <!-- No Search Results Row -->
+                    <tr id="noOrderSearchResultRow" class="hidden">
+                        <td colspan="9" class="py-8 text-center text-slate-500">
+                            <i class="fa-solid fa-receipt text-2xl text-slate-600 block mb-2"></i>
+                            No matching orders found for "<span id="searchOrderQueryDisplay" class="text-cyan-400 font-semibold"></span>"
+                        </td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Load More Button (+15) -->
+        <div id="loadMoreContainer" class="mt-4 pt-3 border-t border-slate-800/80 text-center {{ $orders->count() <= 15 ? 'hidden' : '' }}">
+            <button type="button" id="loadMoreBtn" onclick="loadMoreOrders()"
+                    class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 hover:border-cyan-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-arrow-down-long text-[11px]"></i>
+                <span>Load More Orders (+15)</span>
+            </button>
         </div>
     </div>
 
@@ -202,6 +259,112 @@
 </div>
 
 <script>
+    // ========== LIVE SEARCH & LOAD MORE (15 PER BATCH) ==========
+    let orderCurrentLimit = 15;
+    const ORDER_PAGE_SIZE = 15;
+
+    function updateOrderVisibility() {
+        const searchInput = document.getElementById('orderSearchInput');
+        const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const cleanDigits = searchVal.replace(/[^0-9]/g, '');
+        const rows = document.querySelectorAll('.order-row');
+        const noResultRow = document.getElementById('noOrderSearchResultRow');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const clearBtn = document.getElementById('clearOrderSearchBtn');
+        const visibleCountEl = document.getElementById('visibleCount');
+
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', searchVal === '');
+        }
+
+        if (searchVal !== '') {
+            // Live Search Mode (Order #, Customer Name, Mobile e.g. 018..., Status, Date)
+            let matchCount = 0;
+            rows.forEach(row => {
+                const data = (row.getAttribute('data-search') || '').toLowerCase();
+                const orderNum = (row.getAttribute('data-order-num') || '').toLowerCase();
+                const customer = (row.getAttribute('data-customer') || '').toLowerCase();
+                const phoneDigits = row.getAttribute('data-phone-digits') || '';
+                const phoneLocal = row.getAttribute('data-phone-local') || '';
+                const phoneRaw = (row.getAttribute('data-phone-raw') || '').toLowerCase();
+
+                let isMatch = false;
+
+                // 1. Order Number, Customer Name, Full string match
+                if (data.includes(searchVal) || orderNum.includes(searchVal) || customer.includes(searchVal) || phoneRaw.includes(searchVal)) {
+                    isMatch = true;
+                }
+
+                // 2. Mobile digits match (e.g. typing 018..., 18..., 017...)
+                if (!isMatch && cleanDigits.length >= 2) {
+                    if (phoneDigits.includes(cleanDigits) || phoneLocal.includes(cleanDigits)) {
+                        isMatch = true;
+                    }
+                }
+
+                if (isMatch) {
+                    row.classList.remove('hidden');
+                    matchCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (noResultRow) {
+                noResultRow.classList.toggle('hidden', matchCount > 0);
+                const querySpan = document.getElementById('searchOrderQueryDisplay');
+                if (querySpan) querySpan.innerText = searchVal;
+            }
+
+            // Hide load more button while actively searching
+            if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
+            if (visibleCountEl) visibleCountEl.innerText = matchCount;
+
+        } else {
+            // Normal Pagination Mode (15 items per batch)
+            if (noResultRow) noResultRow.classList.add('hidden');
+
+            let visibleCount = 0;
+            rows.forEach((row, index) => {
+                if (index < orderCurrentLimit) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (visibleCountEl) visibleCountEl.innerText = visibleCount;
+
+            if (loadMoreContainer) {
+                loadMoreContainer.classList.toggle('hidden', orderCurrentLimit >= rows.length);
+            }
+        }
+    }
+
+    function loadMoreOrders() {
+        orderCurrentLimit += ORDER_PAGE_SIZE;
+        updateOrderVisibility();
+    }
+
+    function clearOrderSearch() {
+        const input = document.getElementById('orderSearchInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+            updateOrderVisibility();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('orderSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', updateOrderVisibility);
+        }
+        updateOrderVisibility();
+    });
+
+    // ========== EDIT ORDER MODAL ==========
     function openEditOrderModal(order) {
         document.getElementById('modalOrderNumber').innerText = order.order_number;
         document.getElementById('modalTotalAmount').innerText = '৳ ' + parseFloat(order.total_amount).toFixed(2);
