@@ -97,6 +97,83 @@
     <span>Stock</span>
 </a>
 
+<!-- HR & PAYROLL MANAGEMENT SECTION -->
+<div class="pt-3 pb-1">
+    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400/90 flex items-center justify-between border-t border-slate-800/80">
+        <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-user-tie text-[10px]"></i>
+            HR & Payroll
+        </span>
+        <span class="px-1.5 py-0.2 rounded text-[8px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono font-bold">HRM</span>
+    </div>
+</div>
+
+<!-- HR 1. Dashboard -->
+@php $isHrDash = request()->routeIs('factory.hr.index'); @endphp
+<a href="{{ route('factory.hr.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isHrDash ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg shadow-emerald-500/25 border border-emerald-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isHrDash ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-gauge-high text-[11px]"></i>
+    </span>
+    <span>HR Dashboard</span>
+</a>
+
+<!-- HR 2. Employees -->
+@php $isEmp = request()->routeIs('factory.hr.employees.*'); @endphp
+<a href="{{ route('factory.hr.employees.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isEmp ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isEmp ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-users-gear text-[11px]"></i>
+    </span>
+    <span>Employees</span>
+</a>
+
+<!-- HR 3. Attendance -->
+@php $isAtt = request()->routeIs('factory.hr.attendance.*'); @endphp
+<a href="{{ route('factory.hr.attendance.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isAtt ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isAtt ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-clipboard-user text-[11px]"></i>
+    </span>
+    <span>Attendance</span>
+</a>
+
+<!-- HR 4. Leave Management -->
+@php $isLeave = request()->routeIs('factory.hr.leaves.*'); @endphp
+<a href="{{ route('factory.hr.leaves.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isLeave ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isLeave ? 'bg-white/20 text-white' : 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-calendar-check text-[11px]"></i>
+    </span>
+    <span>Leaves</span>
+</a>
+
+<!-- HR 5. Payroll & Payslips -->
+@php $isPay = request()->routeIs('factory.hr.payroll.*'); @endphp
+<a href="{{ route('factory.hr.payroll.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isPay ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold shadow-lg shadow-emerald-500/25 border border-emerald-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isPay ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i>
+    </span>
+    <span>Payroll & Payslip</span>
+</a>
+
+<!-- HR 6. Departments & Designations -->
+@php $isDept = request()->routeIs('factory.hr.departments.*'); @endphp
+<a href="{{ route('factory.hr.departments.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDept ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isDept ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-sitemap text-[11px]"></i>
+    </span>
+    <span>Departments</span>
+</a>
+
+<div class="pt-2 pb-1">
+    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-400/80 border-t border-slate-800/80">
+        Configuration
+    </div>
+</div>
+
 <!-- 8. Settings -->
 @php $isSet = request()->routeIs('factory.settings.*'); @endphp
 <a href="{{ route('factory.settings.index') }}" 

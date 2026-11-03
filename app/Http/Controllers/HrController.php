@@ -1,0 +1,816 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\CompanySetting;
+use App\Models\HrDepartment;
+use App\Models\HrDesignation;
+use App\Models\HrEmployee;
+use App\Models\HrAttendance;
+use App\Models\HrLeave;
+use App\Models\HrPayroll;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class HrController extends Controller
+{
+    private function getCompany()
+    {
+        return CompanySetting::first() ?? new CompanySetting([
+            'company_name' => 'Turkey Bangla Garments Ltd',
+            'address' => 'Tongi Industrial Area, Gazipur, Dhaka - 1710, Bangladesh',
+            'phone' => '+880 1712-345678',
+            'email' => 'hr@turkeybangla.com'
+        ]);
+    }
+
+    // ==========================================
+    // 1. HR DASHBOARD / OVERVIEW
+    // ==========================================
+    public function index()
+    {
+        $today = Carbon::today()->format('Y-m-d');
+        $currentMonth = Carbon::today()->format('Y-m');
+
+        $totalEmployees = HrEmployee::count();
+        $activeEmployees = HrEmployee::where('status', 'active')->count();
+        $departmentsCount = HrDepartment::count();
+
+        // Today attendance stats
+        $attendancesToday = HrAttendance::whereDate('date', $today)->get();
+        $presentToday = $attendancesToday->where('status', 'present')->count();
+        $lateToday = $attendancesToday->where('status', 'late')->count();
+        $leaveToday = $attendancesToday->where('status', 'leave')->count();
+        $absentToday = $attendancesToday->where('status', 'absent')->count();
+        $totalMarkedToday = $attendancesToday->count();
+        $unmarkedToday = max(0, $activeEmployees - $totalMarkedToday);
+
+        // Payroll stats for current month
+        $currentPayroll = HrPayroll::where('month', $currentMonth)->get();
+        $totalPayrollAmount = $currentPayroll->sum('net_salary');
+        $paidPayrollCount = $currentPayroll->where('payment_status', 'paid')->count();
+        $totalPayrollCount = $currentPayroll->count();
+
+        // Recent attendances
+        $recentAttendances = HrAttendance::with(['employee.department', 'employee.designation'])
+            ->whereDate('date', $today)
+            ->latest('updated_at')
+            ->take(8)
+            ->get();
+
+        // Pending leaves
+        $pendingLeaves = HrLeave::with(['employee.department', 'employee.designation'])
+            ->where('status', 'pending')
+            ->orderBy('start_date', 'asc')
+            ->take(6)
+            ->get();
+
+        // Department breakdown
+        $departments = HrDepartment::withCount(['employees' => function($q) {
+            $q->where('status', 'active');
+        }])->get();
+
+        return view('factory-erp.hr.index', compact(
+            'totalEmployees',
+            'activeEmployees',
+            'departmentsCount',
+            'presentToday',
+            'lateToday',
+            'leaveToday',
+            'absentToday',
+            'unmarkedToday',
+            'totalMarkedToday',
+            'totalPayrollAmount',
+            'paidPayrollCount',
+            'totalPayrollCount',
+            'recentAttendances',
+            'pendingLeaves',
+            'departments',
+            'today',
+            'currentMonth'
+        ));
+    }
+
+    // ==========================================
+    // 2. EMPLOYEES MANAGEMENT
+    // ==========================================
+    public function employeesIndex(Request $request)
+    {
+        $query = HrEmployee::with(['department', 'designation']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('employee_code', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('nid', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('employment_type')) {
+            $query->where('employment_type', $request->employment_type);
+        }
+
+        if ($request->filled('shift')) {
+            $query->where('shift', $request->shift);
+        }
+
+        $employees = $query->orderBy('id', 'desc')->get();
+        $departments = HrDepartment::with('designations')->orderBy('name')->get();
+        $designations = HrDesignation::orderBy('title')->get();
+
+        return view('factory-erp.hr.employees.index', compact('employees', 'departments', 'designations'));
+    }
+
+    public function employeesStore(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_code' => 'nullable|string|max:50|unique:hr_employees,employee_code',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'required|string|max:50',
+            'emergency_phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:50',
+            'gender' => 'required|string|in:Male,Female,Other',
+            'blood_group' => 'nullable|string|max:10',
+            'present_address' => 'nullable|string',
+            'permanent_address' => 'nullable|string',
+            'department_id' => 'required|exists:hr_departments,id',
+            'designation_id' => 'required|exists:hr_designations,id',
+            'joining_date' => 'required|date',
+            'employment_type' => 'required|string|in:permanent,contractual,daily,probation',
+            'shift' => 'required|string|in:Day,Night,General',
+            'status' => 'required|string|in:active,inactive,resigned,terminated',
+            'basic_salary' => 'required|numeric|min:0',
+            'house_rent' => 'nullable|numeric|min:0',
+            'medical_allowance' => 'nullable|numeric|min:0',
+            'conveyance_allowance' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
+            'bank_name' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:100',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+        ]);
+
+        if (empty($validated['employee_code'])) {
+            $lastId = HrEmployee::max('id') ?? 0;
+            $validated['employee_code'] = 'TBG-EMP-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
+        }
+
+        $basic = floatval($validated['basic_salary'] ?? 0);
+        $house = floatval($validated['house_rent'] ?? 0);
+        $med = floatval($validated['medical_allowance'] ?? 0);
+        $conv = floatval($validated['conveyance_allowance'] ?? 0);
+        $validated['gross_salary'] = $basic + $house + $med + $conv;
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('employees', 'public');
+            $validated['photo'] = $path;
+        }
+
+        HrEmployee::create($validated);
+
+        return redirect()->route('factory.hr.employees.index')->with('success', 'Employee ' . $validated['name'] . ' registered successfully!');
+    }
+
+    public function employeesUpdate(Request $request, $id)
+    {
+        $employee = HrEmployee::findOrFail($id);
+
+        $validated = $request->validate([
+            'employee_code' => 'required|string|max:50|unique:hr_employees,employee_code,' . $id,
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'required|string|max:50',
+            'emergency_phone' => 'nullable|string|max:50',
+            'nid' => 'nullable|string|max:50',
+            'gender' => 'required|string|in:Male,Female,Other',
+            'blood_group' => 'nullable|string|max:10',
+            'present_address' => 'nullable|string',
+            'permanent_address' => 'nullable|string',
+            'department_id' => 'required|exists:hr_departments,id',
+            'designation_id' => 'required|exists:hr_designations,id',
+            'joining_date' => 'required|date',
+            'employment_type' => 'required|string|in:permanent,contractual,daily,probation',
+            'shift' => 'required|string|in:Day,Night,General',
+            'status' => 'required|string|in:active,inactive,resigned,terminated',
+            'basic_salary' => 'required|numeric|min:0',
+            'house_rent' => 'nullable|numeric|min:0',
+            'medical_allowance' => 'nullable|numeric|min:0',
+            'conveyance_allowance' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
+            'bank_name' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:100',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+        ]);
+
+        $basic = floatval($validated['basic_salary'] ?? 0);
+        $house = floatval($validated['house_rent'] ?? 0);
+        $med = floatval($validated['medical_allowance'] ?? 0);
+        $conv = floatval($validated['conveyance_allowance'] ?? 0);
+        $validated['gross_salary'] = $basic + $house + $med + $conv;
+
+        if ($request->hasFile('photo')) {
+            if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
+                Storage::disk('public')->delete($employee->photo);
+            }
+            $path = $request->file('photo')->store('employees', 'public');
+            $validated['photo'] = $path;
+        }
+
+        $employee->update($validated);
+
+        return redirect()->back()->with('success', 'Employee ' . $employee->name . ' updated successfully!');
+    }
+
+    public function employeesDestroy($id)
+    {
+        $employee = HrEmployee::findOrFail($id);
+        if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
+            Storage::disk('public')->delete($employee->photo);
+        }
+        $name = $employee->name;
+        $employee->delete();
+
+        return redirect()->back()->with('success', "Employee {$name} deleted successfully!");
+    }
+
+    public function employeesExportCsv()
+    {
+        $employees = HrEmployee::with(['department', 'designation'])->orderBy('id')->get();
+        $fileName = 'Employees-List-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use ($employees) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Employee ID', 'Name', 'Phone', 'Email', 'Department', 'Designation', 'Joining Date', 'Type', 'Shift', 'Gross Salary', 'Payment Method', 'Status']);
+
+            foreach ($employees as $emp) {
+                fputcsv($handle, [
+                    $emp->employee_code,
+                    $emp->name,
+                    $emp->phone,
+                    $emp->email ?? 'N/A',
+                    $emp->department->name ?? 'N/A',
+                    $emp->designation->title ?? 'N/A',
+                    $emp->joining_date ? $emp->joining_date->format('Y-m-d') : 'N/A',
+                    ucfirst($emp->employment_type),
+                    $emp->shift,
+                    number_format($emp->gross_salary, 2),
+                    $emp->payment_method,
+                    ucfirst($emp->status)
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function employeesExportPdf()
+    {
+        $employees = HrEmployee::with(['department', 'designation'])->orderBy('id')->get();
+        $company = $this->getCompany();
+
+        $pdf = Pdf::loadView('factory-erp.hr.employees.pdf', compact('employees', 'company'))
+                  ->setPaper('a4', 'landscape');
+        return $pdf->download('Employees-List-' . date('Y-m-d') . '.pdf');
+    }
+
+    // ==========================================
+    // 3. DEPARTMENTS & DESIGNATIONS
+    // ==========================================
+    public function departmentsIndex()
+    {
+        $departments = HrDepartment::with(['designations.employees', 'employees'])->orderBy('name')->get();
+        return view('factory-erp.hr.departments.index', compact('departments'));
+    }
+
+    public function departmentsStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:hr_departments,name',
+            'code' => 'nullable|string|max:20',
+            'description' => 'nullable|string',
+        ]);
+
+        HrDepartment::create($validated);
+        return redirect()->back()->with('success', 'Department created successfully!');
+    }
+
+    public function departmentsUpdate(Request $request, $id)
+    {
+        $dept = HrDepartment::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:hr_departments,name,' . $id,
+            'code' => 'nullable|string|max:20',
+            'description' => 'nullable|string',
+        ]);
+
+        $dept->update($validated);
+        return redirect()->back()->with('success', 'Department updated successfully!');
+    }
+
+    public function departmentsDestroy($id)
+    {
+        $dept = HrDepartment::findOrFail($id);
+        $dept->delete();
+        return redirect()->back()->with('success', 'Department deleted successfully!');
+    }
+
+    public function designationsStore(Request $request)
+    {
+        $validated = $request->validate([
+            'department_id' => 'required|exists:hr_departments,id',
+            'title' => 'required|string|max:255',
+            'grade' => 'nullable|string|max:50',
+            'description' => 'nullable|string',
+        ]);
+
+        HrDesignation::create($validated);
+        return redirect()->back()->with('success', 'Designation created successfully!');
+    }
+
+    public function designationsUpdate(Request $request, $id)
+    {
+        $des = HrDesignation::findOrFail($id);
+        $validated = $request->validate([
+            'department_id' => 'required|exists:hr_departments,id',
+            'title' => 'required|string|max:255',
+            'grade' => 'nullable|string|max:50',
+            'description' => 'nullable|string',
+        ]);
+
+        $des->update($validated);
+        return redirect()->back()->with('success', 'Designation updated successfully!');
+    }
+
+    public function designationsDestroy($id)
+    {
+        $des = HrDesignation::findOrFail($id);
+        $des->delete();
+        return redirect()->back()->with('success', 'Designation deleted successfully!');
+    }
+
+    // ==========================================
+    // 4. DAILY ATTENDANCE MANAGEMENT
+    // ==========================================
+    public function attendanceIndex(Request $request)
+    {
+        $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+        $deptId = $request->get('department_id');
+
+        $empQuery = HrEmployee::with(['department', 'designation'])->where('status', 'active');
+        if ($deptId) {
+            $empQuery->where('department_id', $deptId);
+        }
+        $employees = $empQuery->orderBy('name')->get();
+
+        // Load attendances for this date
+        $attendances = HrAttendance::whereDate('date', $date)
+            ->whereIn('employee_id', $employees->pluck('id'))
+            ->get()
+            ->keyBy('employee_id');
+
+        // Stats for this date
+        $totalEmp = $employees->count();
+        $presentCount = $attendances->where('status', 'present')->count();
+        $lateCount = $attendances->where('status', 'late')->count();
+        $leaveCount = $attendances->where('status', 'leave')->count();
+        $absentCount = $attendances->where('status', 'absent')->count();
+        $notMarkedCount = max(0, $totalEmp - $attendances->count());
+
+        $departments = HrDepartment::orderBy('name')->get();
+
+        return view('factory-erp.hr.attendance.index', compact(
+            'employees',
+            'attendances',
+            'date',
+            'deptId',
+            'totalEmp',
+            'presentCount',
+            'lateCount',
+            'leaveCount',
+            'absentCount',
+            'notMarkedCount',
+            'departments'
+        ));
+    }
+
+    public function attendanceStore(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:hr_employees,id',
+            'date' => 'required|date',
+            'status' => 'required|string|in:present,absent,late,half_day,leave',
+            'check_in' => 'nullable',
+            'check_out' => 'nullable',
+            'overtime_hours' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        HrAttendance::updateOrCreate(
+            ['employee_id' => $validated['employee_id'], 'date' => $validated['date']],
+            [
+                'status' => $validated['status'],
+                'check_in' => $validated['check_in'] ?? null,
+                'check_out' => $validated['check_out'] ?? null,
+                'overtime_hours' => floatval($validated['overtime_hours'] ?? 0),
+                'notes' => $validated['notes'] ?? null,
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Attendance recorded successfully!');
+    }
+
+    public function attendanceBulkStore(Request $request)
+    {
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $records = $request->input('attendance', []);
+
+        if (empty($records)) {
+            // "Mark All Unmarked as Present" quick action
+            $activeEmployees = HrEmployee::where('status', 'active')->get();
+            $existing = HrAttendance::whereDate('date', $date)->pluck('employee_id')->toArray();
+
+            $markedCount = 0;
+            foreach ($activeEmployees as $emp) {
+                if (!in_array($emp->id, $existing)) {
+                    HrAttendance::create([
+                        'employee_id' => $emp->id,
+                        'date' => $date,
+                        'status' => 'present',
+                        'check_in' => '08:00:00',
+                        'check_out' => '17:00:00',
+                        'overtime_hours' => 0,
+                        'notes' => 'Bulk marked present'
+                    ]);
+                    $markedCount++;
+                }
+            }
+            return redirect()->back()->with('success', "Marked {$markedCount} active employees as Present for {$date}!");
+        }
+
+        foreach ($records as $empId => $data) {
+            HrAttendance::updateOrCreate(
+                ['employee_id' => $empId, 'date' => $date],
+                [
+                    'status' => $data['status'] ?? 'present',
+                    'check_in' => !empty($data['check_in']) ? $data['check_in'] : null,
+                    'check_out' => !empty($data['check_out']) ? $data['check_out'] : null,
+                    'overtime_hours' => floatval($data['overtime_hours'] ?? 0),
+                    'notes' => $data['notes'] ?? null,
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Bulk attendance updated successfully!');
+    }
+
+    public function attendanceExportCsv(Request $request)
+    {
+        $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+        $employees = HrEmployee::with(['department', 'designation'])->where('status', 'active')->orderBy('name')->get();
+        $attendances = HrAttendance::whereDate('date', $date)->get()->keyBy('employee_id');
+
+        $fileName = 'Daily-Attendance-' . $date . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use ($employees, $attendances, $date) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Date: ' . $date]);
+            fputcsv($handle, ['Employee ID', 'Name', 'Department', 'Designation', 'Status', 'Check In', 'Check Out', 'OT (Hours)', 'Notes']);
+
+            foreach ($employees as $emp) {
+                $att = $attendances->get($emp->id);
+                fputcsv($handle, [
+                    $emp->employee_code,
+                    $emp->name,
+                    $emp->department->name ?? 'N/A',
+                    $emp->designation->title ?? 'N/A',
+                    $att ? strtoupper($att->status) : 'NOT MARKED',
+                    $att && $att->check_in ? $att->check_in : '—',
+                    $att && $att->check_out ? $att->check_out : '—',
+                    $att ? $att->overtime_hours : 0,
+                    $att && $att->notes ? $att->notes : ''
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function attendanceExportPdf(Request $request)
+    {
+        $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+        $employees = HrEmployee::with(['department', 'designation'])->where('status', 'active')->orderBy('name')->get();
+        $attendances = HrAttendance::whereDate('date', $date)->get()->keyBy('employee_id');
+        $company = $this->getCompany();
+
+        $pdf = Pdf::loadView('factory-erp.hr.attendance.pdf', compact('employees', 'attendances', 'date', 'company'))
+                  ->setPaper('a4', 'portrait');
+        return $pdf->download('Daily-Attendance-' . $date . '.pdf');
+    }
+
+    // ==========================================
+    // 5. LEAVE MANAGEMENT
+    // ==========================================
+    public function leavesIndex(Request $request)
+    {
+        $query = HrLeave::with(['employee.department', 'employee.designation'])->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('leave_type')) {
+            $query->where('leave_type', $request->leave_type);
+        }
+
+        $leaves = $query->get();
+        $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
+
+        $pendingCount = HrLeave::where('status', 'pending')->count();
+        $approvedCount = HrLeave::where('status', 'approved')->count();
+        $rejectedCount = HrLeave::where('status', 'rejected')->count();
+
+        return view('factory-erp.hr.leaves.index', compact('leaves', 'employees', 'pendingCount', 'approvedCount', 'rejectedCount'));
+    }
+
+    public function leavesStore(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:hr_employees,id',
+            'leave_type' => 'required|string|in:casual,sick,earned,maternity,unpaid',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'nullable|string',
+        ]);
+
+        $start = Carbon::parse($validated['start_date']);
+        $end = Carbon::parse($validated['end_date']);
+        $daysCount = $start->diffInDays($end) + 1;
+
+        $validated['days_count'] = $daysCount;
+        $validated['status'] = 'pending';
+
+        HrLeave::create($validated);
+
+        return redirect()->back()->with('success', 'Leave request submitted successfully!');
+    }
+
+    public function leavesUpdateStatus(Request $request, $id)
+    {
+        $leave = HrLeave::findOrFail($id);
+        $action = $request->input('status'); // approved or rejected
+
+        if (!in_array($action, ['approved', 'rejected'])) {
+            return redirect()->back()->with('error', 'Invalid action!');
+        }
+
+        $leave->status = $action;
+        $leave->approved_by = 'Admin (' . now()->format('d M, Y') . ')';
+        $leave->save();
+
+        return redirect()->back()->with('success', 'Leave application has been ' . ucfirst($action) . '!');
+    }
+
+    public function leavesDestroy($id)
+    {
+        $leave = HrLeave::findOrFail($id);
+        $leave->delete();
+        return redirect()->back()->with('success', 'Leave record deleted!');
+    }
+
+    // ==========================================
+    // 6. PAYROLL & PAYSLIPS
+    // ==========================================
+    public function payrollIndex(Request $request)
+    {
+        $month = $request->get('month', Carbon::today()->format('Y-m'));
+
+        $payrolls = HrPayroll::with(['employee.department', 'employee.designation'])
+            ->where('month', $month)
+            ->latest('id')
+            ->get();
+
+        $totalBasic = $payrolls->sum('basic_salary');
+        $totalOT = $payrolls->sum('overtime_amount');
+        $totalBonus = $payrolls->sum('bonus');
+        $totalDeductions = $payrolls->sum('deductions');
+        $totalNetSalary = $payrolls->sum('net_salary');
+        $paidCount = $payrolls->where('payment_status', 'paid')->count();
+        $unpaidCount = $payrolls->where('payment_status', 'unpaid')->count();
+
+        return view('factory-erp.hr.payroll.index', compact(
+            'payrolls',
+            'month',
+            'totalBasic',
+            'totalOT',
+            'totalBonus',
+            'totalDeductions',
+            'totalNetSalary',
+            'paidCount',
+            'unpaidCount'
+        ));
+    }
+
+    public function payrollGenerate(Request $request)
+    {
+        $month = $request->input('month', Carbon::today()->format('Y-m'));
+        $employees = HrEmployee::where('status', 'active')->get();
+
+        if ($employees->isEmpty()) {
+            return redirect()->back()->with('error', 'No active employees found to generate payroll!');
+        }
+
+        $yearMonth = explode('-', $month);
+        $year = intval($yearMonth[0]);
+        $mon = intval($yearMonth[1]);
+        $daysInMonth = Carbon::createFromDate($year, $mon, 1)->daysInMonth;
+
+        $count = 0;
+        foreach ($employees as $emp) {
+            // Calculate total overtime hours from attendance
+            $otHours = HrAttendance::where('employee_id', $emp->id)
+                ->whereYear('date', $year)
+                ->whereMonth('date', $mon)
+                ->sum('overtime_hours');
+
+            // Calculate absent days from attendance
+            $absentDays = HrAttendance::where('employee_id', $emp->id)
+                ->whereYear('date', $year)
+                ->whereMonth('date', $mon)
+                ->where('status', 'absent')
+                ->count();
+
+            // OT calculation: (basic / 208) * 2
+            $otRate = round(($emp->basic_salary / 208) * 2, 2);
+            $otAmount = round($otHours * $otRate, 2);
+
+            // Deductions for absent days: (gross / daysInMonth) * absentDays
+            $deduction = round(($emp->gross_salary / $daysInMonth) * $absentDays, 2);
+
+            $netSalary = round($emp->gross_salary + $otAmount - $deduction, 2);
+            $payrollCode = 'TBG-PAY-' . str_replace('-', '', $month) . '-' . str_pad($emp->id, 3, '0', STR_PAD_LEFT);
+
+            HrPayroll::updateOrCreate(
+                ['employee_id' => $emp->id, 'month' => $month],
+                [
+                    'payroll_code' => $payrollCode,
+                    'basic_salary' => $emp->basic_salary,
+                    'allowances' => ($emp->house_rent + $emp->medical_allowance + $emp->conveyance_allowance),
+                    'overtime_hours' => $otHours,
+                    'overtime_rate' => $otRate,
+                    'overtime_amount' => $otAmount,
+                    'bonus' => 0,
+                    'deductions' => $deduction,
+                    'net_salary' => $netSalary,
+                    'payment_method' => $emp->payment_method,
+                ]
+            );
+            $count++;
+        }
+
+        return redirect()->back()->with('success', "Payroll for {$month} calculated & generated for {$count} active employees!");
+    }
+
+    public function payrollUpdatePayment(Request $request, $id)
+    {
+        $payroll = HrPayroll::findOrFail($id);
+        $validated = $request->validate([
+            'payment_status' => 'required|string|in:paid,unpaid',
+            'payment_date' => 'nullable|date',
+            'payment_method' => 'nullable|string|max:50',
+            'transaction_ref' => 'nullable|string|max:100',
+            'bonus' => 'nullable|numeric|min:0',
+            'deductions' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        $bonus = floatval($validated['bonus'] ?? $payroll->bonus);
+        $deductions = floatval($validated['deductions'] ?? $payroll->deductions);
+        $net = ($payroll->basic_salary + $payroll->allowances + $payroll->overtime_amount + $bonus) - $deductions;
+
+        $payroll->payment_status = $validated['payment_status'];
+        $payroll->payment_date = $validated['payment_status'] === 'paid' ? ($validated['payment_date'] ?? now()->toDateString()) : null;
+        $payroll->payment_method = $validated['payment_method'] ?? $payroll->payment_method;
+        $payroll->transaction_ref = $validated['transaction_ref'] ?? null;
+        $payroll->bonus = $bonus;
+        $payroll->deductions = $deductions;
+        $payroll->net_salary = $net;
+        $payroll->notes = $validated['notes'] ?? null;
+        $payroll->save();
+
+        return redirect()->back()->with('success', 'Payroll record updated successfully!');
+    }
+
+    public function payrollPayslip($id)
+    {
+        $payroll = HrPayroll::with(['employee.department', 'employee.designation'])->findOrFail($id);
+        $company = $this->getCompany();
+
+        return view('factory-erp.hr.payroll.payslip', compact('payroll', 'company'));
+    }
+
+    public function payrollPayslipPdf($id)
+    {
+        $payroll = HrPayroll::with(['employee.department', 'employee.designation'])->findOrFail($id);
+        $company = $this->getCompany();
+
+        $pdf = Pdf::loadView('factory-erp.hr.payroll.payslip-pdf', compact('payroll', 'company'))
+                  ->setPaper('a4', 'portrait');
+        return $pdf->download("Payslip-{$payroll->employee->employee_code}-{$payroll->month}.pdf");
+    }
+
+    public function payrollExportCsv(Request $request)
+    {
+        $month = $request->get('month', Carbon::today()->format('Y-m'));
+        $payrolls = HrPayroll::with(['employee.department', 'employee.designation'])
+            ->where('month', $month)
+            ->latest('id')
+            ->get();
+
+        $fileName = 'Payroll-Sheet-' . $month . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use ($payrolls, $month) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Monthly Payroll Sheet: ' . $month]);
+            fputcsv($handle, ['Slip No', 'Emp ID', 'Name', 'Department', 'Designation', 'Basic', 'Allowances', 'OT (Hrs)', 'OT Pay', 'Bonus', 'Deductions', 'Net Salary', 'Method', 'Status', 'Paid Date']);
+
+            foreach ($payrolls as $p) {
+                fputcsv($handle, [
+                    $p->payroll_code,
+                    $p->employee->employee_code ?? 'N/A',
+                    $p->employee->name ?? 'N/A',
+                    $p->employee->department->name ?? 'N/A',
+                    $p->employee->designation->title ?? 'N/A',
+                    number_format($p->basic_salary, 2),
+                    number_format($p->allowances, 2),
+                    $p->overtime_hours,
+                    number_format($p->overtime_amount, 2),
+                    number_format($p->bonus, 2),
+                    number_format($p->deductions, 2),
+                    number_format($p->net_salary, 2),
+                    $p->payment_method ?? 'N/A',
+                    strtoupper($p->payment_status),
+                    $p->payment_date ? $p->payment_date->format('Y-m-d') : '—'
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function payrollExportPdf(Request $request)
+    {
+        $month = $request->get('month', Carbon::today()->format('Y-m'));
+        $payrolls = HrPayroll::with(['employee.department', 'employee.designation'])
+            ->where('month', $month)
+            ->latest('id')
+            ->get();
+        $company = $this->getCompany();
+
+        $pdf = Pdf::loadView('factory-erp.hr.payroll.pdf', compact('payrolls', 'month', 'company'))
+                  ->setPaper('a4', 'landscape');
+        return $pdf->download('Payroll-Sheet-' . $month . '.pdf');
+    }
+}

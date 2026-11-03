@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FactoryErpController;
+use App\Http\Controllers\HrController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -83,4 +84,51 @@ Route::prefix('factory')->name('factory.')->group(function () {
     Route::delete('/stocks/balance/{productId}', [FactoryErpController::class, 'stocksBalanceReset'])->name('stocks.balance.reset');
     Route::put('/stocks/logs/{id}', [FactoryErpController::class, 'stocksLogUpdate'])->name('stocks.logs.update');
     Route::delete('/stocks/logs/{id}', [FactoryErpController::class, 'stocksLogDestroy'])->name('stocks.logs.destroy');
+
+    // ==========================================
+    // 9. HR & PAYROLL MANAGEMENT ROUTES
+    // ==========================================
+    Route::prefix('hr')->name('hr.')->group(function () {
+        // HR Dashboard
+        Route::get('/', [HrController::class, 'index'])->name('index');
+
+        // Employees
+        Route::get('/employees', [HrController::class, 'employeesIndex'])->name('employees.index');
+        Route::get('/employees/export/csv', [HrController::class, 'employeesExportCsv'])->name('employees.export.csv');
+        Route::get('/employees/export/pdf', [HrController::class, 'employeesExportPdf'])->name('employees.export.pdf');
+        Route::post('/employees', [HrController::class, 'employeesStore'])->name('employees.store');
+        Route::put('/employees/{id}', [HrController::class, 'employeesUpdate'])->name('employees.update');
+        Route::delete('/employees/{id}', [HrController::class, 'employeesDestroy'])->name('employees.destroy');
+
+        // Departments & Designations
+        Route::get('/departments', [HrController::class, 'departmentsIndex'])->name('departments.index');
+        Route::post('/departments', [HrController::class, 'departmentsStore'])->name('departments.store');
+        Route::put('/departments/{id}', [HrController::class, 'departmentsUpdate'])->name('departments.update');
+        Route::delete('/departments/{id}', [HrController::class, 'departmentsDestroy'])->name('departments.destroy');
+        Route::post('/designations', [HrController::class, 'designationsStore'])->name('designations.store');
+        Route::put('/designations/{id}', [HrController::class, 'designationsUpdate'])->name('designations.update');
+        Route::delete('/designations/{id}', [HrController::class, 'designationsDestroy'])->name('designations.destroy');
+
+        // Attendance
+        Route::get('/attendance', [HrController::class, 'attendanceIndex'])->name('attendance.index');
+        Route::post('/attendance', [HrController::class, 'attendanceStore'])->name('attendance.store');
+        Route::post('/attendance/bulk', [HrController::class, 'attendanceBulkStore'])->name('attendance.bulk.store');
+        Route::get('/attendance/export/csv', [HrController::class, 'attendanceExportCsv'])->name('attendance.export.csv');
+        Route::get('/attendance/export/pdf', [HrController::class, 'attendanceExportPdf'])->name('attendance.export.pdf');
+
+        // Leave Management
+        Route::get('/leaves', [HrController::class, 'leavesIndex'])->name('leaves.index');
+        Route::post('/leaves', [HrController::class, 'leavesStore'])->name('leaves.store');
+        Route::patch('/leaves/{id}/status', [HrController::class, 'leavesUpdateStatus'])->name('leaves.status.update');
+        Route::delete('/leaves/{id}', [HrController::class, 'leavesDestroy'])->name('leaves.destroy');
+
+        // Payroll & Payslips
+        Route::get('/payroll', [HrController::class, 'payrollIndex'])->name('payroll.index');
+        Route::post('/payroll/generate', [HrController::class, 'payrollGenerate'])->name('payroll.generate');
+        Route::put('/payroll/{id}/payment', [HrController::class, 'payrollUpdatePayment'])->name('payroll.payment.update');
+        Route::get('/payroll/{id}/payslip', [HrController::class, 'payrollPayslip'])->name('payroll.payslip');
+        Route::get('/payroll/{id}/payslip/pdf', [HrController::class, 'payrollPayslipPdf'])->name('payroll.payslip.pdf');
+        Route::get('/payroll/export/csv', [HrController::class, 'payrollExportCsv'])->name('payroll.export.csv');
+        Route::get('/payroll/export/pdf', [HrController::class, 'payrollExportPdf'])->name('payroll.export.pdf');
+    });
 });
