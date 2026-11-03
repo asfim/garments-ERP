@@ -421,21 +421,6 @@
                         <option value="terminated">Terminated</option>
                     </select>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method *</label>
-                    <select name="payment_method" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank">Bank Account</option>
-                        <option value="bKash">bKash</option>
-                        <option value="Nagad">Nagad</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Bank Name / MFS</label>
-                    <input type="text" name="bank_name" placeholder="DBBL / bKash" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                </div>
             </div>
 
             <!-- Section 3: Salary Breakdown -->
@@ -653,21 +638,6 @@
                         <option value="resigned">Resigned</option>
                         <option value="terminated">Terminated</option>
                     </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method *</label>
-                    <select name="payment_method" id="editPayMethod" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank">Bank Account</option>
-                        <option value="bKash">bKash</option>
-                        <option value="Nagad">Nagad</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Bank Name / MFS</label>
-                    <input type="text" name="bank_name" id="editBankName" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
                 </div>
             </div>
 
@@ -1038,8 +1008,8 @@
         document.getElementById('editType').value = emp.employment_type || 'permanent';
         document.getElementById('editShift').value = emp.shift || 'General';
         document.getElementById('editStatus').value = emp.status || 'active';
-        document.getElementById('editPayMethod').value = emp.payment_method || 'Cash';
-        document.getElementById('editBankName').value = emp.bank_name || '';
+        if (document.getElementById('editPayMethod')) document.getElementById('editPayMethod').value = emp.payment_method || 'Cash';
+        if (document.getElementById('editBankName')) document.getElementById('editBankName').value = emp.bank_name || '';
 
         // Photo preview
         const editImg = document.getElementById('editPhotoPreview');

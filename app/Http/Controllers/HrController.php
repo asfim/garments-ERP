@@ -171,17 +171,21 @@ class HrController extends Controller
             'house_rent' => 'nullable|numeric|min:0',
             'medical_allowance' => 'nullable|numeric|min:0',
             'conveyance_allowance' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
+            'payment_method' => 'nullable|string',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:100',
             'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
+        $validated['payment_method'] = $validated['payment_method'] ?? ($employee->payment_method ?? 'Cash');
+
         if (empty($validated['employee_code'])) {
             $lastId = HrEmployee::max('id') ?? 0;
             $validated['employee_code'] = 'TBG-EMP-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
         }
+
+        $validated['payment_method'] = $validated['payment_method'] ?? 'Cash';
 
         $basic = floatval($validated['basic_salary'] ?? 0);
         $house = floatval($validated['house_rent'] ?? 0);
@@ -317,12 +321,14 @@ class HrController extends Controller
             'house_rent' => 'nullable|numeric|min:0',
             'medical_allowance' => 'nullable|numeric|min:0',
             'conveyance_allowance' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
+            'payment_method' => 'nullable|string',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:100',
             'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
+
+        $validated['payment_method'] = $validated['payment_method'] ?? ($employee->payment_method ?? 'Cash');
 
         $basic = floatval($validated['basic_salary'] ?? 0);
         $house = floatval($validated['house_rent'] ?? 0);

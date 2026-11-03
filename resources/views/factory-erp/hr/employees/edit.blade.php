@@ -310,41 +310,7 @@
             </div>
         </div>
 
-        <!-- 5. Payment & Banking Details -->
-        <div class="glass-panel rounded-2xl border border-slate-700/60 p-6 shadow-xl">
-            <h3 class="text-sm font-extrabold text-white flex items-center gap-2 pb-3 mb-5 border-b border-slate-700/60">
-                <span class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-credit-card"></i>
-                </span>
-                <span>Payment & Banking Details (পরিশোধ পদ্ধতি)</span>
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Payment Method *</label>
-                    <select name="payment_method" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-                        <option value="Cash" {{ old('payment_method', $employee->payment_method) === 'Cash' ? 'selected' : '' }}>Cash (নগদ)</option>
-                        <option value="Bank" {{ old('payment_method', $employee->payment_method) === 'Bank' ? 'selected' : '' }}>Bank Account (ব্যাংক)</option>
-                        <option value="bKash" {{ old('payment_method', $employee->payment_method) === 'bKash' ? 'selected' : '' }}>bKash (বিকাশ)</option>
-                        <option value="Nagad" {{ old('payment_method', $employee->payment_method) === 'Nagad' ? 'selected' : '' }}>Nagad (নগদ)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Bank Name / Provider</label>
-                    <input type="text" name="bank_name" value="{{ old('bank_name', $employee->bank_name) }}" placeholder="e.g. Dutch Bangla Bank Ltd / bKash"
-                           class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Account / Mobile Number</label>
-                    <input type="text" name="account_number" value="{{ old('account_number', $employee->account_number) }}" placeholder="Bank A/C or Wallet Number"
-                           class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. Address Details -->
+        <!-- 5. Address Details -->
         <div class="glass-panel rounded-2xl border border-slate-700/60 p-6 shadow-xl">
             <h3 class="text-sm font-extrabold text-white flex items-center gap-2 pb-3 mb-5 border-b border-slate-700/60">
                 <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
