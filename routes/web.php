@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FactoryErpController;
 use App\Http\Controllers\HrController;
+use App\Http\Controllers\AccountsController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::match(['GET', 'POST'], '/iclock/cdata', [HrController::class, 'devicesAdmsPush'])->name('iclock.cdata');
@@ -155,5 +156,42 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::get('/payroll/{id}/payslip/pdf', [HrController::class, 'payrollPayslipPdf'])->name('payroll.payslip.pdf');
         Route::get('/payroll/export/csv', [HrController::class, 'payrollExportCsv'])->name('payroll.export.csv');
         Route::get('/payroll/export/pdf', [HrController::class, 'payrollExportPdf'])->name('payroll.export.pdf');
+    });
+
+    // ==========================================
+    // 8. ACCOUNTS & FINANCE MODULE
+    // ==========================================
+    Route::prefix('accounts')->name('accounts.')->group(function () {
+        // Accounts Dashboard
+        Route::get('/', [AccountsController::class, 'dashboard'])->name('dashboard');
+
+        // Income Management
+        Route::get('/income', [AccountsController::class, 'incomeIndex'])->name('income.index');
+        Route::post('/income', [AccountsController::class, 'incomeStore'])->name('income.store');
+        Route::get('/income/{voucher}/print', [AccountsController::class, 'incomePrint'])->name('income.print');
+
+        // Expense Management
+        Route::get('/expense', [AccountsController::class, 'expenseIndex'])->name('expense.index');
+        Route::post('/expense', [AccountsController::class, 'expenseStore'])->name('expense.store');
+        Route::get('/expense/{voucher}/print', [AccountsController::class, 'expensePrint'])->name('expense.print');
+
+        // Fund Transfers (Contra Vouchers)
+        Route::get('/transfers', [AccountsController::class, 'transferIndex'])->name('transfers.index');
+        Route::post('/transfers', [AccountsController::class, 'transferStore'])->name('transfers.store');
+
+        // Universal Voucher Show & Delete
+        Route::get('/vouchers/{voucher}', [AccountsController::class, 'voucherShow'])->name('vouchers.show');
+        Route::delete('/vouchers/{voucher}', [AccountsController::class, 'voucherDestroy'])->name('vouchers.destroy');
+
+        // Chart of Accounts
+        Route::get('/chart', [AccountsController::class, 'chartIndex'])->name('chart.index');
+        Route::post('/chart', [AccountsController::class, 'chartStore'])->name('chart.store');
+        Route::put('/chart/{account}', [AccountsController::class, 'chartUpdate'])->name('chart.update');
+
+        // General Ledger (খতিয়ান)
+        Route::get('/ledger', [AccountsController::class, 'ledgerIndex'])->name('ledger.index');
+
+        // Financial Reports (Profit & Loss, Trial Balance, Day Book)
+        Route::get('/reports', [AccountsController::class, 'reportsIndex'])->name('reports.index');
     });
 });

@@ -97,6 +97,87 @@
     <span>Stock</span>
 </a>
 
+<!-- ACCOUNTS & FINANCE MANAGEMENT SECTION -->
+<div class="pt-3 pb-1">
+    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-400/90 flex items-center justify-between border-t border-slate-800/80">
+        <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-coins text-[10px]"></i>
+            Accounts & Finance
+        </span>
+        <span class="px-1.5 py-0.2 rounded text-[8px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono font-bold">ACC</span>
+    </div>
+</div>
+
+<!-- ACC 1. Accounts Dashboard -->
+@php $isAccDash = request()->routeIs('factory.accounts.dashboard'); @endphp
+<a href="{{ route('factory.accounts.dashboard') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isAccDash ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold shadow-lg shadow-amber-500/25 border border-amber-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isAccDash ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-chart-pie text-[11px]"></i>
+    </span>
+    <span>Accounts Dashboard</span>
+</a>
+
+<!-- ACC 2. Income -->
+@php $isIncome = request()->routeIs('factory.accounts.income.*'); @endphp
+<a href="{{ route('factory.accounts.income.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isIncome ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg shadow-emerald-500/25 border border-emerald-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isIncome ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-arrow-trend-up text-[11px]"></i>
+    </span>
+    <span>Income (আয়)</span>
+</a>
+
+<!-- ACC 3. Expense -->
+@php $isExpense = request()->routeIs('factory.accounts.expense.*'); @endphp
+<a href="{{ route('factory.accounts.expense.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isExpense ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold shadow-lg shadow-rose-500/25 border border-rose-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isExpense ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-money-bill-wave text-[11px]"></i>
+    </span>
+    <span>Expense (ব্যয়)</span>
+</a>
+
+<!-- ACC 4. Fund Transfers -->
+@php $isTrf = request()->routeIs('factory.accounts.transfers.*'); @endphp
+<a href="{{ route('factory.accounts.transfers.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isTrf ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isTrf ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-money-bill-transfer text-[11px]"></i>
+    </span>
+    <span>Fund Transfer</span>
+</a>
+
+<!-- ACC 5. Chart of Accounts -->
+@php $isChart = request()->routeIs('factory.accounts.chart.*'); @endphp
+<a href="{{ route('factory.accounts.chart.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isChart ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/25 border border-indigo-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isChart ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-book-bookmark text-[11px]"></i>
+    </span>
+    <span>Chart of Accounts</span>
+</a>
+
+<!-- ACC 6. General Ledger (খতিয়ান) -->
+@php $isLedger = request()->routeIs('factory.accounts.ledger.*'); @endphp
+<a href="{{ route('factory.accounts.ledger.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isLedger ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-500/25 border border-purple-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isLedger ? 'bg-white/20 text-white' : 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-receipt text-[11px]"></i>
+    </span>
+    <span>General Ledger (খতিয়ান)</span>
+</a>
+
+<!-- ACC 7. Financial Reports -->
+@php $isReports = request()->routeIs('factory.accounts.reports.*'); @endphp
+<a href="{{ route('factory.accounts.reports.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isReports ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/25 border border-teal-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isReports ? 'bg-white/20 text-white' : 'bg-teal-500/10 text-teal-400 group-hover:bg-teal-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i>
+    </span>
+    <span>Financial Reports</span>
+</a>
+
 <!-- HR & PAYROLL MANAGEMENT SECTION -->
 <div class="pt-3 pb-1">
     <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400/90 flex items-center justify-between border-t border-slate-800/80">
