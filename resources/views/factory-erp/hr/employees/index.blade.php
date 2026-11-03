@@ -162,9 +162,10 @@
                                     </div>
                                 @endif
                                 <div>
-                                    <div class="font-bold text-white hover:text-cyan-300 cursor-pointer" onclick="openViewEmployeeModal({{ json_encode($emp) }})">
-                                        {{ $emp->name }}
-                                    </div>
+                                    <a href="{{ route('factory.hr.employees.show', $emp->id) }}" class="font-bold text-white hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+                                        <span>{{ $emp->name }}</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-cyan-400 opacity-60"></i>
+                                    </a>
                                     <div class="text-[10px] text-slate-400 font-mono">
                                         Joined: {{ $emp->joining_date ? $emp->joining_date->format('d M, Y') : '—' }}
                                     </div>
@@ -203,9 +204,15 @@
                         </td>
                         <td class="py-3 px-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
-                                <!-- View Profile -->
+                                <!-- 360 Profile & Attendance Calendar -->
+                                <a href="{{ route('factory.hr.employees.show', $emp->id) }}" 
+                                   title="View Full Profile & Attendance Calendar" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs transition-colors">
+                                    <i class="fa-solid fa-address-card"></i>
+                                </a>
+
+                                <!-- View Profile Modal -->
                                 <button type="button" onclick="openViewEmployeeModal({{ json_encode($emp) }})" 
-                                        title="View Profile" class="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs transition-colors">
+                                        title="Quick ID Card" class="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs transition-colors">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 
@@ -324,8 +331,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Worker Photo</label>
-                    <input type="file" name="photo" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-cyan-600 file:text-white hover:file:bg-cyan-500">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Worker Photo (ছবি আপলোড)</label>
+                    <div class="flex items-center gap-2.5">
+                        <div id="createPhotoPreviewContainer" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-user text-slate-500 text-base" id="createPhotoIcon"></i>
+                            <img id="createPhotoPreview" class="w-full h-full object-cover hidden" alt="Preview">
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this, 'createPhotoPreview', 'createPhotoIcon')" 
+                                   class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -342,12 +358,12 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Designation *</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-slate-300">Designation *</label>
+                        <span id="createDesNotice" class="text-[9px] text-cyan-400 font-mono hidden">Filtered</span>
+                    </div>
                     <select name="designation_id" id="createDesSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                        <option value="">Select Designation</option>
-                        @foreach($designations as $des)
-                            <option value="{{ $des->id }}" data-dept="{{ $des->department_id }}">{{ $des->title }} ({{ $des->department->name ?? 'All' }})</option>
-                        @endforeach
+                        <option value="">Select Department First</option>
                     </select>
                 </div>
 
@@ -540,15 +556,24 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Change Photo</label>
-                    <input type="file" name="photo" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Worker Photo (ছবি পরিবর্তন)</label>
+                    <div class="flex items-center gap-2.5">
+                        <div id="editPhotoPreviewContainer" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-user text-slate-500 text-base" id="editPhotoIcon"></i>
+                            <img id="editPhotoPreview" class="w-full h-full object-cover hidden" alt="Preview">
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this, 'editPhotoPreview', 'editPhotoIcon')" 
+                                   class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="pt-3 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Department *</label>
-                    <select name="department_id" id="editDeptSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+                    <select name="department_id" id="editDeptSelect" required onchange="filterDesignations('edit')" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
                         @foreach($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                         @endforeach
@@ -556,11 +581,12 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Designation *</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-slate-300">Designation *</label>
+                        <span id="editDesNotice" class="text-[9px] text-cyan-400 font-mono hidden">Filtered</span>
+                    </div>
                     <select name="designation_id" id="editDesSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                        @foreach($designations as $des)
-                            <option value="{{ $des->id }}">{{ $des->title }} ({{ $des->department->name ?? 'All' }})</option>
-                        @endforeach
+                        <option value="">Select Designation</option>
                     </select>
                 </div>
 
@@ -779,6 +805,56 @@
 
 @push('scripts')
 <script>
+    const allDesignations = @json($designations);
+
+    function previewPhoto(input, imgId, iconId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgId);
+                const icon = document.getElementById(iconId);
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                if (icon) icon.classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function filterDesignations(prefix, selectedDesId = null) {
+        const deptId = document.getElementById(prefix + 'DeptSelect').value;
+        const desSelect = document.getElementById(prefix + 'DesSelect');
+        const notice = document.getElementById(prefix + 'DesNotice');
+
+        desSelect.innerHTML = '<option value="">Select Designation</option>';
+
+        if (!deptId) {
+            desSelect.innerHTML = '<option value="">Select Department First</option>';
+            if (notice) notice.classList.add('hidden');
+            return;
+        }
+
+        const filtered = allDesignations.filter(d => d.department_id == deptId);
+
+        if (filtered.length === 0) {
+            desSelect.innerHTML = '<option value="">No designations for this section</option>';
+            if (notice) notice.classList.add('hidden');
+            return;
+        }
+
+        if (notice) notice.classList.remove('hidden');
+
+        filtered.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.title + (d.grade ? ' (' + d.grade + ')' : '');
+            if (selectedDesId && selectedDesId == d.id) {
+                opt.selected = true;
+            }
+            desSelect.appendChild(opt);
+        });
+    }
+
     function calcGross(prefix) {
         const basic = parseFloat(document.getElementById(prefix + 'Basic').value) || 0;
         const house = parseFloat(document.getElementById(prefix + 'House').value) || 0;
@@ -790,6 +866,7 @@
 
     function openCreateEmployeeModal() {
         document.getElementById('createEmployeeModal').classList.remove('hidden');
+        filterDesignations('create');
         calcGross('create');
     }
 
@@ -809,13 +886,28 @@
         document.getElementById('editGender').value = emp.gender || 'Male';
         document.getElementById('editBlood').value = emp.blood_group || '';
         document.getElementById('editDeptSelect').value = emp.department_id || '';
-        document.getElementById('editDesSelect').value = emp.designation_id || '';
+
+        // Dynamically load designations for this employee's department and select their current designation
+        filterDesignations('edit', emp.designation_id);
+
         document.getElementById('editJoiningDate').value = emp.joining_date ? emp.joining_date.substring(0, 10) : '';
         document.getElementById('editType').value = emp.employment_type || 'permanent';
         document.getElementById('editShift').value = emp.shift || 'General';
         document.getElementById('editStatus').value = emp.status || 'active';
         document.getElementById('editPayMethod').value = emp.payment_method || 'Cash';
         document.getElementById('editBankName').value = emp.bank_name || '';
+
+        // Photo preview
+        const editImg = document.getElementById('editPhotoPreview');
+        const editIcon = document.getElementById('editPhotoIcon');
+        if (emp.photo) {
+            editImg.src = '/storage/' + emp.photo;
+            editImg.classList.remove('hidden');
+            if (editIcon) editIcon.classList.add('hidden');
+        } else {
+            editImg.classList.add('hidden');
+            if (editIcon) editIcon.classList.remove('hidden');
+        }
 
         document.getElementById('editBasic').value = emp.basic_salary || 0;
         document.getElementById('editHouse').value = emp.house_rent || 0;
@@ -880,22 +972,6 @@
 
     function closeViewEmployeeModal() {
         document.getElementById('viewEmployeeModal').classList.add('hidden');
-    }
-
-    function filterDesignations(prefix) {
-        const deptId = document.getElementById(prefix + 'DeptSelect').value;
-        const desSelect = document.getElementById(prefix + 'DesSelect');
-        const options = desSelect.querySelectorAll('option');
-
-        options.forEach(opt => {
-            if (!opt.value) return;
-            const optDept = opt.getAttribute('data-dept');
-            if (!deptId || optDept === deptId || !optDept) {
-                opt.style.display = 'block';
-            } else {
-                opt.style.display = 'none';
-            }
-        });
     }
 </script>
 @endpush

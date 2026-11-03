@@ -97,11 +97,13 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::get('/employees/export/csv', [HrController::class, 'employeesExportCsv'])->name('employees.export.csv');
         Route::get('/employees/export/pdf', [HrController::class, 'employeesExportPdf'])->name('employees.export.pdf');
         Route::post('/employees', [HrController::class, 'employeesStore'])->name('employees.store');
+        Route::get('/employees/{id}', [HrController::class, 'employeesShow'])->name('employees.show');
         Route::put('/employees/{id}', [HrController::class, 'employeesUpdate'])->name('employees.update');
         Route::delete('/employees/{id}', [HrController::class, 'employeesDestroy'])->name('employees.destroy');
 
         // Departments & Designations
         Route::get('/departments', [HrController::class, 'departmentsIndex'])->name('departments.index');
+        Route::get('/departments/{departmentId}/designations', [HrController::class, 'getDesignationsByDepartment'])->name('departments.designations');
         Route::post('/departments', [HrController::class, 'departmentsStore'])->name('departments.store');
         Route::put('/departments/{id}', [HrController::class, 'departmentsUpdate'])->name('departments.update');
         Route::delete('/departments/{id}', [HrController::class, 'departmentsDestroy'])->name('departments.destroy');

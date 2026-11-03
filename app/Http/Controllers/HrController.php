@@ -185,6 +185,90 @@ class HrController extends Controller
         return redirect()->route('factory.hr.employees.index')->with('success', 'Employee ' . $validated['name'] . ' registered successfully!');
     }
 
+    public function employeesShow(Request $request, $id)
+    {
+        $employee = HrEmployee::with(['department', 'designation'])->findOrFail($id);
+
+        // Attendance Calendar Filter (Year and Month)
+        $year = intval($request->get('year', Carbon::now()->year));
+        $month = intval($request->get('month', Carbon::now()->month));
+
+        // Create month carbon instance
+        $currentMonthDate = Carbon::createFromDate($year, $month, 1);
+        $monthName = $currentMonthDate->format('F');
+        $daysInMonth = $currentMonthDate->daysInMonth;
+        $startDayOfWeek = $currentMonthDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+        // Query attendances for this month
+        $attendances = HrAttendance::where('employee_id', $id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get()
+            ->keyBy(function($item) {
+                return Carbon::parse($item->date)->format('Y-m-d');
+            });
+
+        // Attendance stats for this month
+        $monthPresent = $attendances->where('status', 'present')->count();
+        $monthLate = $attendances->where('status', 'late')->count();
+        $monthLeave = $attendances->where('status', 'leave')->count();
+        $monthAbsent = $attendances->where('status', 'absent')->count();
+        $monthHalfDay = $attendances->where('status', 'half_day')->count();
+        $monthTotalOtHours = $attendances->sum('overtime_hours');
+
+        // Leaves history for this employee
+        $leaves = HrLeave::where('employee_id', $id)->orderBy('start_date', 'desc')->get();
+        $totalLeavesTaken = $leaves->where('status', 'approved')->sum('days_count');
+
+        // Payroll & Salary history for this employee
+        $payrolls = HrPayroll::where('employee_id', $id)->orderBy('month', 'desc')->get();
+        $totalSalaryPaid = $payrolls->where('payment_status', 'paid')->sum('net_salary');
+        $totalOtEarned = $payrolls->sum('overtime_amount');
+        $totalDeductionsMade = $payrolls->sum('deductions');
+        $totalAbsenceDeductions = $payrolls->sum('absence_deduction');
+        $totalAdvanceDeductions = $payrolls->sum('advance_deduction');
+
+        // Advance Salary & Loans history for this employee
+        $advances = HrAdvance::where('employee_id', $id)->orderBy('advance_date', 'desc')->get();
+        $totalAdvanceTaken = $advances->sum('amount');
+        $totalAdvanceRecovered = $advances->where('status', 'recovered')->sum('amount');
+        $totalAdvancePending = $advances->where('status', 'approved')->sum('amount');
+
+        return view('factory-erp.hr.employees.show', compact(
+            'employee',
+            'year',
+            'month',
+            'monthName',
+            'daysInMonth',
+            'startDayOfWeek',
+            'attendances',
+            'monthPresent',
+            'monthLate',
+            'monthLeave',
+            'monthAbsent',
+            'monthHalfDay',
+            'monthTotalOtHours',
+            'leaves',
+            'totalLeavesTaken',
+            'payrolls',
+            'totalSalaryPaid',
+            'totalOtEarned',
+            'totalDeductionsMade',
+            'totalAbsenceDeductions',
+            'totalAdvanceDeductions',
+            'advances',
+            'totalAdvanceTaken',
+            'totalAdvanceRecovered',
+            'totalAdvancePending'
+        ));
+    }
+
+    public function getDesignationsByDepartment($departmentId)
+    {
+        $designations = HrDesignation::where('department_id', $departmentId)->orderBy('title')->get();
+        return response()->json($designations);
+    }
+
     public function employeesUpdate(Request $request, $id)
     {
         $employee = HrEmployee::findOrFail($id);
