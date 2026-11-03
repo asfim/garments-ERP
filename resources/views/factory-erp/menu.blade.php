@@ -175,7 +175,7 @@
     <span class="w-6 h-6 rounded-lg {{ $isDept ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
         <i class="fa-solid fa-sitemap text-[11px]"></i>
     </span>
-    <span>Departments</span>
+    <span>Departments & Designations</span>
 </a>
 
 <div class="pt-2 pb-1">

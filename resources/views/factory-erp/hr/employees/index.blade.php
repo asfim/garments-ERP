@@ -360,7 +360,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-semibold text-slate-300">Designation *</label>
-                        <span id="createDesNotice" class="text-[9px] text-cyan-400 font-mono hidden">Filtered</span>
+                        <button type="button" onclick="openQuickAddDesModal('create')" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>+ New Role</span>
+                        </button>
                     </div>
                     <select name="designation_id" id="createDesSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
                         <option value="">Select Department First</option>
@@ -583,7 +586,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-semibold text-slate-300">Designation *</label>
-                        <span id="editDesNotice" class="text-[9px] text-cyan-400 font-mono hidden">Filtered</span>
+                        <button type="button" onclick="openQuickAddDesModal('edit')" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>+ New Role</span>
+                        </button>
                     </div>
                     <select name="designation_id" id="editDesSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
                         <option value="">Select Designation</option>
@@ -803,9 +809,121 @@
     </div>
 </div>
 
+<!-- ============================================================== -->
+<!-- 4. QUICK ADD DESIGNATION MODAL (INLINE POPUP)                  -->
+<!-- ============================================================== -->
+<div id="quickAddDesModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm overflow-y-auto p-4 flex items-center justify-center">
+    <div class="relative w-full max-w-md bg-[#09112a] border border-cyan-500/40 rounded-2xl shadow-2xl p-6 text-white">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/60 mb-4">
+            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-tag text-cyan-400"></i>
+                Add New Designation / Role (নতুন পদবি যোগ)
+            </h3>
+            <button type="button" onclick="closeQuickAddDesModal()" class="text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="quickAddDesForm" onsubmit="submitQuickAddDesignation(event)" class="space-y-3">
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Section / Department *</label>
+                <select id="quickDesDeptSelect" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+                    <option value="">Select Section</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Designation Title *</label>
+                <input type="text" id="quickDesTitle" required placeholder="e.g. Pattern Master / Overlock Operator" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Rank / Grade (ঐচ্ছিক)</label>
+                <input type="text" id="quickDesGrade" placeholder="e.g. Grade-3 / Senior" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-700/60">
+                <button type="button" onclick="closeQuickAddDesModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Cancel</button>
+                <button type="submit" id="quickDesSubmitBtn" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Save & Select</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script>
     const allDesignations = @json($designations);
+    let currentDesPrefix = 'create';
+
+    function openQuickAddDesModal(prefix) {
+        currentDesPrefix = prefix;
+        const currentDeptId = document.getElementById(prefix + 'DeptSelect').value;
+        if (currentDeptId) {
+            document.getElementById('quickDesDeptSelect').value = currentDeptId;
+        }
+        document.getElementById('quickDesTitle').value = '';
+        document.getElementById('quickDesGrade').value = '';
+        document.getElementById('quickAddDesModal').classList.remove('hidden');
+    }
+
+    function closeQuickAddDesModal() {
+        document.getElementById('quickAddDesModal').classList.add('hidden');
+    }
+
+    function submitQuickAddDesignation(e) {
+        e.preventDefault();
+        const deptId = document.getElementById('quickDesDeptSelect').value;
+        const title = document.getElementById('quickDesTitle').value.trim();
+        const grade = document.getElementById('quickDesGrade').value.trim();
+
+        if (!deptId || !title) {
+            alert('Please select a department and enter designation title.');
+            return;
+        }
+
+        const submitBtn = document.getElementById('quickDesSubmitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        fetch("{{ route('factory.hr.designations.store') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                department_id: deptId,
+                title: title,
+                grade: grade
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-plus"></i> <span>Save & Select</span>';
+            if (data.success && data.designation) {
+                allDesignations.push(data.designation);
+                document.getElementById(currentDesPrefix + 'DeptSelect').value = deptId;
+                filterDesignations(currentDesPrefix, data.designation.id);
+                closeQuickAddDesModal();
+            } else {
+                alert('Error creating designation.');
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-plus"></i> <span>Save & Select</span>';
+            console.error(err);
+            alert('Failed to save designation.');
+        });
+    }
 
     function previewPhoto(input, imgId, iconId) {
         if (input.files && input.files[0]) {

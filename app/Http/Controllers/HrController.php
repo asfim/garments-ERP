@@ -431,7 +431,16 @@ class HrController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        HrDesignation::create($validated);
+        $des = HrDesignation::create($validated);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'designation' => $des,
+                'message' => 'Designation created successfully!'
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Designation created successfully!');
     }
 
