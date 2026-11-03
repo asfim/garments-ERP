@@ -143,6 +143,7 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::delete('/devices/{id}', [HrController::class, 'devicesDestroy'])->name('devices.destroy');
         Route::post('/devices/{id}/test', [HrController::class, 'devicesTestConnection'])->name('devices.test');
         Route::post('/devices/{id}/sync', [HrController::class, 'devicesLiveSync'])->name('devices.sync');
+        Route::match(['GET', 'POST'], '/devices/auto-sync', [HrController::class, 'devicesAutoSync'])->name('devices.auto-sync');
         Route::post('/devices/import-usb', [HrController::class, 'devicesImportUsb'])->name('devices.import-usb');
         Route::match(['GET', 'POST'], '/devices/adms-push', [HrController::class, 'devicesAdmsPush'])->name('devices.adms-push');
 

@@ -75,6 +75,80 @@
     </div>
     @endif
 
+    <!-- REAL-TIME BIOMETRIC AUTO-SYNC CONTROLLER -->
+    <div class="glass-panel rounded-2xl border border-cyan-500/40 p-4 shadow-xl bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-indigo-950/40">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            
+            <!-- Left Info & Status -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-lg flex-shrink-0 shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-bolt text-cyan-400" id="autoSyncIcon"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-extrabold text-white">Live Biometric Auto-Sync (স্বয়ংক্রিয় লাইভ সিঙ্ক)</h3>
+                        <span id="autoSyncStatusBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>ACTIVE</span>
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>Pulls punches automatically from active machines without manual clicks.</span>
+                        <span class="text-slate-600">•</span>
+                        <span id="autoSyncCountdownText" class="text-cyan-300 font-mono text-[11px] font-bold">Next sync in 60s</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Controls: Toggle, Interval & Instant Trigger -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Interval Selector -->
+                <div class="flex items-center gap-1.5 bg-[#070d1e] px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs">
+                    <span class="text-slate-400 text-[11px]">Interval:</span>
+                    <select id="autoSyncIntervalSelect" onchange="changeAutoSyncInterval(this.value)" class="bg-transparent text-cyan-300 font-bold focus:outline-none cursor-pointer text-xs">
+                        <option value="15" class="bg-slate-900 text-white">Every 15s</option>
+                        <option value="30" class="bg-slate-900 text-white">Every 30s</option>
+                        <option value="60" class="bg-slate-900 text-white" selected>Every 60s (1 min)</option>
+                        <option value="120" class="bg-slate-900 text-white">Every 2 mins</option>
+                        <option value="300" class="bg-slate-900 text-white">Every 5 mins</option>
+                    </select>
+                </div>
+
+                <!-- Instant Trigger Now -->
+                <button type="button" onclick="triggerImmediateAutoSync()" id="btnTriggerAutoSync" 
+                        class="px-3.5 py-2 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/40 font-bold text-xs flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-arrows-rotate" id="triggerSyncIcon"></i>
+                    <span>Sync Now</span>
+                </button>
+
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" id="autoSyncToggle" checked onchange="toggleAutoSync(this.checked)" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    <span class="ml-2 text-xs font-bold text-white peer-checked:text-emerald-300" id="autoSyncToggleLabel">ON</span>
+                </label>
+            </div>
+
+        </div>
+
+        <!-- Live Status Bar -->
+        <div class="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+            <div class="flex items-center gap-3">
+                <span id="lastAutoSyncTime" class="font-mono text-slate-300">
+                    <i class="fa-solid fa-clock text-slate-500 mr-1"></i>
+                    Last auto-sync: <span class="text-cyan-400 font-bold">Just now</span>
+                </span>
+                <span class="text-slate-600">•</span>
+                <span id="autoSyncSummary" class="text-emerald-400 font-medium">Ready</span>
+            </div>
+            
+            <div class="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+                <span>Background Daemon CLI:</span>
+                <code class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-amber-300">php artisan biometric:sync --loop</code>
+            </div>
+        </div>
+    </div>
+
     <!-- KPI Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- 1. Total Machines -->
@@ -367,7 +441,7 @@
                         <th class="py-2.5 px-3 text-center">Type</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80 font-mono">
+                <tbody class="divide-y divide-slate-800/80 font-mono" id="livePunchTableBody">
                     @forelse($recentLogs as $log)
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-2.5 px-3 whitespace-nowrap">
@@ -674,5 +748,239 @@
             indicator.innerHTML = '<i class="fa-solid fa-xmark text-rose-400 mr-1"></i> Network error';
         });
     }
+
+    // ==========================================================
+    // REAL-TIME BIOMETRIC AUTO-SYNC ENGINE
+    // ==========================================================
+    let autoSyncEnabled = localStorage.getItem('tbg_biometric_autosync') !== 'false';
+    let autoSyncInterval = parseInt(localStorage.getItem('tbg_biometric_interval') || '60');
+    let autoSyncCountdown = autoSyncInterval;
+    let autoSyncTimer = null;
+    let autoSyncCountdownTimer = null;
+    let isSyncing = false;
+
+    function initAutoSync() {
+        const toggle = document.getElementById('autoSyncToggle');
+        const select = document.getElementById('autoSyncIntervalSelect');
+        if (toggle) toggle.checked = autoSyncEnabled;
+        if (select) select.value = autoSyncInterval;
+
+        updateAutoSyncUI();
+        if (autoSyncEnabled) {
+            startAutoSyncTimers();
+        }
+    }
+
+    function toggleAutoSync(checked) {
+        autoSyncEnabled = checked;
+        localStorage.setItem('tbg_biometric_autosync', checked ? 'true' : 'false');
+        updateAutoSyncUI();
+
+        if (autoSyncEnabled) {
+            autoSyncCountdown = autoSyncInterval;
+            startAutoSyncTimers();
+            triggerImmediateAutoSync();
+        } else {
+            stopAutoSyncTimers();
+        }
+    }
+
+    function changeAutoSyncInterval(val) {
+        autoSyncInterval = parseInt(val);
+        localStorage.setItem('tbg_biometric_interval', autoSyncInterval);
+        autoSyncCountdown = autoSyncInterval;
+        if (autoSyncEnabled) {
+            startAutoSyncTimers();
+        }
+    }
+
+    function updateAutoSyncUI() {
+        const badge = document.getElementById('autoSyncStatusBadge');
+        const label = document.getElementById('autoSyncToggleLabel');
+        const icon = document.getElementById('autoSyncIcon');
+        const countdownText = document.getElementById('autoSyncCountdownText');
+
+        if (autoSyncEnabled) {
+            if (badge) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5";
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> <span>ACTIVE</span>';
+            }
+            if (label) {
+                label.textContent = "ON";
+                label.className = "ml-2 text-xs font-bold text-emerald-300";
+            }
+            if (icon) icon.className = "fa-solid fa-bolt text-cyan-400";
+        } else {
+            if (badge) {
+                badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300 border border-slate-600 flex items-center gap-1.5";
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> <span>PAUSED</span>';
+            }
+            if (label) {
+                label.textContent = "OFF";
+                label.className = "ml-2 text-xs font-bold text-slate-400";
+            }
+            if (icon) icon.className = "fa-solid fa-pause text-slate-400";
+            if (countdownText) countdownText.textContent = "Auto-sync paused";
+        }
+    }
+
+    function startAutoSyncTimers() {
+        stopAutoSyncTimers();
+
+        autoSyncCountdownTimer = setInterval(() => {
+            if (!autoSyncEnabled) return;
+            autoSyncCountdown--;
+            const countdownText = document.getElementById('autoSyncCountdownText');
+            if (countdownText) {
+                countdownText.textContent = `Next sync in ${autoSyncCountdown}s`;
+            }
+
+            if (autoSyncCountdown <= 0) {
+                autoSyncCountdown = autoSyncInterval;
+                triggerAutoSyncRequest(false);
+            }
+        }, 1000);
+    }
+
+    function stopAutoSyncTimers() {
+        if (autoSyncCountdownTimer) clearInterval(autoSyncCountdownTimer);
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
+    }
+
+    function triggerImmediateAutoSync() {
+        autoSyncCountdown = autoSyncInterval;
+        triggerAutoSyncRequest(true);
+    }
+
+    function triggerAutoSyncRequest(isManual = false) {
+        if (isSyncing) return;
+        isSyncing = true;
+
+        const syncIcon = document.getElementById('triggerSyncIcon');
+        const summary = document.getElementById('autoSyncSummary');
+        const lastTimeSpan = document.getElementById('lastAutoSyncTime');
+
+        if (syncIcon) syncIcon.classList.add('fa-spin');
+        if (summary) {
+            summary.className = "text-cyan-400 font-medium";
+            summary.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> Syncing active devices...';
+        }
+
+        fetch('/factory/hr/devices/auto-sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(async res => {
+            isSyncing = false;
+            if (syncIcon) syncIcon.classList.remove('fa-spin');
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                if (lastTimeSpan) {
+                    lastTimeSpan.innerHTML = `<i class="fa-solid fa-clock text-slate-500 mr-1"></i> Last auto-sync: <span class="text-cyan-400 font-bold">${data.timestamp}</span>`;
+                }
+
+                if (summary) {
+                    if (data.total_synced_punches > 0) {
+                        summary.className = "text-emerald-400 font-bold";
+                        summary.innerHTML = `✓ Synced ${data.total_synced_punches} new punches (${data.total_employees_updated} employees updated)!`;
+                    } else {
+                        summary.className = "text-slate-400 font-medium";
+                        summary.innerHTML = `✓ Connected (${data.devices.length} devices checked, no new unread punches)`;
+                    }
+                }
+
+                if (data.devices) {
+                    data.devices.forEach(dev => {
+                        const badge = document.getElementById('device-badge-' + dev.id);
+                        if (badge) {
+                            if (dev.status === 'online') {
+                                badge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+                                badge.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></span> ONLINE';
+                            } else {
+                                badge.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold border bg-rose-500/20 text-rose-300 border-rose-500/30';
+                                badge.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1"></span> OFFLINE';
+                            }
+                        }
+                    });
+                }
+
+                if (data.total_synced_punches > 0 && data.recent_logs && data.recent_logs.length > 0) {
+                    renderRecentLogsTable(data.recent_logs);
+                }
+            } else {
+                if (summary) {
+                    summary.className = "text-rose-400 font-medium";
+                    summary.innerHTML = 'Device check completed';
+                }
+            }
+        })
+        .catch(err => {
+            isSyncing = false;
+            if (syncIcon) syncIcon.classList.remove('fa-spin');
+            if (summary) {
+                summary.className = "text-rose-400 font-medium";
+                summary.innerHTML = 'Network sync error';
+            }
+        });
+    }
+
+    function renderRecentLogsTable(logs) {
+        const tbody = document.getElementById('livePunchTableBody');
+        if (!tbody) return;
+
+        let html = '';
+        logs.forEach(log => {
+            const empHtml = log.employee_name ? `
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-[10px] uppercase">
+                        ${log.employee_name.substring(0, 2)}
+                    </div>
+                    <div>
+                        <span class="font-bold text-white">${log.employee_name}</span>
+                        <div class="text-[10px] text-slate-400 font-mono">${log.employee_code || ''}</div>
+                    </div>
+                </div>
+            ` : `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20">Unmapped (Worker #${log.device_user_id})</span>`;
+
+            const deptHtml = log.department ? `
+                <div class="text-slate-200 font-medium">${log.department}</div>
+                <div class="text-[10px] text-slate-400">${log.designation || '—'}</div>
+            ` : '<span class="text-slate-500">—</span>';
+
+            html += `
+                <tr class="hover:bg-slate-800/40 transition-colors bg-emerald-500/10">
+                    <td class="py-2.5 px-3 whitespace-nowrap">
+                        <span class="font-bold text-white">${log.punch_time}</span>
+                    </td>
+                    <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-bold">
+                            #${log.device_user_id}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-3 font-sans">${empHtml}</td>
+                    <td class="py-2.5 px-3 font-sans">${deptHtml}</td>
+                    <td class="py-2.5 px-3 font-sans text-slate-300">${log.device_name || 'ZKTeco'}</td>
+                    <td class="py-2.5 px-3">
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-sans">
+                            ${log.source}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-center">
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                            ${log.punch_type || 'Check-In'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    document.addEventListener('DOMContentLoaded', initAutoSync);
 </script>
 @endpush

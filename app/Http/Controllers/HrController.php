@@ -1229,6 +1229,86 @@ class HrController extends Controller
         }
     }
 
+    public function devicesAutoSync(Request $request, ZkTecoService $zkService)
+    {
+        $devices = HrBiometricDevice::where('is_active', true)->get();
+        $totalSyncedPunches = 0;
+        $totalEmployeesUpdated = 0;
+        $syncedDevicesDetails = [];
+
+        foreach ($devices as $device) {
+            try {
+                $conn = $zkService->testConnection($device->device_ip, $device->port, 2);
+                if (!$conn['success']) {
+                    $device->update(['status' => 'offline']);
+                    $syncedDevicesDetails[] = [
+                        'id' => $device->id,
+                        'name' => $device->name,
+                        'status' => 'offline',
+                        'message' => 'Unreachable: ' . $device->device_ip
+                    ];
+                    continue;
+                }
+
+                $logs = $zkService->fetchLiveLogs($device->device_ip, $device->port, 3);
+                $device->update([
+                    'status' => 'online',
+                    'last_sync_at' => Carbon::now()
+                ]);
+
+                if (!empty($logs)) {
+                    $syncResult = $zkService->syncLogsToAttendance($logs, 'auto_sync', $device->id);
+                    $totalSyncedPunches += $syncResult['synced_punches'];
+                    $totalEmployeesUpdated += $syncResult['employees_updated'];
+                }
+
+                $syncedDevicesDetails[] = [
+                    'id' => $device->id,
+                    'name' => $device->name,
+                    'status' => 'online',
+                    'latency' => $conn['latency'],
+                    'new_punches' => count($logs)
+                ];
+            } catch (\Exception $e) {
+                $device->update(['status' => 'offline']);
+                $syncedDevicesDetails[] = [
+                    'id' => $device->id,
+                    'name' => $device->name,
+                    'status' => 'offline',
+                    'message' => $e->getMessage()
+                ];
+            }
+        }
+
+        $recentLogs = HrBiometricLog::with(['employee.department', 'employee.designation', 'device'])
+            ->latest('punch_time')
+            ->limit(25)
+            ->get()
+            ->map(function($log) {
+                return [
+                    'id' => $log->id,
+                    'punch_time' => $log->punch_time ? $log->punch_time->format('d M, Y h:i:s A') : '—',
+                    'device_user_id' => $log->device_user_id,
+                    'employee_name' => $log->employee ? $log->employee->name : null,
+                    'employee_code' => $log->employee ? $log->employee->employee_code : null,
+                    'department' => $log->employee && $log->employee->department ? $log->employee->department->name : null,
+                    'designation' => $log->employee && $log->employee->designation ? $log->employee->designation->title : null,
+                    'device_name' => $log->device ? $log->device->name : 'ZKTeco',
+                    'source' => $log->source,
+                    'punch_type' => $log->punch_type,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => Carbon::now()->format('h:i:s A'),
+            'total_synced_punches' => $totalSyncedPunches,
+            'total_employees_updated' => $totalEmployeesUpdated,
+            'devices' => $syncedDevicesDetails,
+            'recent_logs' => $recentLogs
+        ]);
+    }
+
     public function devicesImportUsb(Request $request, ZkTecoService $zkService)
     {
         $request->validate([

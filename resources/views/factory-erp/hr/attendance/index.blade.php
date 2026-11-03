@@ -16,11 +16,18 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Auto-Sync Trigger Button -->
+            <button type="button" onclick="triggerAttendanceAutoSync()" id="btnAttAutoSync"
+                    class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate" id="attAutoSyncIcon"></i>
+                <span id="attAutoSyncText">Auto-Sync ZKTeco</span>
+            </button>
+
             <!-- Biometric Device Sync -->
             <a href="{{ route('factory.hr.devices.index') }}" 
                class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
                 <i class="fa-solid fa-fingerprint"></i>
-                <span>ZKTeco Sync (মেশিন)</span>
+                <span>ZKTeco Settings</span>
             </a>
 
             <!-- Quick Action: Mark All Present -->
@@ -239,4 +246,49 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function triggerAttendanceAutoSync() {
+        const btn = document.getElementById('btnAttAutoSync');
+        const icon = document.getElementById('attAutoSyncIcon');
+        const text = document.getElementById('attAutoSyncText');
+
+        btn.disabled = true;
+        icon.classList.add('fa-spin');
+        text.textContent = 'Syncing devices...';
+
+        fetch('/factory/hr/devices/auto-sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(async res => {
+            btn.disabled = false;
+            icon.classList.remove('fa-spin');
+            const data = await res.json();
+            if (res.ok && data.success) {
+                if (data.total_synced_punches > 0) {
+                    text.textContent = `Synced ${data.total_synced_punches} punches!`;
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    text.textContent = 'Machines online (No new punches)';
+                    setTimeout(() => text.textContent = 'Auto-Sync ZKTeco', 3000);
+                }
+            } else {
+                text.textContent = 'Sync failed';
+                setTimeout(() => text.textContent = 'Auto-Sync ZKTeco', 3000);
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            icon.classList.remove('fa-spin');
+            text.textContent = 'Network error';
+            setTimeout(() => text.textContent = 'Auto-Sync ZKTeco', 3000);
+        });
+    }
+</script>
+@endpush
 
