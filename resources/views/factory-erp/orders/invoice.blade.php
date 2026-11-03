@@ -118,7 +118,7 @@
         <!-- Center Page Watermark / Jolchap (জলছাপ) -->
         @if($watermarkSrc)
         <div class="invoice-watermark pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden z-0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0;">
-            <img src="{{ $watermarkSrc }}" alt="Watermark" class="w-80 max-w-[60%] max-h-[60%] object-contain opacity-[0.06] grayscale">
+            <img src="{{ $watermarkSrc }}" alt="Watermark" class="w-96 max-w-[70%] max-h-[70%] object-contain opacity-[0.12]">
         </div>
         @endif
 

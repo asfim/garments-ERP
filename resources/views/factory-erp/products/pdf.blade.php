@@ -79,18 +79,17 @@
         }
         .watermark {
             position: fixed;
-            top: 25%;
-            left: 15%;
-            width: 70%;
-            height: 50%;
+            top: 250px;
+            left: 0;
+            width: 100%;
             text-align: center;
-            opacity: 0.08;
-            z-index: -1000;
+            z-index: -1;
         }
         .watermark img {
-            max-width: 400px;
-            max-height: 400px;
-            opacity: 0.08;
+            width: 440px;
+            max-width: 80%;
+            height: auto;
+            opacity: 0.12;
         }
         .footer-note {
             margin-top: 30px;
@@ -134,8 +133,8 @@
     <table class="header-table">
         <tr>
             @if($logoBase64)
-            <td style="width: 65px; vertical-align: top; padding-right: 12px;">
-                <img src="{{ $logoBase64 }}" style="max-width: 60px; max-height: 60px;" alt="Logo">
+            <td style="width: 175px; vertical-align: top; padding-right: 15px;">
+                <img src="{{ $logoBase64 }}" style="max-width: 165px; max-height: 65px; width: auto; height: auto;" alt="Logo">
             </td>
             @endif
             <td style="vertical-align: top;">
@@ -143,7 +142,7 @@
                 <p class="company-info">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
                 <p class="company-info">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'info@turkeybangla.com' }}</p>
             </td>
-            <td class="doc-title" style="width: 35%;">
+            <td class="doc-title" style="width: 30%;">
                 <span class="doc-badge">PRODUCT PRICE LIST</span>
                 <p class="date-text">Generated Date: {{ date('d M, Y') }}</p>
             </td>
