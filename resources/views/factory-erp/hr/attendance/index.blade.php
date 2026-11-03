@@ -16,6 +16,13 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Biometric Device Sync -->
+            <a href="{{ route('factory.hr.devices.index') }}" 
+               class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-fingerprint"></i>
+                <span>ZKTeco Sync (মেশিন)</span>
+            </a>
+
             <!-- Quick Action: Mark All Present -->
             <form action="{{ route('factory.hr.attendance.bulk.store') }}" method="POST" onsubmit="return confirm('Mark all unmarked active employees as PRESENT for {{ $date }}?')">
                 @csrf

@@ -11,6 +11,9 @@ use App\Models\HrAttendance;
 use App\Models\HrLeave;
 use App\Models\HrPayroll;
 use App\Models\HrAdvance;
+use App\Models\HrBiometricDevice;
+use App\Models\HrBiometricLog;
+use App\Services\ZkTecoService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -161,6 +164,7 @@ class HrController extends Controller
             'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:100',
+            'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
@@ -297,6 +301,7 @@ class HrController extends Controller
             'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:100',
+            'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
@@ -1021,6 +1026,207 @@ class HrController extends Controller
         $pdf = Pdf::loadView('factory-erp.hr.payroll.pdf', compact('payrolls', 'month', 'company'))
                   ->setPaper('a4', 'landscape');
         return $pdf->download('Payroll-Sheet-' . $month . '.pdf');
+    }
+
+    // ==========================================
+    // 7. BIOMETRIC DEVICES (ZKTECO)
+    // ==========================================
+    public function devicesIndex()
+    {
+        $devices = HrBiometricDevice::withCount('logs')->orderBy('id', 'asc')->get();
+        $recentLogs = HrBiometricLog::with(['employee', 'device'])
+            ->latest('punch_time')
+            ->limit(100)
+            ->get();
+            
+        $totalDevices = $devices->count();
+        $activeDevices = $devices->where('is_active', true)->count();
+        $totalLogsCount = HrBiometricLog::count();
+        $biometricEmployeesCount = HrEmployee::whereNotNull('device_user_id')->count();
+        $totalEmployees = HrEmployee::where('status', 'active')->count();
+
+        return view('factory-erp.hr.devices.index', compact(
+            'devices',
+            'recentLogs',
+            'totalDevices',
+            'activeDevices',
+            'totalLogsCount',
+            'biometricEmployeesCount',
+            'totalEmployees'
+        ));
+    }
+
+    public function devicesStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'ip_address' => 'required|string|max:50',
+            'port' => 'required|integer|min:1|max:65535',
+            'model' => 'nullable|string|max:100',
+            'location' => 'nullable|string|max:150',
+            'protocol' => 'nullable|string|in:TCP/IP,UDP,ADMS',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $data = [
+            'name' => $validated['name'],
+            'device_ip' => $validated['ip_address'],
+            'port' => $validated['port'] ?? 4370,
+            'device_model' => $validated['model'] ?? 'ZKTeco K40',
+            'notes' => $validated['location'] ?? null,
+            'protocol' => $validated['protocol'] ?? 'TCP/IP',
+            'is_active' => $request->has('is_active') ? true : false,
+            'status' => 'offline',
+        ];
+
+        HrBiometricDevice::create($data);
+
+        return redirect()->route('factory.hr.devices.index')->with('success', 'Biometric device added successfully!');
+    }
+
+    public function devicesUpdate(Request $request, $id)
+    {
+        $device = HrBiometricDevice::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'ip_address' => 'required|string|max:50',
+            'port' => 'required|integer|min:1|max:65535',
+            'model' => 'nullable|string|max:100',
+            'location' => 'nullable|string|max:150',
+            'protocol' => 'nullable|string|in:TCP/IP,UDP,ADMS',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $data = [
+            'name' => $validated['name'],
+            'device_ip' => $validated['ip_address'],
+            'port' => $validated['port'] ?? 4370,
+            'device_model' => $validated['model'] ?? 'ZKTeco K40',
+            'notes' => $validated['location'] ?? null,
+            'protocol' => $validated['protocol'] ?? 'TCP/IP',
+            'is_active' => $request->has('is_active') ? true : false,
+        ];
+
+        $device->update($data);
+
+        return redirect()->back()->with('success', "Device '{$device->name}' updated successfully!");
+    }
+
+    public function devicesDestroy($id)
+    {
+        $device = HrBiometricDevice::findOrFail($id);
+        $name = $device->name;
+        $device->delete();
+
+        return redirect()->back()->with('success', "Device '{$name}' deleted successfully!");
+    }
+
+    public function devicesTestConnection(Request $request, $id, ZkTecoService $zkService)
+    {
+        $device = HrBiometricDevice::findOrFail($id);
+        $result = $zkService->testConnection($device->ip_address, $device->port, 3);
+
+        if ($result['success']) {
+            $device->update(['status' => 'online']);
+            return response()->json([
+                'success' => true,
+                'latency' => $result['latency'],
+                'message' => $result['message'],
+            ]);
+        } else {
+            $device->update(['status' => 'offline']);
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 422);
+        }
+    }
+
+    public function devicesLiveSync(Request $request, $id, ZkTecoService $zkService)
+    {
+        $device = HrBiometricDevice::findOrFail($id);
+
+        try {
+            $logs = $zkService->fetchLiveLogs($device->ip_address, $device->port, 5);
+
+            if (empty($logs)) {
+                $device->update([
+                    'status' => 'online',
+                    'last_sync_at' => Carbon::now()
+                ]);
+
+                return redirect()->back()->with('info', "Connection to '{$device->name}' verified online. No unread punches found on device, or device is ready for ADMS/USB sync.");
+            }
+
+            $syncResult = $zkService->syncLogsToAttendance($logs, 'device_live', $device->id);
+
+            $device->update([
+                'status' => 'online',
+                'last_sync_at' => Carbon::now()
+            ]);
+
+            return redirect()->back()->with('success', "Successfully synced {$syncResult['synced_punches']} punches! Updated attendance for {$syncResult['employees_updated']} employees across {$syncResult['affected_days']} days.");
+        } catch (\Exception $e) {
+            $device->update(['status' => 'offline']);
+            return redirect()->back()->with('error', "Failed to sync with device: " . $e->getMessage());
+        }
+    }
+
+    public function devicesImportUsb(Request $request, ZkTecoService $zkService)
+    {
+        $request->validate([
+            'log_file' => 'nullable|file|max:10240',
+            'log_text' => 'nullable|string',
+            'device_id' => 'nullable|exists:hr_biometric_devices,id',
+        ]);
+
+        $content = '';
+        if ($request->hasFile('log_file')) {
+            $content = file_get_contents($request->file('log_file')->getRealPath());
+        } elseif ($request->filled('log_text')) {
+            $content = $request->input('log_text');
+        } else {
+            return redirect()->back()->with('error', 'Please upload a ZKTeco attlog.dat file or paste attendance log text.');
+        }
+
+        $logs = $zkService->parseUsbLogFile($content);
+
+        if (empty($logs)) {
+            return redirect()->back()->with('error', 'No valid attendance records found in the uploaded file/text. Please ensure the file is from a ZKTeco device (attlog.dat, .txt, or .csv).');
+        }
+
+        $deviceId = $request->input('device_id') ? intval($request->input('device_id')) : null;
+        $syncResult = $zkService->syncLogsToAttendance($logs, 'usb_import', $deviceId);
+
+        if ($deviceId) {
+            HrBiometricDevice::where('id', $deviceId)->update(['last_sync_at' => Carbon::now()]);
+        }
+
+        return redirect()->back()->with('success', "USB Log Imported Successfully! Synced {$syncResult['synced_punches']} punches. Generated/updated attendance for {$syncResult['employees_updated']} employees across {$syncResult['affected_days']} dates.");
+    }
+
+    public function devicesAdmsPush(Request $request, ZkTecoService $zkService)
+    {
+        if ($request->isMethod('GET')) {
+            return response("OK", 200)->header('Content-Type', 'text/plain');
+        }
+
+        $rawContent = $request->getContent();
+        if (!empty($rawContent)) {
+            $sn = $request->get('SN');
+            $device = $sn ? HrBiometricDevice::where('model', 'LIKE', "%{$sn}%")->orWhere('name', 'LIKE', "%{$sn}%")->first() : null;
+            
+            $logs = $zkService->parseUsbLogFile($rawContent);
+            if (!empty($logs)) {
+                $zkService->syncLogsToAttendance($logs, 'adms_push', $device ? $device->id : null);
+                if ($device) {
+                    $device->update(['status' => 'online', 'last_sync_at' => Carbon::now()]);
+                }
+            }
+        }
+
+        return response("OK", 200)->header('Content-Type', 'text/plain');
     }
 }
 

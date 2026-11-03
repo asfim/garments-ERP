@@ -49,5 +49,10 @@ class HrEmployee extends Model
     {
         return $this->hasMany(HrAdvance::class, 'employee_id');
     }
+
+    public function biometricLogs()
+    {
+        return $this->hasMany(HrBiometricLog::class, 'employee_id');
+    }
 }
 

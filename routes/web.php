@@ -6,6 +6,7 @@ use App\Http\Controllers\FactoryErpController;
 use App\Http\Controllers\HrController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::match(['GET', 'POST'], '/iclock/cdata', [HrController::class, 'devicesAdmsPush'])->name('iclock.cdata');
 
 // ==========================================
 // FACTORY ERP ROUTES
@@ -129,6 +130,16 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::post('/advances', [HrController::class, 'advancesStore'])->name('advances.store');
         Route::patch('/advances/{id}/status', [HrController::class, 'advancesUpdateStatus'])->name('advances.status.update');
         Route::delete('/advances/{id}', [HrController::class, 'advancesDestroy'])->name('advances.destroy');
+
+        // Biometric Devices (ZKTeco)
+        Route::get('/devices', [HrController::class, 'devicesIndex'])->name('devices.index');
+        Route::post('/devices', [HrController::class, 'devicesStore'])->name('devices.store');
+        Route::put('/devices/{id}', [HrController::class, 'devicesUpdate'])->name('devices.update');
+        Route::delete('/devices/{id}', [HrController::class, 'devicesDestroy'])->name('devices.destroy');
+        Route::post('/devices/{id}/test', [HrController::class, 'devicesTestConnection'])->name('devices.test');
+        Route::post('/devices/{id}/sync', [HrController::class, 'devicesLiveSync'])->name('devices.sync');
+        Route::post('/devices/import-usb', [HrController::class, 'devicesImportUsb'])->name('devices.import-usb');
+        Route::match(['GET', 'POST'], '/devices/adms-push', [HrController::class, 'devicesAdmsPush'])->name('devices.adms-push');
 
         // Payroll & Payslips
         Route::get('/payroll', [HrController::class, 'payrollIndex'])->name('payroll.index');

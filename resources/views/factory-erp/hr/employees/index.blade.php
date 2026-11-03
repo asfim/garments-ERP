@@ -150,7 +150,15 @@
                     @forelse($employees as $emp)
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-3 px-3 font-mono font-bold text-cyan-400">
-                            {{ $emp->employee_code }}
+                            <div>{{ $emp->employee_code }}</div>
+                            @if($emp->device_user_id)
+                                <div class="mt-0.5">
+                                    <span class="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30" title="Biometric Machine User ID">
+                                        <i class="fa-solid fa-fingerprint text-[8px]"></i>
+                                        ZK: #{{ $emp->device_user_id }}
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td class="py-3 px-3">
                             <div class="flex items-center gap-2.5">
@@ -274,6 +282,15 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Employee ID / Code</label>
                     <input type="text" name="employee_code" placeholder="Leave empty for auto (TBG-EMP-XXX)" 
                            class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-cyan-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-fingerprint text-cyan-400"></i>
+                        Biometric Machine User ID (মেশিন আইডি)
+                    </label>
+                    <input type="text" name="device_user_id" placeholder="e.g. 101 or 1" 
+                           class="w-full bg-[#0a122e] border border-cyan-500/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
                 </div>
 
                 <div>
@@ -507,6 +524,14 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Employee ID / Code *</label>
                     <input type="text" name="employee_code" id="editCode" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-cyan-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-fingerprint text-cyan-400"></i>
+                        Biometric Machine User ID (মেশিন আইডি)
+                    </label>
+                    <input type="text" name="device_user_id" id="editDeviceUserId" placeholder="e.g. 101 or 1" class="w-full bg-[#0a122e] border border-cyan-500/40 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
                 </div>
 
                 <div>
@@ -996,6 +1021,7 @@
         document.getElementById('editEmployeeForm').action = "/factory/hr/employees/" + emp.id;
         document.getElementById('editEmpNameBadge').innerText = emp.employee_code + ' - ' + emp.name;
         document.getElementById('editCode').value = emp.employee_code;
+        document.getElementById('editDeviceUserId').value = emp.device_user_id || '';
         document.getElementById('editName').value = emp.name;
         document.getElementById('editPhone').value = emp.phone;
         document.getElementById('editEmgPhone').value = emp.emergency_phone || '';
