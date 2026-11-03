@@ -16,12 +16,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Add Employee Button -->
-            <button type="button" onclick="openCreateEmployeeModal()"
-                    class="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
+            <!-- Add Employee Button (Direct URL) -->
+            <a href="{{ route('factory.hr.employees.create') }}"
+               class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
                 <i class="fa-solid fa-user-plus"></i>
                 <span>Add Employee</span>
-            </button>
+            </a>
 
             <!-- Download CSV -->
             <a href="{{ route('factory.hr.employees.export.csv') }}" 
@@ -52,7 +52,7 @@
         <span>{{ session('error') }}</span>
     </div>
     @endif
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
     <div class="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
         <ul class="list-disc list-inside space-y-1">
             @foreach($errors->all() as $err)
@@ -224,11 +224,11 @@
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 
-                                <!-- Edit -->
-                                <button type="button" onclick="openEditEmployeeModal({{ json_encode($emp) }})" 
-                                        title="Edit Employee" class="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs transition-colors">
+                                <!-- Edit (Direct URL) -->
+                                <a href="{{ route('factory.hr.employees.edit', $emp->id) }}" 
+                                   title="Edit Employee" class="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs transition-colors">
                                     <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
+                                </a>
 
                                 <!-- Delete -->
                                 <form action="{{ route('factory.hr.employees.destroy', $emp->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete employee {{ $emp->name }}? All related records will also be removed.')" class="inline">

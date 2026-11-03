@@ -138,6 +138,16 @@ class HrController extends Controller
         return view('factory-erp.hr.employees.index', compact('employees', 'departments', 'designations'));
     }
 
+    public function employeesCreate()
+    {
+        $departments = HrDepartment::with('designations')->orderBy('name')->get();
+        $designations = HrDesignation::orderBy('title')->get();
+        $lastId = HrEmployee::max('id') ?? 0;
+        $nextEmployeeCode = 'TBG-EMP-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
+
+        return view('factory-erp.hr.employees.create', compact('departments', 'designations', 'nextEmployeeCode'));
+    }
+
     public function employeesStore(Request $request)
     {
         $validated = $request->validate([
@@ -273,6 +283,15 @@ class HrController extends Controller
         return response()->json($designations);
     }
 
+    public function employeesEdit($id)
+    {
+        $employee = HrEmployee::findOrFail($id);
+        $departments = HrDepartment::with('designations')->orderBy('name')->get();
+        $designations = HrDesignation::orderBy('title')->get();
+
+        return view('factory-erp.hr.employees.edit', compact('employee', 'departments', 'designations'));
+    }
+
     public function employeesUpdate(Request $request, $id)
     {
         $employee = HrEmployee::findOrFail($id);
@@ -321,7 +340,7 @@ class HrController extends Controller
 
         $employee->update($validated);
 
-        return redirect()->back()->with('success', 'Employee ' . $employee->name . ' updated successfully!');
+        return redirect()->route('factory.hr.employees.index')->with('success', 'Employee ' . $employee->name . ' updated successfully!');
     }
 
     public function employeesDestroy($id)

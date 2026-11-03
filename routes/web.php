@@ -95,10 +95,12 @@ Route::prefix('factory')->name('factory.')->group(function () {
 
         // Employees
         Route::get('/employees', [HrController::class, 'employeesIndex'])->name('employees.index');
+        Route::get('/employees/create', [HrController::class, 'employeesCreate'])->name('employees.create');
         Route::get('/employees/export/csv', [HrController::class, 'employeesExportCsv'])->name('employees.export.csv');
         Route::get('/employees/export/pdf', [HrController::class, 'employeesExportPdf'])->name('employees.export.pdf');
         Route::post('/employees', [HrController::class, 'employeesStore'])->name('employees.store');
         Route::get('/employees/{id}', [HrController::class, 'employeesShow'])->name('employees.show');
+        Route::get('/employees/{id}/edit', [HrController::class, 'employeesEdit'])->name('employees.edit');
         Route::put('/employees/{id}', [HrController::class, 'employeesUpdate'])->name('employees.update');
         Route::delete('/employees/{id}', [HrController::class, 'employeesDestroy'])->name('employees.destroy');
 
