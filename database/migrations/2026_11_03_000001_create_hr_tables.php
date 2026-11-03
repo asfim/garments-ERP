@@ -132,3 +132,4 @@ return new class extends Migration
         Schema::dropIfExists('hr_departments');
     }
 };
+

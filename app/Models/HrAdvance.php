@@ -21,3 +21,4 @@ class HrAdvance extends Model
         return $this->belongsTo(HrEmployee::class, 'employee_id');
     }
 }
+

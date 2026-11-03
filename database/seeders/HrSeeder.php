@@ -303,3 +303,4 @@ class HrSeeder extends Seeder
         }
     }
 }
+
