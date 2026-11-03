@@ -1,7 +1,7 @@
 <!-- LEFT SIDEBAR (DYNAMICALLY CONTROLLED BY BUTTONS) -->
-<aside class="w-64 min-w-[256px] glass-panel border-r border-slate-800/80 flex flex-col py-4 px-3 select-none overflow-y-auto">
+<aside class="w-64 min-w-[256px] glass-panel border-r border-slate-800/80 flex flex-col py-4 px-3 select-none overflow-y-auto h-full flex-shrink-0 sidebar-scroll">
     
-    <div class="space-y-4">
+    <div class="space-y-4 pb-16">
         
         <!-- Current Mode Indicator Badge -->
         <div class="px-3 py-2 rounded-xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-purple-900/20 border border-blue-500/30 flex items-center justify-between">

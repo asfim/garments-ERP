@@ -39,27 +39,31 @@
         }
     </script>
     <!-- Separate Custom ERP CSS File -->
-    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}?v=1.4">
+    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}?v=1.5">
     @stack('styles')
 </head>
-<body class="min-h-screen text-slate-200 antialiased flex flex-col justify-between">
+<body class="h-screen max-h-screen overflow-hidden text-slate-200 antialiased flex flex-col justify-between">
 
     <!-- Global Header -->
-    @include('layouts.header')
+    <div class="flex-shrink-0">
+        @include('layouts.header')
+    </div>
 
     <!-- Main Wrapper (Sidebar + Dynamic Content) -->
-    <div class="flex flex-1 overflow-hidden relative">
+    <div class="flex flex-1 overflow-hidden relative min-h-0">
         <!-- Global Sidebar -->
         @include('layouts.sidebar')
 
         <!-- Page Specific Content -->
-        <main class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-5">
+        <main class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-5 min-h-0">
             @yield('content')
         </main>
     </div>
 
     <!-- Global Footer -->
-    @include('layouts.footer')
+    <div class="flex-shrink-0">
+        @include('layouts.footer')
+    </div>
 
     <!-- Separate Custom ERP JS File -->
     <script src="{{ asset('js/erp-app.js') }}"></script>
