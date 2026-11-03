@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Departments & Designations | Factory ERP')
+@section('title', 'Departments & Sections | Factory ERP')
 
 @section('content')
 <div class="space-y-6">
@@ -9,25 +9,25 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
-                <i class="fa-solid fa-sitemap text-indigo-400"></i>
-                Departments & Designations (বিভাগ ও পদবি ব্যবস্থাপনা)
+                <i class="fa-solid fa-building text-indigo-400"></i>
+                Departments & Factory Sections (কারখানার বিভাগসমূহ)
             </h2>
-            <p class="text-xs text-slate-400">Configure factory floor sections, lines, designations, job grades, and hierarchy</p>
+            <p class="text-xs text-slate-400">Configure factory floor sections, production lines, and department units</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Go to Designations -->
+            <a href="{{ route('factory.hr.designations.index') }}" 
+               class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-user-tag text-cyan-400"></i>
+                <span>Designations (পদবি)</span>
+            </a>
+
             <!-- Add Department Button -->
             <button type="button" onclick="openCreateDeptModal()"
                     class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2">
                 <i class="fa-solid fa-folder-plus"></i>
                 <span>Add Department</span>
-            </button>
-
-            <!-- Add Designation Button -->
-            <button type="button" onclick="openCreateDesModal()"
-                    class="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
-                <i class="fa-solid fa-user-tag"></i>
-                <span>Add Designation</span>
             </button>
         </div>
     </div>
@@ -39,7 +39,7 @@
         <span>{{ session('success') }}</span>
     </div>
     @endif
-    @if($errors->any())
+    @if(isset($errors) && $errors->any())
     <div class="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
         <ul class="list-disc list-inside space-y-1">
             @foreach($errors->all() as $err)

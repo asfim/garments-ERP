@@ -452,6 +452,37 @@ class HrController extends Controller
         return redirect()->back()->with('success', 'Department deleted successfully!');
     }
 
+    public function designationsIndex(Request $request)
+    {
+        $query = HrDesignation::with(['department', 'employees']);
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('title', 'like', "%{$s}%")
+                  ->orWhere('grade', 'like', "%{$s}%");
+            });
+        }
+
+        $designations = $query->orderBy('title')->get();
+        $departments = HrDepartment::orderBy('name')->get();
+        $totalDesignations = HrDesignation::count();
+        $totalAssignedEmployees = HrEmployee::whereNotNull('designation_id')->count();
+        $selectedDepartmentId = $request->get('department_id');
+
+        return view('factory-erp.hr.designations.index', compact(
+            'designations', 
+            'departments', 
+            'totalDesignations', 
+            'totalAssignedEmployees',
+            'selectedDepartmentId'
+        ));
+    }
+
     public function designationsStore(Request $request)
     {
         $validated = $request->validate([

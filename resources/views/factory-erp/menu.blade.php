@@ -178,14 +178,24 @@
     <span>Payroll & Payslip</span>
 </a>
 
-<!-- HR 6. Departments & Designations -->
+<!-- HR 6. Departments -->
 @php $isDept = request()->routeIs('factory.hr.departments.*'); @endphp
 <a href="{{ route('factory.hr.departments.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDept ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
     <span class="w-6 h-6 rounded-lg {{ $isDept ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
-        <i class="fa-solid fa-sitemap text-[11px]"></i>
+        <i class="fa-solid fa-building text-[11px]"></i>
     </span>
-    <span>Departments & Designations</span>
+    <span>Departments (বিভাগ)</span>
+</a>
+
+<!-- HR 7. Designations -->
+@php $isDes = request()->routeIs('factory.hr.designations.*'); @endphp
+<a href="{{ route('factory.hr.designations.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDes ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isDes ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-user-tag text-[11px]"></i>
+    </span>
+    <span>Designations (পদবি)</span>
 </a>
 
 <div class="pt-2 pb-1">

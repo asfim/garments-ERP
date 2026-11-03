@@ -104,12 +104,15 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::put('/employees/{id}', [HrController::class, 'employeesUpdate'])->name('employees.update');
         Route::delete('/employees/{id}', [HrController::class, 'employeesDestroy'])->name('employees.destroy');
 
-        // Departments & Designations
+        // Departments
         Route::get('/departments', [HrController::class, 'departmentsIndex'])->name('departments.index');
         Route::get('/departments/{departmentId}/designations', [HrController::class, 'getDesignationsByDepartment'])->name('departments.designations');
         Route::post('/departments', [HrController::class, 'departmentsStore'])->name('departments.store');
         Route::put('/departments/{id}', [HrController::class, 'departmentsUpdate'])->name('departments.update');
         Route::delete('/departments/{id}', [HrController::class, 'departmentsDestroy'])->name('departments.destroy');
+
+        // Designations
+        Route::get('/designations', [HrController::class, 'designationsIndex'])->name('designations.index');
         Route::post('/designations', [HrController::class, 'designationsStore'])->name('designations.store');
         Route::put('/designations/{id}', [HrController::class, 'designationsUpdate'])->name('designations.update');
         Route::delete('/designations/{id}', [HrController::class, 'designationsDestroy'])->name('designations.destroy');
