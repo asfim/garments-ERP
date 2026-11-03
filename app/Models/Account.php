@@ -90,3 +90,4 @@ class Account extends Model
         };
     }
 }
+

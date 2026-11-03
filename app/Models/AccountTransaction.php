@@ -34,3 +34,4 @@ class AccountTransaction extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 }
+

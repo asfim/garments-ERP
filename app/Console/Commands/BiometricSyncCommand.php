@@ -98,3 +98,4 @@ class BiometricSyncCommand extends Command
         }
     }
 }
+

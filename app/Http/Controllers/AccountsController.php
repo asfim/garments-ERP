@@ -505,3 +505,4 @@ class AccountsController extends Controller
         ));
     }
 }
+

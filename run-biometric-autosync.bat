@@ -14,3 +14,4 @@ echo.
 php artisan biometric:sync --loop --interval=30
 
 pause
+

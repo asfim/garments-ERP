@@ -295,3 +295,4 @@ function closeTransferModal() {
 }
 </script>
 @endsection
+
