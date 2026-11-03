@@ -19,6 +19,9 @@ class HrPayroll extends Model
         'overtime_rate' => 'decimal:2',
         'overtime_amount' => 'decimal:2',
         'bonus' => 'decimal:2',
+        'absence_deduction' => 'decimal:2',
+        'advance_deduction' => 'decimal:2',
+        'penalty_deduction' => 'decimal:2',
         'deductions' => 'decimal:2',
         'net_salary' => 'decimal:2',
     ];
@@ -28,3 +31,4 @@ class HrPayroll extends Model
         return $this->belongsTo(HrEmployee::class, 'employee_id');
     }
 }
+

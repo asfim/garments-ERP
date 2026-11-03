@@ -270,9 +270,25 @@
                     <input type="number" step="0.01" name="bonus" id="payBonus" value="0" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-emerald-400">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Deduction (৳)</label>
-                    <input type="number" step="0.01" name="deductions" id="payDeduction" value="0" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-emerald-400">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Absence Ded. (৳)</label>
+                    <input type="number" step="0.01" name="absence_deduction" id="payAbsDed" value="0" oninput="recalcDeductions()" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-400">
                 </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Advance Ded. (৳)</label>
+                    <input type="number" step="0.01" name="advance_deduction" id="payAdvDed" value="0" oninput="recalcDeductions()" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Penalty / Fine (৳)</label>
+                    <input type="number" step="0.01" name="penalty_deduction" id="payPenDed" value="0" oninput="recalcDeductions()" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3 py-2 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-400">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Total Deductions (৳)</label>
+                <input type="number" step="0.01" name="deductions" id="payDeduction" value="0" class="w-full bg-[#050b1c] border border-rose-500/40 rounded-xl px-3 py-2 text-xs text-rose-300 font-mono font-bold focus:outline-none focus:border-rose-400">
             </div>
 
             <div>
@@ -295,6 +311,13 @@
 
 @push('scripts')
 <script>
+    function recalcDeductions() {
+        const abs = parseFloat(document.getElementById('payAbsDed').value) || 0;
+        const adv = parseFloat(document.getElementById('payAdvDed').value) || 0;
+        const pen = parseFloat(document.getElementById('payPenDed').value) || 0;
+        document.getElementById('payDeduction').value = (abs + adv + pen).toFixed(2);
+    }
+
     function openPaymentModal(payroll) {
         document.getElementById('paymentForm').action = "/factory/hr/payroll/" + payroll.id + "/payment";
         document.getElementById('payEmpName').innerText = (payroll.employee ? payroll.employee.name : 'Worker') + ' (' + (payroll.employee ? payroll.employee.employee_code : '') + ')';
@@ -302,6 +325,9 @@
         document.getElementById('payDate').value = payroll.payment_date ? payroll.payment_date.substring(0, 10) : '{{ date('Y-m-d') }}';
         document.getElementById('payMethod').value = payroll.payment_method || (payroll.employee ? payroll.employee.payment_method : 'Cash');
         document.getElementById('payBonus').value = payroll.bonus || 0;
+        document.getElementById('payAbsDed').value = payroll.absence_deduction || 0;
+        document.getElementById('payAdvDed').value = payroll.advance_deduction || 0;
+        document.getElementById('payPenDed').value = payroll.penalty_deduction || 0;
         document.getElementById('payDeduction').value = payroll.deductions || 0;
         document.getElementById('payRef').value = payroll.transaction_ref || '';
         document.getElementById('payNotes').value = payroll.notes || '';
@@ -314,3 +340,4 @@
 </script>
 @endpush
 @endsection
+

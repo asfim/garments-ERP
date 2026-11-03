@@ -21,3 +21,4 @@ class HrDesignation extends Model
         return $this->hasMany(HrEmployee::class, 'designation_id');
     }
 }
+

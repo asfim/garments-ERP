@@ -122,6 +122,12 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::patch('/leaves/{id}/status', [HrController::class, 'leavesUpdateStatus'])->name('leaves.status.update');
         Route::delete('/leaves/{id}', [HrController::class, 'leavesDestroy'])->name('leaves.destroy');
 
+        // Advance Salary & Loans
+        Route::get('/advances', [HrController::class, 'advancesIndex'])->name('advances.index');
+        Route::post('/advances', [HrController::class, 'advancesStore'])->name('advances.store');
+        Route::patch('/advances/{id}/status', [HrController::class, 'advancesUpdateStatus'])->name('advances.status.update');
+        Route::delete('/advances/{id}', [HrController::class, 'advancesDestroy'])->name('advances.destroy');
+
         // Payroll & Payslips
         Route::get('/payroll', [HrController::class, 'payrollIndex'])->name('payroll.index');
         Route::post('/payroll/generate', [HrController::class, 'payrollGenerate'])->name('payroll.generate');

@@ -44,4 +44,10 @@ class HrEmployee extends Model
     {
         return $this->hasMany(HrPayroll::class, 'employee_id');
     }
+
+    public function advances()
+    {
+        return $this->hasMany(HrAdvance::class, 'employee_id');
+    }
 }
+

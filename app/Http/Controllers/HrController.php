@@ -10,6 +10,7 @@ use App\Models\HrEmployee;
 use App\Models\HrAttendance;
 use App\Models\HrLeave;
 use App\Models\HrPayroll;
+use App\Models\HrAdvance;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -611,6 +612,89 @@ class HrController extends Controller
     }
 
     // ==========================================
+    // 5.1 ADVANCE SALARY & LOAN MANAGEMENT
+    // ==========================================
+    public function advancesIndex(Request $request)
+    {
+        $month = $request->get('month', Carbon::today()->format('Y-m'));
+        $query = HrAdvance::with(['employee.department', 'employee.designation'])
+            ->where('deduct_month', $month)
+            ->latest('id');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('employee_id')) {
+            $query->where('employee_id', $request->employee_id);
+        }
+
+        $advances = $query->get();
+        $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
+
+        $totalAdvance = $advances->sum('amount');
+        $approvedAdvance = $advances->where('status', 'approved')->sum('amount');
+        $recoveredAdvance = $advances->where('status', 'recovered')->sum('amount');
+        $pendingCount = $advances->where('status', 'pending')->count();
+
+        return view('factory-erp.hr.advances.index', compact(
+            'advances',
+            'employees',
+            'month',
+            'totalAdvance',
+            'approvedAdvance',
+            'recoveredAdvance',
+            'pendingCount'
+        ));
+    }
+
+    public function advancesStore(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:hr_employees,id',
+            'amount' => 'required|numeric|min:1',
+            'advance_date' => 'required|date',
+            'deduct_month' => 'required|string',
+            'payment_method' => 'required|string|in:Cash,Bank,bKash,Nagad',
+            'reason' => 'nullable|string|max:255',
+            'status' => 'required|string|in:approved,pending',
+        ]);
+
+        if ($validated['status'] === 'approved') {
+            $validated['approved_by'] = 'Admin (' . now()->format('d M, Y') . ')';
+        }
+
+        HrAdvance::create($validated);
+
+        return redirect()->back()->with('success', 'Advance salary of ৳' . number_format($validated['amount'], 2) . ' recorded successfully!');
+    }
+
+    public function advancesUpdateStatus(Request $request, $id)
+    {
+        $advance = HrAdvance::findOrFail($id);
+        $status = $request->input('status');
+
+        if (!in_array($status, ['approved', 'recovered', 'rejected'])) {
+            return redirect()->back()->with('error', 'Invalid status!');
+        }
+
+        $advance->status = $status;
+        if ($status === 'approved') {
+            $advance->approved_by = 'Admin (' . now()->format('d M, Y') . ')';
+        }
+        $advance->save();
+
+        return redirect()->back()->with('success', 'Advance salary request has been ' . ucfirst($status) . '!');
+    }
+
+    public function advancesDestroy($id)
+    {
+        $advance = HrAdvance::findOrFail($id);
+        $advance->delete();
+        return redirect()->back()->with('success', 'Advance record deleted!');
+    }
+
+    // ==========================================
     // 6. PAYROLL & PAYSLIPS
     // ==========================================
     public function payrollIndex(Request $request)
@@ -677,9 +761,16 @@ class HrController extends Controller
             $otAmount = round($otHours * $otRate, 2);
 
             // Deductions for absent days: (gross / daysInMonth) * absentDays
-            $deduction = round(($emp->gross_salary / $daysInMonth) * $absentDays, 2);
+            $absenceDeduction = round(($emp->gross_salary / $daysInMonth) * $absentDays, 2);
 
-            $netSalary = round($emp->gross_salary + $otAmount - $deduction, 2);
+            // Deductions for advance salary approved for this month
+            $advanceDeduction = HrAdvance::where('employee_id', $emp->id)
+                ->where('deduct_month', $month)
+                ->whereIn('status', ['approved', 'recovered'])
+                ->sum('amount');
+
+            $totalDeductions = round($absenceDeduction + $advanceDeduction, 2);
+            $netSalary = max(0, round($emp->gross_salary + $otAmount - $totalDeductions, 2));
             $payrollCode = 'TBG-PAY-' . str_replace('-', '', $month) . '-' . str_pad($emp->id, 3, '0', STR_PAD_LEFT);
 
             HrPayroll::updateOrCreate(
@@ -692,7 +783,10 @@ class HrController extends Controller
                     'overtime_rate' => $otRate,
                     'overtime_amount' => $otAmount,
                     'bonus' => 0,
-                    'deductions' => $deduction,
+                    'absence_deduction' => $absenceDeduction,
+                    'advance_deduction' => $advanceDeduction,
+                    'penalty_deduction' => 0,
+                    'deductions' => $totalDeductions,
                     'net_salary' => $netSalary,
                     'payment_method' => $emp->payment_method,
                 ]
@@ -700,7 +794,7 @@ class HrController extends Controller
             $count++;
         }
 
-        return redirect()->back()->with('success', "Payroll for {$month} calculated & generated for {$count} active employees!");
+        return redirect()->back()->with('success', "Payroll for {$month} calculated & generated for {$count} active employees (with OT and Advance deductions)!");
     }
 
     public function payrollUpdatePayment(Request $request, $id)
@@ -712,22 +806,44 @@ class HrController extends Controller
             'payment_method' => 'nullable|string|max:50',
             'transaction_ref' => 'nullable|string|max:100',
             'bonus' => 'nullable|numeric|min:0',
+            'absence_deduction' => 'nullable|numeric|min:0',
+            'advance_deduction' => 'nullable|numeric|min:0',
+            'penalty_deduction' => 'nullable|numeric|min:0',
             'deductions' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
 
         $bonus = floatval($validated['bonus'] ?? $payroll->bonus);
-        $deductions = floatval($validated['deductions'] ?? $payroll->deductions);
-        $net = ($payroll->basic_salary + $payroll->allowances + $payroll->overtime_amount + $bonus) - $deductions;
+        $absDed = floatval($validated['absence_deduction'] ?? $payroll->absence_deduction);
+        $advDed = floatval($validated['advance_deduction'] ?? $payroll->advance_deduction);
+        $penDed = floatval($validated['penalty_deduction'] ?? $payroll->penalty_deduction);
+        
+        $totalDeductions = ($validated['deductions'] !== null && $validated['deductions'] != $payroll->deductions) 
+            ? floatval($validated['deductions']) 
+            : ($absDed + $advDed + $penDed);
+
+        $net = max(0, ($payroll->basic_salary + $payroll->allowances + $payroll->overtime_amount + $bonus) - $totalDeductions);
 
         $payroll->payment_status = $validated['payment_status'];
         $payroll->payment_date = $validated['payment_status'] === 'paid' ? ($validated['payment_date'] ?? now()->toDateString()) : null;
         $payroll->payment_method = $validated['payment_method'] ?? $payroll->payment_method;
         $payroll->transaction_ref = $validated['transaction_ref'] ?? null;
         $payroll->bonus = $bonus;
-        $payroll->deductions = $deductions;
+        $payroll->absence_deduction = $absDed;
+        $payroll->advance_deduction = $advDed;
+        $payroll->penalty_deduction = $penDed;
+        $payroll->deductions = $totalDeductions;
         $payroll->net_salary = $net;
         $payroll->notes = $validated['notes'] ?? null;
+        $payroll->save();
+
+        // If marked paid, automatically mark all approved advances for that employee and month as 'recovered'
+        if ($payroll->payment_status === 'paid') {
+            HrAdvance::where('employee_id', $payroll->employee_id)
+                ->where('deduct_month', $payroll->month)
+                ->where('status', 'approved')
+                ->update(['status' => 'recovered']);
+        }
         $payroll->save();
 
         return redirect()->back()->with('success', 'Payroll record updated successfully!');
@@ -814,3 +930,4 @@ class HrController extends Controller
         return $pdf->download('Payroll-Sheet-' . $month . '.pdf');
     }
 }
+

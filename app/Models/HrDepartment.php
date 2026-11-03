@@ -21,3 +21,4 @@ class HrDepartment extends Model
         return $this->hasMany(HrEmployee::class, 'department_id');
     }
 }
+

@@ -148,6 +148,16 @@
     <span>Leaves</span>
 </a>
 
+<!-- HR 4.1 Advance Salary & Loans -->
+@php $isAdv = request()->routeIs('factory.hr.advances.*'); @endphp
+<a href="{{ route('factory.hr.advances.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isAdv ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isAdv ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-hand-holding-dollar text-[11px]"></i>
+    </span>
+    <span>Advance Salary</span>
+</a>
+
 <!-- HR 5. Payroll & Payslips -->
 @php $isPay = request()->routeIs('factory.hr.payroll.*'); @endphp
 <a href="{{ route('factory.hr.payroll.index') }}" 

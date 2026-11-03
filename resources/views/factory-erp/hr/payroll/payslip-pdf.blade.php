@@ -247,19 +247,15 @@
                     <tbody>
                         <tr>
                             <td>Absenteeism Deductions</td>
-                            <td style="text-align: right; font-family: monospace; color: #b91c1c;">{{ number_format($payroll->deductions, 2) }}</td>
+                            <td style="text-align: right; font-family: monospace; color: #b91c1c;">{{ number_format($payroll->absence_deduction ?? 0, 2) }}</td>
                         </tr>
-                        <tr>
-                            <td>Advance / Loan Recovery</td>
-                            <td style="text-align: right; font-family: monospace;">0.00</td>
+                        <tr style="{{ ($payroll->advance_deduction ?? 0) > 0 ? 'background-color: #ffe4e6;' : '' }}">
+                            <td>Advance Salary Recovery</td>
+                            <td style="text-align: right; font-family: monospace; font-weight: bold; color: #b91c1c;">{{ number_format($payroll->advance_deduction ?? 0, 2) }}</td>
                         </tr>
                         <tr>
                             <td>Fine / Penalties</td>
-                            <td style="text-align: right; font-family: monospace;">0.00</td>
-                        </tr>
-                        <tr>
-                            <td>Other Deductions</td>
-                            <td style="text-align: right; font-family: monospace;">0.00</td>
+                            <td style="text-align: right; font-family: monospace;">{{ number_format($payroll->penalty_deduction ?? 0, 2) }}</td>
                         </tr>
                         <tr style="background-color: #f1f5f9; font-weight: bold;">
                             <td>Total Deductions</td>
@@ -307,3 +303,4 @@
 
 </body>
 </html>
+

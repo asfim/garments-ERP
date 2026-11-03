@@ -221,15 +221,15 @@
                         <div class="divide-y divide-slate-800/80 text-xs">
                             <div class="p-2.5 flex justify-between">
                                 <span class="text-slate-300">Absenteeism / Leave without pay</span>
-                                <span class="font-mono text-rose-300">৳{{ number_format($payroll->deductions, 2) }}</span>
+                                <span class="font-mono text-rose-300">৳{{ number_format($payroll->absence_deduction ?? 0, 2) }}</span>
                             </div>
-                            <div class="p-2.5 flex justify-between">
-                                <span class="text-slate-300">Salary Advance / Loan</span>
-                                <span class="font-mono text-slate-400">৳0.00</span>
+                            <div class="p-2.5 flex justify-between {{ ($payroll->advance_deduction ?? 0) > 0 ? 'bg-rose-500/10' : '' }}">
+                                <span class="{{ ($payroll->advance_deduction ?? 0) > 0 ? 'text-rose-300 font-bold' : 'text-slate-300' }}">Salary Advance / Loan Deducted</span>
+                                <span class="font-mono font-bold {{ ($payroll->advance_deduction ?? 0) > 0 ? 'text-rose-400' : 'text-slate-400' }}">৳{{ number_format($payroll->advance_deduction ?? 0, 2) }}</span>
                             </div>
                             <div class="p-2.5 flex justify-between">
                                 <span class="text-slate-300">Fine / Penalties</span>
-                                <span class="font-mono text-slate-400">৳0.00</span>
+                                <span class="font-mono text-slate-400">৳{{ number_format($payroll->penalty_deduction ?? 0, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -283,3 +283,4 @@
 
 </div>
 @endsection
+
