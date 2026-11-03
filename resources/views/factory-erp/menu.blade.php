@@ -185,7 +185,7 @@
     <span class="w-6 h-6 rounded-lg {{ $isDept ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
         <i class="fa-solid fa-building text-[11px]"></i>
     </span>
-    <span>Departments (বিভাগ)</span>
+    <span>Departments</span>
 </a>
 
 <!-- HR 7. Designations -->
@@ -195,7 +195,7 @@
     <span class="w-6 h-6 rounded-lg {{ $isDes ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
         <i class="fa-solid fa-user-tag text-[11px]"></i>
     </span>
-    <span>Designations (পদবি)</span>
+    <span>Designations</span>
 </a>
 
 <div class="pt-2 pb-1">

@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-building text-indigo-400"></i>
-                Departments & Factory Sections (কারখানার বিভাগসমূহ)
+                Departments & Factory Sections
             </h2>
             <p class="text-xs text-slate-400">Configure factory floor sections, production lines, and department units</p>
         </div>
@@ -20,7 +20,7 @@
             <a href="{{ route('factory.hr.designations.index') }}" 
                class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
                 <i class="fa-solid fa-user-tag text-cyan-400"></i>
-                <span>Designations (পদবি)</span>
+                <span>Designations</span>
             </a>
 
             <!-- Add Department Button -->

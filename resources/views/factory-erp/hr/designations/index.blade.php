@@ -12,7 +12,7 @@
                 <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
                     <i class="fa-solid fa-user-tag text-base"></i>
                 </span>
-                <span>Designations & Job Roles (পদবি ও পদমর্যাদা)</span>
+                <span>Designations & Job Roles</span>
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">
                 Manage factory job titles, ranks, skill grades (Grade 1-7) and section assignments.
@@ -24,7 +24,7 @@
             <a href="{{ route('factory.hr.departments.index') }}" 
                class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-indigo-300 hover:text-indigo-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
                 <i class="fa-solid fa-building text-indigo-400"></i>
-                <span>Departments (বিভাগ)</span>
+                <span>Departments</span>
             </a>
 
             <!-- Add Designation Button -->
