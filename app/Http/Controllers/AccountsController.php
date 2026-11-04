@@ -504,5 +504,15 @@ class AccountsController extends Controller
             'profitLossData', 'trialBalanceData', 'dayBookData'
         ));
     }
+
+    // ==========================================
+    // 9. SYNC FACTORY ERP DATA INTO ACCOUNTS
+    // ==========================================
+    public function syncFactoryData(AccountingService $service)
+    {
+        $result = $service->syncAllFactoryData();
+
+        return redirect()->back()->with('success', "Factory ERP Data Synced! Synced {$result['orders_synced']} Orders, {$result['payrolls_synced']} Payrolls, and {$result['advances_synced']} Advances directly into Accounts.");
+    }
 }
 

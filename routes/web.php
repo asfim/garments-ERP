@@ -193,5 +193,8 @@ Route::prefix('factory')->name('factory.')->group(function () {
 
         // Financial Reports (Profit & Loss, Trial Balance, Day Book)
         Route::get('/reports', [AccountsController::class, 'reportsIndex'])->name('reports.index');
+
+        // Sync Factory ERP Data
+        Route::match(['GET', 'POST'], '/sync-factory', [AccountsController::class, 'syncFactoryData'])->name('sync-factory');
     });
 });

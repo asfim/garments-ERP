@@ -818,7 +818,12 @@ class HrController extends Controller
             $validated['approved_by'] = 'Admin (' . now()->format('d M, Y') . ')';
         }
 
-        HrAdvance::create($validated);
+        $advance = HrAdvance::create($validated);
+
+        // Sync with Accounts & Finance Module if approved
+        if ($advance->status === 'approved') {
+            app(\App\Services\AccountingService::class)->syncAdvancePayment($advance);
+        }
 
         return redirect()->back()->with('success', 'Advance salary of ৳' . number_format($validated['amount'], 2) . ' recorded successfully!');
     }
@@ -837,6 +842,9 @@ class HrController extends Controller
             $advance->approved_by = 'Admin (' . now()->format('d M, Y') . ')';
         }
         $advance->save();
+
+        // Sync with Accounts & Finance Module
+        app(\App\Services\AccountingService::class)->syncAdvancePayment($advance);
 
         return redirect()->back()->with('success', 'Advance salary request has been ' . ucfirst($status) . '!');
     }
@@ -999,6 +1007,9 @@ class HrController extends Controller
                 ->update(['status' => 'recovered']);
         }
         $payroll->save();
+
+        // Sync with Accounts & Finance Module
+        app(\App\Services\AccountingService::class)->syncPayrollPayment($payroll);
 
         return redirect()->back()->with('success', 'Payroll record updated successfully!');
     }

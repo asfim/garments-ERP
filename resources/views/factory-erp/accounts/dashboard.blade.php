@@ -43,6 +43,17 @@
                 <i class="fa-solid fa-file-invoice-dollar text-teal-400"></i>
                 <span>Reports</span>
             </a>
+
+            <!-- Sync Factory ERP Data -->
+            <form action="{{ route('factory.accounts.sync-factory') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" 
+                        class="px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition-all flex items-center gap-1.5"
+                        title="Sync all orders sales, customer due collections, worker payrolls, and advances into Accounts">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Sync Factory Data</span>
+                </button>
+            </form>
         </div>
     </div>
 

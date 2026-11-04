@@ -285,6 +285,17 @@ class FactoryErpController extends Controller
         });
 
         $detailStr = implode(', ', $breakdownDetails);
+
+        // Sync with Accounts & Finance Module
+        app(\App\Services\AccountingService::class)->syncCustomerDuePayment(
+            $customer,
+            $amountToPay,
+            $paymentDate,
+            $method,
+            "DUE-{$customer->id}-" . time(),
+            $detailStr . $note
+        );
+
         return redirect()->back()->with('success', "Payment of ৳" . number_format($amountToPay, 2) . " successfully applied across {$allocatedCount} invoice(s) [{$detailStr}]!");
     }
 
@@ -311,6 +322,16 @@ class FactoryErpController extends Controller
         $logNote = "[Single Invoice Payment: ৳" . number_format($amount, 2) . " on {$paymentDate} via {$method}{$note}]";
         $order->notes = ($order->notes ? $order->notes . "\n" : '') . $logNote;
         $order->save();
+
+        // Sync with Accounts & Finance Module
+        app(\App\Services\AccountingService::class)->syncCustomerDuePayment(
+            $customer,
+            $amount,
+            $paymentDate,
+            $method,
+            "DUE-{$order->order_number}-" . time(),
+            "Payment for invoice {$order->order_number}{$note}"
+        );
 
         return redirect()->back()->with('success', "Payment of ৳" . number_format($amount, 2) . " applied to Invoice {$order->order_number} successfully!");
     }
@@ -665,6 +686,11 @@ class FactoryErpController extends Controller
                     'delivered_qty' => 0,
                     'due_qty' => $item['qty']
                 ]);
+            }
+
+            // Sync with Accounts & Finance Module
+            if ($paid > 0) {
+                app(\App\Services\AccountingService::class)->syncOrderPayment($order, $request->input('payment_method', 'cash'));
             }
 
             DB::commit();

@@ -441,5 +441,275 @@ class AccountingService
             'liquid_accounts' => $liquidAccounts,
         ];
     }
+
+    /**
+     * Resolve liquid payment account from method string
+     */
+    public function resolveLiquidAccount(?string $method): Account
+    {
+        $m = strtolower(trim((string)$method));
+        if (str_contains($m, 'bank') || str_contains($m, 'dbbl') || str_contains($m, 'ibbl') || str_contains($m, 'cheque')) {
+            $bank = Account::where('category', 'Bank Account')->where('status', 'active')->first();
+            if ($bank) return $bank;
+        } elseif (str_contains($m, 'bkash')) {
+            $bkash = Account::where('account_code', '1020')->first();
+            if ($bkash) return $bkash;
+        } elseif (str_contains($m, 'nagad')) {
+            $nagad = Account::where('account_code', '1021')->first();
+            if ($nagad) return $nagad;
+        }
+
+        // Default to Cash in Hand
+        return Account::where('account_code', '1001')->first() 
+            ?? Account::where('category', 'Cash in Hand')->first() 
+            ?? Account::where('type', 'asset')->first();
+    }
+
+    /**
+     * ==========================================
+     * FACTORY ERP MODULE INTEGRATIONS
+     * ==========================================
+     */
+
+    /**
+     * Sync Order Payment from Factory ERP Orders Module
+     */
+    public function syncOrderPayment(\App\Models\Order $order, string $paymentMethod = 'cash'): ?AccountVoucher
+    {
+        $paid = (float) $order->paid_amount;
+        $order->loadMissing('customer');
+        $ref = $order->order_number;
+
+        $existing = AccountVoucher::where('reference_no', $ref)
+            ->where('voucher_type', 'income')
+            ->first();
+
+        if ($paid <= 0) {
+            if ($existing) {
+                $this->deleteVoucher($existing);
+            }
+            return null;
+        }
+
+        $incomeAcc = Account::where('account_code', '4001')->first() 
+            ?? Account::where('type', 'income')->first();
+        $depositAcc = $this->resolveLiquidAccount($paymentMethod);
+
+        if (!$incomeAcc || !$depositAcc) {
+            return null;
+        }
+
+        $orderDate = Carbon::parse($order->order_date)->format('Y-m-d');
+
+        if ($existing) {
+            // Update amount if changed
+            if ((float)$existing->amount !== $paid) {
+                $this->deleteVoucher($existing);
+                return $this->recordIncome([
+                    'voucher_no' => $existing->voucher_no,
+                    'voucher_date' => $orderDate,
+                    'income_account_id' => $incomeAcc->id,
+                    'deposit_account_id' => $depositAcc->id,
+                    'amount' => $paid,
+                    'party_name' => $order->customer?->company_name ?? 'Factory Order Customer',
+                    'customer_id' => $order->customer_id,
+                    'payment_method' => strtolower($paymentMethod),
+                    'reference_no' => $ref,
+                    'notes' => "Factory Order Sales Payment #{$order->order_number} (Total: ৳" . number_format($order->total_amount, 2) . ")",
+                ]);
+            }
+            return $existing;
+        }
+
+        return $this->recordIncome([
+            'voucher_date' => $orderDate,
+            'income_account_id' => $incomeAcc->id,
+            'deposit_account_id' => $depositAcc->id,
+            'amount' => $paid,
+            'party_name' => $order->customer?->company_name ?? 'Factory Order Customer',
+            'customer_id' => $order->customer_id,
+            'payment_method' => strtolower($paymentMethod),
+            'reference_no' => $ref,
+            'notes' => "Factory Order Sales Payment #{$order->order_number} (Total: ৳" . number_format($order->total_amount, 2) . ")",
+        ]);
+    }
+
+    /**
+     * Sync Customer Due Payment from Factory ERP Customer Due Module
+     */
+    public function syncCustomerDuePayment(\App\Models\Customer $customer, float $amount, string $paymentDate, string $method, string $ref, string $notes): ?AccountVoucher
+    {
+        if ($amount <= 0) return null;
+
+        $incomeAcc = Account::where('account_code', '4001')->first() 
+            ?? Account::where('type', 'income')->first();
+        $depositAcc = $this->resolveLiquidAccount($method);
+
+        if (!$incomeAcc || !$depositAcc) return null;
+
+        return $this->recordIncome([
+            'voucher_date' => $paymentDate,
+            'income_account_id' => $incomeAcc->id,
+            'deposit_account_id' => $depositAcc->id,
+            'amount' => $amount,
+            'party_name' => $customer->company_name,
+            'customer_id' => $customer->id,
+            'payment_method' => strtolower($method),
+            'reference_no' => $ref,
+            'notes' => "Customer Due Collection: {$customer->company_name} - {$notes}",
+        ]);
+    }
+
+    /**
+     * Sync Payroll Payment from Factory ERP HR Payroll Module
+     */
+    public function syncPayrollPayment(\App\Models\HrPayroll $payroll): ?AccountVoucher
+    {
+        $payroll->loadMissing(['employee']);
+        $ref = "PAY-{$payroll->payroll_code}";
+
+        $existing = AccountVoucher::where('reference_no', $ref)
+            ->where('voucher_type', 'expense')
+            ->first();
+
+        if ($payroll->payment_status !== 'paid') {
+            if ($existing) {
+                $this->deleteVoucher($existing);
+            }
+            return null;
+        }
+
+        $netSalary = (float) $payroll->net_salary;
+        if ($netSalary <= 0) return null;
+
+        $expenseAcc = Account::where('account_code', '5003')->first() 
+            ?? Account::where('type', 'expense')->first();
+        $paidFromAcc = $this->resolveLiquidAccount($payroll->payment_method);
+
+        if (!$expenseAcc || !$paidFromAcc) return null;
+
+        $paymentDate = $payroll->payment_date ? Carbon::parse($payroll->payment_date)->format('Y-m-d') : date('Y-m-d');
+        $empName = $payroll->employee ? "{$payroll->employee->name} ({$payroll->employee->employee_code})" : 'Worker';
+
+        if ($existing) {
+            if ((float)$existing->amount !== $netSalary) {
+                $this->deleteVoucher($existing);
+                return $this->recordExpense([
+                    'voucher_no' => $existing->voucher_no,
+                    'voucher_date' => $paymentDate,
+                    'expense_account_id' => $expenseAcc->id,
+                    'paid_from_account_id' => $paidFromAcc->id,
+                    'amount' => $netSalary,
+                    'party_name' => $empName,
+                    'employee_id' => $payroll->employee_id,
+                    'payment_method' => strtolower($payroll->payment_method ?: 'cash'),
+                    'reference_no' => $ref,
+                    'notes' => "Worker Salary for {$payroll->month} - {$empName}",
+                ]);
+            }
+            return $existing;
+        }
+
+        return $this->recordExpense([
+            'voucher_date' => $paymentDate,
+            'expense_account_id' => $expenseAcc->id,
+            'paid_from_account_id' => $paidFromAcc->id,
+            'amount' => $netSalary,
+            'party_name' => $empName,
+            'employee_id' => $payroll->employee_id,
+            'payment_method' => strtolower($payroll->payment_method ?: 'cash'),
+            'reference_no' => $ref,
+            'notes' => "Worker Salary for {$payroll->month} - {$empName}",
+        ]);
+    }
+
+    /**
+     * Sync Advance Salary Payment from Factory ERP HR Advance Module
+     */
+    public function syncAdvancePayment(\App\Models\HrAdvance $advance): ?AccountVoucher
+    {
+        $advance->loadMissing(['employee']);
+        $ref = "ADV-{$advance->id}";
+
+        $existing = AccountVoucher::where('reference_no', $ref)
+            ->where('voucher_type', 'expense')
+            ->first();
+
+        if ($advance->status !== 'approved' && $advance->status !== 'recovered') {
+            if ($existing) {
+                $this->deleteVoucher($existing);
+            }
+            return null;
+        }
+
+        $amount = (float) $advance->amount;
+        if ($amount <= 0) return null;
+
+        $expenseAcc = Account::where('account_code', '5003')->first() 
+            ?? Account::where('type', 'expense')->first();
+        $paidFromAcc = $this->resolveLiquidAccount($advance->payment_method);
+
+        if (!$expenseAcc || !$paidFromAcc) return null;
+
+        $date = Carbon::parse($advance->advance_date)->format('Y-m-d');
+        $empName = $advance->employee ? "{$advance->employee->name} ({$advance->employee->employee_code})" : 'Employee';
+
+        if ($existing) {
+            return $existing;
+        }
+
+        return $this->recordExpense([
+            'voucher_date' => $date,
+            'expense_account_id' => $expenseAcc->id,
+            'paid_from_account_id' => $paidFromAcc->id,
+            'amount' => $amount,
+            'party_name' => $empName,
+            'employee_id' => $advance->employee_id,
+            'payment_method' => strtolower($advance->payment_method ?: 'cash'),
+            'reference_no' => $ref,
+            'notes' => "Advance Salary Disbursement for {$empName} (Deduct Month: {$advance->deduct_month})",
+        ]);
+    }
+
+    /**
+     * Master Sync: Sync all existing Factory ERP data into Accounts
+     */
+    public function syncAllFactoryData(): array
+    {
+        $ordersCount = 0;
+        $payrollsCount = 0;
+        $advancesCount = 0;
+
+        // 1. Sync all paid orders
+        $orders = \App\Models\Order::where('paid_amount', '>', 0)->get();
+        foreach ($orders as $order) {
+            if ($this->syncOrderPayment($order)) {
+                $ordersCount++;
+            }
+        }
+
+        // 2. Sync all paid payrolls
+        $payrolls = \App\Models\HrPayroll::where('payment_status', 'paid')->get();
+        foreach ($payrolls as $payroll) {
+            if ($this->syncPayrollPayment($payroll)) {
+                $payrollsCount++;
+            }
+        }
+
+        // 3. Sync all approved advances
+        $advances = \App\Models\HrAdvance::whereIn('status', ['approved', 'recovered'])->get();
+        foreach ($advances as $advance) {
+            if ($this->syncAdvancePayment($advance)) {
+                $advancesCount++;
+            }
+        }
+
+        return [
+            'orders_synced' => $ordersCount,
+            'payrolls_synced' => $payrollsCount,
+            'advances_synced' => $advancesCount,
+            'total_synced' => $ordersCount + $payrollsCount + $advancesCount,
+        ];
+    }
 }
 
