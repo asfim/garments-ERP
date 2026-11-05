@@ -114,7 +114,7 @@ class AccountsController extends Controller
     // ==========================================
     public function incomeIndex(Request $request)
     {
-        $query = AccountVoucher::with(['debitAccount', 'creditAccount', 'customer'])
+        $query = AccountVoucher::with(['debitAccount', 'creditAccount', 'customer', 'createdBy'])
             ->where('voucher_type', 'income');
 
         if ($request->filled('from_date')) {

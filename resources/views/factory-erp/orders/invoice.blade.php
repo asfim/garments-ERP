@@ -63,6 +63,13 @@
         display: flex !important;
         visibility: visible !important;
     }
+    #printableInvoiceCard .invoice-watermark img {
+        opacity: 0.20 !important;
+        mix-blend-mode: multiply !important;
+    }
+    .global-print-watermark {
+        display: none !important;
+    }
     #printableInvoiceCard .doc-badge {
         background-color: #f1f5f9 !important;
         border: 1px solid #cbd5e1 !important;
@@ -118,7 +125,7 @@
         <!-- Center Page Watermark / Jolchap (জলছাপ) -->
         @if($watermarkSrc)
         <div class="invoice-watermark pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden z-0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0;">
-            <img src="{{ $watermarkSrc }}" alt="Watermark" class="w-96 max-w-[70%] max-h-[70%] object-contain opacity-[0.12]">
+            <img src="{{ $watermarkSrc }}" alt="Watermark" class="w-96 max-w-[70%] max-h-[70%] object-contain" style="opacity: 0.20; mix-blend-mode: multiply;">
         </div>
         @endif
 

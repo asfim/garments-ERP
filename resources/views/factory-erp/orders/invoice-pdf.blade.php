@@ -23,7 +23,7 @@
             width: 440px;
             max-width: 80%;
             height: auto;
-            opacity: 0.12;
+            opacity: 0.22;
         }
         .header-table {
             width: 100%;
@@ -91,7 +91,7 @@
             border-bottom: 1px solid #e2e8f0;
         }
         .items-table tr:nth-child(even) {
-            background-color: #f8fafc;
+            background-color: rgba(248, 250, 252, 0.4);
         }
         .text-right {
             text-align: right;
@@ -126,6 +126,7 @@
 </head>
 <body>
 @php
+    $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
     $watermarkBase64 = null;
     $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
         ? public_path('storage/' . $company->print_logo)

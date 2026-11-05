@@ -23,7 +23,7 @@
             width: 440px;
             max-width: 80%;
             height: auto;
-            opacity: 0.12;
+            opacity: 0.22;
         }
         .header-table {
             width: 100%;
@@ -76,7 +76,7 @@
             vertical-align: middle;
         }
         .data-table tr:nth-child(even) {
-            background-color: #f8fafc;
+            background-color: rgba(248, 250, 252, 0.4);
         }
         .status-badge {
             padding: 2px 6px;
@@ -102,25 +102,38 @@
 <body>
 
     @php
-        $watermarkPath = null;
-        if (!empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))) {
-            $watermarkPath = public_path('storage/' . $company->print_logo);
-        } elseif (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
-            $watermarkPath = public_path('storage/' . $company->logo);
+        $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
+        $watermarkBase64 = null;
+        $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
+            ? public_path('storage/' . $company->print_logo)
+            : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
+
+        if ($watermarkFile && file_exists($watermarkFile)) {
+            $type = pathinfo($watermarkFile, PATHINFO_EXTENSION);
+            $data = file_get_contents($watermarkFile);
+            $watermarkBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $logoBase64 = null;
+        if (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
+            $logoFile = public_path('storage/' . $company->logo);
+            $type = pathinfo($logoFile, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoFile);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
     @endphp
 
-    @if($watermarkPath)
+    @if($watermarkBase64)
         <div class="watermark">
-            <img src="{{ $watermarkPath }}" alt="Watermark">
+            <img src="{{ $watermarkBase64 }}" alt="Watermark">
         </div>
     @endif
 
     <table class="header-table">
         <tr>
             <td style="width: 175px; vertical-align: middle;">
-                @if(!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)))
-                    <img src="{{ public_path('storage/' . $company->logo) }}" style="max-width: 165px; max-height: 60px; height: auto; width: auto; object-fit: contain;">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" style="max-width: 165px; max-height: 60px; height: auto; width: auto; object-fit: contain;">
                 @else
                     <div style="font-size: 16px; font-weight: bold; color: #0284c7;">{{ $company->company_name ?? 'TBG ERP' }}</div>
                 @endif

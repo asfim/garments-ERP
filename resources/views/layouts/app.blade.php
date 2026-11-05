@@ -39,10 +39,24 @@
         }
     </script>
     <!-- Separate Custom ERP CSS File -->
-    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}?v=1.5">
+    <link rel="stylesheet" href="{{ asset('css/erp-style.css') }}?v=1.6">
     @stack('styles')
 </head>
 <body class="h-screen max-h-screen overflow-hidden text-slate-200 antialiased flex flex-col justify-between">
+
+    @php
+        $globalCompanySetting = $globalCompany ?? \App\Models\CompanySetting::first();
+        $globalWatermarkSrc = !empty($globalCompanySetting?->print_logo) && file_exists(public_path('storage/' . $globalCompanySetting->print_logo))
+            ? asset('storage/' . $globalCompanySetting->print_logo)
+            : (!empty($globalCompanySetting?->logo) && file_exists(public_path('storage/' . $globalCompanySetting->logo)) ? asset('storage/' . $globalCompanySetting->logo) : null);
+    @endphp
+
+    @if($globalWatermarkSrc)
+    <!-- Center Page Watermark / Jolchap for Print (Bound to /factory/settings) -->
+    <div class="global-print-watermark" aria-hidden="true">
+        <img src="{{ $globalWatermarkSrc }}" alt="Company Watermark">
+    </div>
+    @endif
 
     <!-- Global Header -->
     <div class="flex-shrink-0">

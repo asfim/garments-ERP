@@ -5,6 +5,11 @@
 @push('styles')
 <style>
 @media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
     /* Hide Everything Else */
     header, aside, footer, nav, .mode-btn, .print-hide, .no-print,
     button, [onclick*="print"] {
@@ -31,7 +36,7 @@
     }
 
     #printablePayslipCard {
-        position: static !important;
+        position: relative !important;
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
@@ -49,19 +54,31 @@
         text-shadow: none !important;
     }
 
+    #printablePayslipCard .payslip-watermark {
+        display: flex !important;
+        visibility: visible !important;
+    }
+    #printablePayslipCard .payslip-watermark img {
+        opacity: 0.20 !important;
+        mix-blend-mode: multiply !important;
+    }
+    .global-print-watermark {
+        display: none !important;
+    }
+
     .print-border {
         border-color: #333333 !important;
     }
 
     .print-table th {
-        background-color: #f1f5f9 !important;
+        background-color: rgba(241, 245, 249, 0.7) !important;
         color: #000000 !important;
         border: 1px solid #64748b !important;
     }
 
     .print-table td {
         border: 1px solid #cbd5e1 !important;
-        background: #ffffff !important;
+        background: transparent !important;
     }
 }
 </style>
@@ -104,10 +121,26 @@
         </div>
     </div>
 
+    @php
+        $cmp = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
+        $watermarkSrc = !empty($cmp->print_logo) && file_exists(public_path('storage/' . $cmp->print_logo))
+            ? asset('storage/' . $cmp->print_logo)
+            : (!empty($cmp->logo) && file_exists(public_path('storage/' . $cmp->logo)) ? asset('storage/' . $cmp->logo) : null);
+    @endphp
+
     <!-- Official Printable Payslip Card -->
     <div class="flex justify-center">
-        <div id="printablePayslipCard" class="w-full max-w-3xl glass-panel rounded-2xl border border-slate-700/80 p-8 bg-[#09112a] text-white shadow-2xl relative">
+        <div id="printablePayslipCard" class="w-full max-w-3xl glass-panel rounded-2xl border border-slate-700/80 p-8 bg-[#09112a] text-white shadow-2xl relative overflow-hidden">
             
+            <!-- Center Page Watermark / Jolchap (জলছাপ) -->
+            @if($watermarkSrc)
+            <div class="payslip-watermark pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden z-0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0;">
+                <img src="{{ $watermarkSrc }}" alt="Watermark" class="w-96 max-w-[70%] max-h-[70%] object-contain" style="opacity: 0.20; mix-blend-mode: multiply;">
+            </div>
+            @endif
+
+            <div class="relative z-10 space-y-6">
+
             <!-- Company & Payslip Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/80 pb-5 mb-5 gap-4">
                 <div class="flex items-center gap-3.5">
@@ -278,6 +311,7 @@
                 This is a computer-generated salary payslip from TBG Garments ERP Solution.
             </div>
 
+            </div>
         </div>
     </div>
 

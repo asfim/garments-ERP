@@ -136,20 +136,24 @@
                     <tr>
                         <th class="py-3.5 px-4">Voucher No</th>
                         <th class="py-3.5 px-4">Date</th>
-                        <th class="py-3.5 px-4">Income Category / Head</th>
+                        <th class="py-3.5 px-4">Income Head</th>
                         <th class="py-3.5 px-4">Deposit To (A/C)</th>
                         <th class="py-3.5 px-4">Received From / Party</th>
-                        <th class="py-3.5 px-4">Method & Ref</th>
                         <th class="py-3.5 px-4 text-right">Amount (৳)</th>
                         <th class="py-3.5 px-4 text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/60">
                     @forelse($vouchers as $v)
+                    @php
+                        $isDelivery = ($v->source_module === 'App\Models\Delivery' || str_contains($v->reference_no ?? '', 'DEL-'));
+                        $incomeHeadName = $isDelivery ? 'Product Sales Revenue' : ($v->creditAccount?->name ?? 'Product Sales Revenue');
+                        $partyName = $v->party_name ?: ($v->customer?->company_name ?: 'General Customer');
+                    @endphp
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-3.5 px-4 font-mono font-bold text-amber-400">
                             {{ $v->voucher_no }}
-                            @if($v->source_module === 'App\Models\Delivery' || str_contains($v->reference_no ?? '', 'DEL-'))
+                            @if($isDelivery)
                             <span class="block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-sans font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 w-fit">
                                 <i class="fa-solid fa-truck text-[8px]"></i> Delivery Sales
                             </span>
@@ -160,11 +164,8 @@
                         </td>
                         <td class="py-3.5 px-4">
                             <span class="text-emerald-300 font-semibold block">
-                                {{ $v->creditAccount?->name ?? 'Income' }}
+                                {{ $incomeHeadName }}
                             </span>
-                            @if($v->creditAccount?->category)
-                            <span class="text-[10px] text-slate-500 uppercase">{{ $v->creditAccount->category }}</span>
-                            @endif
                         </td>
                         <td class="py-3.5 px-4 font-mono text-slate-300">
                             <span class="text-cyan-400 font-bold block">{{ $v->debitAccount?->name ?? 'Cash/Bank' }}</span>
@@ -173,29 +174,38 @@
                             @endif
                         </td>
                         <td class="py-3.5 px-4">
-                            <span class="text-white font-medium block">
-                                {{ $v->party_name ?: ($v->customer?->company_name ?: 'General Receipt') }}
+                            <span class="text-white font-semibold block">
+                                {{ $partyName }}
                             </span>
-                            @if($v->customer)
-                            <span class="text-[10px] text-cyan-400 font-bold block">Customer: {{ $v->customer->company_name }}</span>
-                            @endif
-                            @if($v->notes)
-                            <span class="text-[11px] text-slate-400 truncate max-w-xs block mt-0.5">{{ $v->notes }}</span>
-                            @endif
                         </td>
-                        <td class="py-3.5 px-4 text-slate-300 text-[11px]">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">
-                                {{ $v->payment_method_label }}
-                            </span>
-                            @if($v->reference_no)
-                            <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Ref: {{ $v->reference_no }}</span>
-                            @endif
-                        </td>
-                        <td class="py-3.5 px-4 text-right font-mono font-black text-sm text-emerald-400">
-                            + ৳ {{ number_format($v->amount, 2) }}
+                        <td class="py-3.5 px-4 text-right font-mono font-bold text-sm text-emerald-400">
+                            {{ number_format($v->amount, 2) }}
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
+                                <button type="button" 
+                                        onclick="showVoucherDetails({{ json_encode([
+                                            'voucher_no' => $v->voucher_no,
+                                            'voucher_date' => $v->voucher_date->format('d M, Y'),
+                                            'income_head' => $incomeHeadName,
+                                            'income_code' => $v->creditAccount?->code ?? '4001',
+                                            'deposit_to' => $v->debitAccount?->name ?? 'Cash/Bank',
+                                            'deposit_code' => $v->debitAccount?->code ?? '1050',
+                                            'party_name' => $partyName,
+                                            'amount' => number_format($v->amount, 2),
+                                            'payment_method' => $v->payment_method_label,
+                                            'reference_no' => $v->reference_no ?: 'N/A',
+                                            'notes' => $v->notes ?: 'N/A',
+                                            'is_delivery' => $isDelivery,
+                                            'print_url' => route('factory.accounts.income.print', $v->id),
+                                            'attachment_url' => $v->attachment ? asset('storage/' . $v->attachment) : null,
+                                            'created_by' => $v->createdBy?->name ?? 'System Admin',
+                                        ]) }})"
+                                        class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-semibold flex items-center gap-1 transition-all" title="View Full Details">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span>Details</span>
+                                </button>
+
                                 <a href="{{ route('factory.accounts.income.print', $v->id) }}" target="_blank" 
                                    class="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs" title="Print Money Receipt">
                                     <i class="fa-solid fa-print"></i>
@@ -221,7 +231,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-12 text-center text-slate-500">
+                        <td colspan="7" class="py-12 text-center text-slate-500">
                             <i class="fa-solid fa-arrow-trend-up text-3xl mb-2 opacity-50 block"></i>
                             No income records found matching your filters.
                         </td>
@@ -374,6 +384,91 @@
     </div>
 </div>
 
+<!-- MODAL: VOUCHER DETAILS -->
+<div id="voucherDetailsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button onclick="closeVoucherDetailsModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <i class="fa-solid fa-file-invoice text-lg"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h3 id="detVoucherNo" class="text-base font-extrabold text-white font-mono"></h3>
+                    <span id="detDeliveryBadge" class="hidden px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        <i class="fa-solid fa-truck text-[9px] mr-1"></i> Delivery Sales
+                    </span>
+                </div>
+                <p id="detVoucherDate" class="text-xs text-slate-400 mt-0.5 font-mono"></p>
+            </div>
+        </div>
+
+        <div class="space-y-4 text-xs">
+            <!-- Summary Grid -->
+            <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Income Head (Credit A/C):</span>
+                    <span id="detIncomeHead" class="font-bold text-emerald-400 text-sm block mt-0.5"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Deposit To / Receivable (Debit):</span>
+                    <span id="detDepositTo" class="font-bold text-cyan-400 text-sm block mt-0.5"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Received From / Customer:</span>
+                    <span id="detPartyName" class="font-semibold text-white block mt-0.5"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Total Amount:</span>
+                    <span class="font-mono font-black text-emerald-400 text-base block mt-0.5">৳ <span id="detAmount"></span></span>
+                </div>
+            </div>
+
+            <!-- Meta details -->
+            <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800/60">
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Payment Method:</span>
+                    <span id="detPaymentMethod" class="font-medium text-slate-200 mt-0.5 block"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Ref / Challan No:</span>
+                    <span id="detRefNo" class="font-mono text-slate-200 mt-0.5 block"></span>
+                </div>
+                <div class="col-span-2">
+                    <span class="text-slate-400 block text-[11px]">Full Narration / Notes:</span>
+                    <p id="detNotes" class="text-slate-300 mt-1 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 text-[11px] leading-relaxed break-words"></p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Recorded By:</span>
+                    <span id="detCreatedBy" class="text-slate-300 mt-0.5 block"></span>
+                </div>
+                <div id="detAttachmentContainer" class="hidden">
+                    <span class="text-slate-400 block text-[11px]">Attachment:</span>
+                    <a id="detAttachmentLink" href="#" target="_blank" class="text-cyan-400 hover:underline flex items-center gap-1 mt-0.5">
+                        <i class="fa-solid fa-paperclip"></i> View File
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeVoucherDetailsModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all">
+                    Close
+                </button>
+                <a id="detPrintBtn" href="#" target="_blank" 
+                   class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition-all">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print Money Receipt</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function openIncomeModal() {
     const m = document.getElementById('incomeModal');
@@ -392,6 +487,45 @@ function autoFillPayer() {
     if (name) {
         document.getElementById('incomePartyName').value = name;
     }
+}
+function showVoucherDetails(data) {
+    document.getElementById('detVoucherNo').textContent = data.voucher_no;
+    document.getElementById('detVoucherDate').textContent = 'Voucher Date: ' + data.voucher_date;
+    document.getElementById('detIncomeHead').textContent = data.income_head;
+    document.getElementById('detDepositTo').textContent = data.deposit_to;
+    document.getElementById('detPartyName').textContent = data.party_name;
+    document.getElementById('detAmount').textContent = data.amount;
+    document.getElementById('detPaymentMethod').textContent = data.payment_method;
+    document.getElementById('detRefNo').textContent = data.reference_no;
+    document.getElementById('detNotes').textContent = data.notes;
+    document.getElementById('detCreatedBy').textContent = data.created_by;
+    document.getElementById('detPrintBtn').href = data.print_url;
+
+    const badge = document.getElementById('detDeliveryBadge');
+    if (data.is_delivery) {
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    const attContainer = document.getElementById('detAttachmentContainer');
+    const attLink = document.getElementById('detAttachmentLink');
+    if (data.attachment_url) {
+        attContainer.classList.remove('hidden');
+        attLink.href = data.attachment_url;
+    } else {
+        attContainer.classList.add('hidden');
+    }
+
+    const m = document.getElementById('voucherDetailsModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+}
+
+function closeVoucherDetailsModal() {
+    const m = document.getElementById('voucherDetailsModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
 }
 </script>
 @endsection
