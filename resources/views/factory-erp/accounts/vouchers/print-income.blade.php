@@ -49,13 +49,11 @@
             align-items: center;
             justify-content: center;
             width: 70%;
-            opacity: 0.16;
         }
         .watermark-img {
             max-width: 100%;
             max-height: 420px;
             object-fit: contain;
-            mix-blend-mode: multiply;
         }
         /* Inner Content on top of watermark */
         .voucher-content {
@@ -278,10 +276,9 @@
             }
             .watermark-container {
                 display: flex !important;
-                opacity: 0.16 !important;
             }
             .watermark-img {
-                mix-blend-mode: multiply !important;
+                display: block !important;
             }
             .meta-grid {
                 background: rgba(248, 250, 252, 0.4) !important;
@@ -444,16 +441,21 @@
                 <div class="sign-line">Authorised Signatory</div>
             </div>
 
-            <!-- Footer (Image 2 Design: Cyan Top Border, 2 Columns) -->
+            <!-- Footer (Image 2 Design: Cyan Top Border, 3 Columns) -->
             <div class="voucher-footer">
                 <div class="left-col">
                     <div><span class="cyan-label">Email:</span> {{ $company->email ?? 'turkiasugarbd@gmail.com' }}</div>
                     <div><span class="cyan-label">Phone:</span> {{ $company->phone ?? '+8801891153903, +8801718521488' }}</div>
                     <div><span class="cyan-label">Web:</span> {{ $company->website ?? 'Turkiabazar.com' }}</div>
                 </div>
-                <div class="right-col">
-                    <div><strong>Head Office:</strong> {{ $company->address ?? 'Zawad House, House# 73 (1st Floor), Road# 14, Sector# 13, Uttara, Dhaka-1230, Bangladesh.' }}</div>
-                    <div style="margin-top: 3px;"><strong>Hotline:</strong> <span style="color: #00adef; font-weight: bold;">{{ $company->hotline ?? '+8801891-153903' }}</span></div>
+                <div class="right-col" style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                    <div>
+                        <div><strong>Head Office:</strong> {{ $company->address ?? 'Zawad House, House# 73 (1st Floor), Road# 14, Sector# 13, Uttara, Dhaka-1230, Bangladesh.' }}</div>
+                        <div style="margin-top: 3px;"><strong>Hotline:</strong> <span style="color: #00adef; font-weight: bold;">{{ $company->hotline ?? '+8801891-153903' }}</span></div>
+                    </div>
+                    @if(file_exists(public_path('images/company_qr.png')))
+                    <img src="{{ asset('images/company_qr.png') }}" alt="QR" style="width: 46px; height: 46px; object-fit: contain; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;">
+                    @endif
                 </div>
             </div>
         </div>

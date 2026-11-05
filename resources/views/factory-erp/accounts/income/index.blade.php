@@ -15,12 +15,21 @@
             <p class="text-xs text-slate-400">Record factory sales, sample charges, scrap sales, and other cash/bank inflows</p>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Add New Income Head Button (Manual Popup) -->
+            <button type="button" onclick="openIncomeHeadModal()" 
+                    class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-md">
+                <i class="fa-solid fa-folder-plus text-cyan-400"></i>
+                <span>+ Add Income Head (নতুন খাত)</span>
+            </button>
+
+            <!-- Create New Income Voucher Button -->
             <button type="button" onclick="openIncomeModal()" 
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
                 <span>+ New Income Voucher (নতুন আয়)</span>
             </button>
+
             <a href="{{ route('factory.accounts.dashboard') }}" 
                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -280,33 +289,22 @@
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Income Category / Head (Dynamic: Turkey Bangla Products from Image 2 & General Heads) -->
+                <!-- Income Category / Head (Independent Income Accounts - No Products) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Income Head (আয়ের খাত) <span class="text-rose-400">*</span></label>
-                    <select name="income_account_id" id="incomeAccountSelect" onchange="handleIncomeHeadChange(this)" required
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-slate-300 font-bold">Income Head (আয়ের খাত) <span class="text-rose-400">*</span></label>
+                        <button type="button" onclick="openIncomeHeadModal()" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 hover:underline cursor-pointer">
+                            <i class="fa-solid fa-plus text-[10px]"></i> + Add Head (নতুন খাত)
+                        </button>
+                    </div>
+                    <select name="income_account_id" id="incomeAccountSelect" required
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="">Select Income Account / Product</option>
-
-                        @if(isset($products) && $products->count() > 0)
-                        <optgroup label="🛍️ পণ্য বিক্রয় আয় (Turkey Bangla Consumer & Food - ৭টি পণ্য)">
-                            @foreach($products as $prod)
-                            <option value="13"
-                                    data-is-product="true"
-                                    data-product-name="{{ $prod->name }}"
-                                    data-rate="{{ $prod->sell_price }}">
-                                {{ $prod->name }} — ৳ {{ number_format($prod->sell_price, 2) }} / {{ $prod->unit->short_code ?? 'Pcs' }}
-                            </option>
-                            @endforeach
-                        </optgroup>
-                        @endif
-
-                        <optgroup label="💼 সাধারণ আয়ের খাত (General Income Heads)">
-                            @foreach($incomeAccounts as $acc)
-                            <option value="{{ $acc->id }}" data-is-product="false" data-account-name="{{ $acc->name }}">
-                                {{ $acc->name }}
-                            </option>
-                            @endforeach
-                        </optgroup>
+                        <option value="">Select Income Account</option>
+                        @foreach($incomeAccounts as $acc)
+                        <option value="{{ $acc->id }}">
+                            {{ $acc->name }} ({{ $acc->category }})
+                        </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -484,7 +482,99 @@
     </div>
 </div>
 
+<!-- MODAL: ADD NEW INCOME HEAD (ম্যানুয়ালি নতুন আয়ের খাত যুক্ত করুন) -->
+<div id="incomeHeadModal" onclick="if(event.target === this) closeIncomeHeadModal()" class="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative my-8">
+        <button type="button" onclick="closeIncomeHeadModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                <i class="fa-solid fa-folder-plus text-lg"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-white">Add New Income Head (নতুন আয়ের খাত)</h3>
+                <p class="text-xs text-slate-400">ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি করুন (এটি পণ্যের তালিকা থেকে সম্পূর্ণ স্বাধীন)</p>
+            </div>
+        </div>
+
+        <form id="incomeHeadForm" onsubmit="submitIncomeHeadForm(event)" action="{{ route('factory.accounts.income-heads.store') }}" method="POST" class="space-y-4 text-xs">
+            @csrf
+
+            <!-- Income Head Name -->
+            <div>
+                <label class="block text-slate-300 font-bold mb-1.5">Income Head Name (আয়ের খাতের নাম) <span class="text-rose-400">*</span></label>
+                <input type="text" name="name" id="new_head_name" placeholder="e.g. ক্যাশ ডিসকাউন্ট আয় / স্পেশাল সার্ভিস ফি / কার্গো চার্জ" required
+                       class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-400">
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label class="block text-slate-300 font-bold mb-1.5">Category (আয়ের শ্রেণি/ক্যাটাগরি) <span class="text-rose-400">*</span></label>
+                <select name="category" id="new_head_category" required
+                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-400">
+                    <option value="Operating Income">Operating Income (পরিচালন আয়)</option>
+                    <option value="Service Income">Service Income (সেবা আয়)</option>
+                    <option value="Other Income" selected>Other Income (অন্যান্য বিবিধ আয়)</option>
+                </select>
+            </div>
+
+            <!-- Account Code (Optional / Auto-generated) -->
+            <div>
+                <label class="block text-slate-300 font-bold mb-1.5">
+                    Account Code (অ্যাকাউন্ট কোড) 
+                    <span class="text-slate-400 text-[10px] font-normal">(ফাঁকা রাখলে স্বয়ংক্রিয় তৈরি হবে)</span>
+                </label>
+                <input type="text" name="account_code" id="new_head_code" placeholder="Auto e.g. 4005"
+                       class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 font-mono focus:outline-none focus:border-cyan-400">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-slate-300 font-bold mb-1.5">Description (বিবরণ / নোট)</label>
+                <textarea name="description" id="new_head_description" rows="2" placeholder="খাত সম্পর্কিত সংক্ষিপ্ত তথ্য..."
+                          class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-cyan-400"></textarea>
+            </div>
+
+            <div id="incomeHeadModalAlert" class="hidden p-2.5 rounded-xl text-xs font-semibold"></div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeIncomeHeadModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" id="saveIncomeHeadBtn"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save Income Head</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Currently Registered Income Heads List -->
+        <div class="mt-6 pt-5 border-t border-slate-800">
+            <h4 class="text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
+                <span>বর্তমান আয়ের খাতসমূহ (Active Income Heads):</span>
+                <span class="text-cyan-400 font-mono text-[11px]">{{ $incomeAccounts->count() }} Heads</span>
+            </h4>
+            <div class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]" id="existingIncomeHeadsList">
+                @foreach($incomeAccounts as $acc)
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">{{ $acc->account_code }}</span>
+                        <span class="font-semibold text-white">{{ $acc->name }}</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">{{ $acc->category }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// 1. Income Voucher Modal Handlers
 function openIncomeModal() {
     const m = document.getElementById('incomeModal');
     if (m) m.classList.remove('hidden');
@@ -493,6 +583,96 @@ function closeIncomeModal() {
     const m = document.getElementById('incomeModal');
     if (m) m.classList.add('hidden');
 }
+
+// 2. Income Head Modal Handlers (Manual Add)
+function openIncomeHeadModal() {
+    const m = document.getElementById('incomeHeadModal');
+    if (m) m.classList.remove('hidden');
+}
+function closeIncomeHeadModal() {
+    const m = document.getElementById('incomeHeadModal');
+    if (m) m.classList.add('hidden');
+}
+
+function submitIncomeHeadForm(e) {
+    e.preventDefault();
+    const form = document.getElementById('incomeHeadForm');
+    const formData = new FormData(form);
+    const saveBtn = document.getElementById('saveIncomeHeadBtn');
+    const alertBox = document.getElementById('incomeHeadModalAlert');
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    alertBox.className = 'hidden';
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(async res => {
+        const data = await res.json();
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Income Head';
+
+        if (res.ok && data.success && data.account) {
+            // 1. Append to Income Voucher dropdown & select it
+            const voucherSelect = document.getElementById('incomeAccountSelect');
+            if (voucherSelect) {
+                const opt = document.createElement('option');
+                opt.value = data.account.id;
+                opt.textContent = data.account.name + ' (' + data.account.category + ')';
+                opt.selected = true;
+                voucherSelect.appendChild(opt);
+                voucherSelect.value = data.account.id;
+            }
+
+            // 2. Append to filter dropdown
+            const filterSelect = document.querySelector('select[name="income_account_id"]');
+            if (filterSelect) {
+                const fOpt = document.createElement('option');
+                fOpt.value = data.account.id;
+                fOpt.textContent = data.account.name;
+                filterSelect.appendChild(fOpt);
+            }
+
+            // 3. Append to existing heads list
+            const list = document.getElementById('existingIncomeHeadsList');
+            if (list) {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">${data.account.account_code || 'N/A'}</span>
+                        <span class="font-semibold text-white">${data.account.name}</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">${data.account.category}</span>
+                `;
+                list.insertBefore(item, list.firstChild);
+            }
+
+            // Reset form and close
+            form.reset();
+            closeIncomeHeadModal();
+
+            // Brief toast message
+            alert('নতুন আয়ের খাত "' + data.account.name + '" সফলভাবে তৈরি হয়েছে এবং সিলেক্ট করা হয়েছে!');
+        } else {
+            alertBox.textContent = data.message || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Error creating income head.');
+            alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
+        }
+    })
+    .catch(err => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Income Head';
+        alertBox.textContent = 'Failed to save income head. Please check your network or input values.';
+        alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
+    });
+}
+
 function autoFillPayer() {
     const sel = document.getElementById('incomeCustomerSelect');
     if (!sel) return;
@@ -502,27 +682,7 @@ function autoFillPayer() {
         document.getElementById('incomePartyName').value = name;
     }
 }
-function handleIncomeHeadChange(select) {
-    if (!select) return;
-    const opt = select.options[select.selectedIndex];
-    if (!opt) return;
 
-    const isProduct = opt.getAttribute('data-is-product') === 'true';
-    const prodName = opt.getAttribute('data-product-name');
-    const rate = opt.getAttribute('data-rate');
-
-    const amountInput = document.getElementById('incomeAmountInput');
-    const notesInput = document.getElementById('incomeNotesInput');
-
-    if (isProduct && prodName) {
-        if (notesInput && (!notesInput.value || notesInput.value.startsWith('Product Sales:') || notesInput.value.startsWith('Sales of '))) {
-            notesInput.value = 'Sales of ' + prodName + ' (Rate: ৳ ' + rate + ')';
-        }
-        if (amountInput && (!amountInput.value || parseFloat(amountInput.value) <= 0)) {
-            amountInput.value = rate;
-        }
-    }
-}
 function showVoucherDetails(arg) {
     let data = arg;
     if (arg instanceof HTMLElement) {
@@ -580,6 +740,7 @@ function closeVoucherDetailsModal() {
 // Close modals on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        closeIncomeHeadModal();
         closeIncomeModal();
         closeVoucherDetailsModal();
     }

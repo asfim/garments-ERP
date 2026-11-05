@@ -29,8 +29,8 @@
 
 <!-- Watermark / Jolchap (Repeats on every PDF page in background) -->
 @if(!empty($watermarkBase64))
-<div style="position: fixed; top: 25%; left: 10%; width: 80%; text-align: center; z-index: -1000; opacity: 0.16;">
-    <img src="{{ $watermarkBase64 }}" style="width: 440px; max-width: 80%; height: auto; opacity: 0.16;" alt="Company Watermark">
+<div style="position: fixed; top: 22%; left: 10%; width: 80%; text-align: center; z-index: -1; pointer-events: none;">
+    <img src="{{ $watermarkBase64 }}" style="width: 430px; max-width: 80%; height: auto;" alt="Company Watermark">
 </div>
 @endif
 

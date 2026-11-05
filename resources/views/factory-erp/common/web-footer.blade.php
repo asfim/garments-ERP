@@ -3,7 +3,7 @@
 @endphp
 
 <div class="border-t-2 border-[#00adef] pt-3 mt-6 text-[11px] text-slate-800">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
         <!-- Left: Contact Details -->
         <div class="space-y-0.5 text-left">
             <div class="font-bold text-slate-900">
@@ -17,14 +17,21 @@
             </div>
         </div>
 
-        <!-- Right: Address & Hotline -->
-        <div class="space-y-0.5 sm:text-right">
+        <!-- Middle: Address & Hotline -->
+        <div class="space-y-0.5 text-left sm:text-right">
             <div class="font-bold text-slate-900">
                 Head Office: {{ $cmp->address ?? 'Zawad House, House# 73 (1st Floor), Road# 14, Sector# 13, Uttara, Dhaka-1230, Bangladesh.' }}
             </div>
             <div class="text-emerald-700 font-bold">
                 Hotline: {{ $cmp->hotline ?? '+8801891-153903' }}
             </div>
+        </div>
+
+        <!-- Right: QR Code -->
+        <div class="flex sm:justify-end justify-start">
+            @if(file_exists(public_path('images/company_qr.png')))
+                <img src="{{ asset('images/company_qr.png') }}" alt="QR Code" class="w-12 h-12 object-contain border border-slate-300 rounded p-0.5 bg-white">
+            @endif
         </div>
     </div>
 </div>

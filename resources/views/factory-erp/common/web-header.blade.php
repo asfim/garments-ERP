@@ -27,8 +27,8 @@
 
 <!-- Watermark / Jolchap for Browser Print (Bound to /factory/settings) -->
 @if($watermarkSrc)
-<div class="watermark-container pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden z-0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0; opacity: 0.16;">
-    <img src="{{ $watermarkSrc }}" alt="Company Watermark" class="max-w-[70%] max-h-[60%] object-contain" style="mix-blend-mode: multiply; opacity: 0.16;">
+<div class="watermark-container pointer-events-none select-none absolute inset-0 flex items-center justify-center overflow-hidden z-0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0;">
+    <img src="{{ $watermarkSrc }}" alt="Company Watermark" class="max-w-[70%] max-h-[60%] object-contain" style="opacity: 0.9;">
 </div>
 @endif
 

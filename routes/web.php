@@ -168,6 +168,7 @@ Route::prefix('factory')->name('factory.')->group(function () {
         // Income Management
         Route::get('/income', [AccountsController::class, 'incomeIndex'])->name('income.index');
         Route::post('/income', [AccountsController::class, 'incomeStore'])->name('income.store');
+        Route::post('/income-heads', [AccountsController::class, 'incomeHeadStore'])->name('income-heads.store');
         Route::get('/income/{voucher}/print', [AccountsController::class, 'incomePrint'])->name('income.print');
 
         // Expense Management

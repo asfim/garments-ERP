@@ -150,15 +150,10 @@ class AccountsController extends Controller
             ->orderBy('id', 'asc')
             ->get();
         $customers = Customer::orderBy('company_name')->get();
-        // Load Turkey Bangla Consumer & Food products (from Image 2)
-        $products = Product::where('id', '>=', 24)->orderBy('id', 'asc')->get();
-        if ($products->isEmpty()) {
-            $products = Product::orderBy('id', 'asc')->get();
-        }
         $nextVoucherNo = AccountVoucher::generateVoucherNo('income');
 
         return view('factory-erp.accounts.income.index', compact(
-            'vouchers', 'totalFilteredIncome', 'incomeAccounts', 'liquidAccounts', 'customers', 'products', 'nextVoucherNo'
+            'vouchers', 'totalFilteredIncome', 'incomeAccounts', 'liquidAccounts', 'customers', 'nextVoucherNo'
         ));
     }
 
@@ -201,6 +196,62 @@ class AccountsController extends Controller
         $company = $this->getCompany();
 
         return view('factory-erp.accounts.vouchers.print-income', compact('voucher', 'company'));
+    }
+
+    public function incomeHeadStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|in:Operating Income,Service Income,Other Income',
+            'account_code' => 'nullable|string|max:20|unique:accounts,account_code',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $code = !empty($validated['account_code']) ? trim($validated['account_code']) : null;
+        if (!$code) {
+            $existingCodes = Account::where('type', 'income')->pluck('account_code')->toArray();
+            for ($i = 4005; $i <= 4098; $i++) {
+                if (!in_array((string)$i, $existingCodes)) {
+                    $code = (string)$i;
+                    break;
+                }
+            }
+            if (!$code) {
+                for ($i = 4101; $i <= 4999; $i++) {
+                    if (!in_array((string)$i, $existingCodes)) {
+                        $code = (string)$i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $account = Account::create([
+            'account_code' => $code,
+            'name' => $validated['name'],
+            'type' => 'income',
+            'category' => $validated['category'],
+            'opening_balance' => 0.00,
+            'current_balance' => 0.00,
+            'status' => 'active',
+            'is_system' => false,
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Income Head '{$account->name}' created successfully!",
+                'account' => [
+                    'id' => $account->id,
+                    'account_code' => $account->account_code,
+                    'name' => $account->name,
+                    'category' => $account->category,
+                ]
+            ]);
+        }
+
+        return redirect()->back()->with('success', "New Income Head '{$account->name}' ({$account->account_code}) added successfully!");
     }
 
     // ==========================================

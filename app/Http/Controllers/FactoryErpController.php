@@ -72,13 +72,84 @@ class FactoryErpController extends Controller
         }
 
         if ($request->hasFile('print_logo')) {
-            $printLogoPath = $request->file('print_logo')->store('company', 'public');
+            $printLogoPath = $this->generateOptimizedWatermark($request->file('print_logo'));
             $setting->print_logo = $printLogoPath;
         }
 
         $setting->save();
 
         return redirect()->back()->with('success', 'Company settings updated successfully!');
+    }
+
+    /**
+     * Process uploaded watermark image to transparent background with built-in faint alpha
+     * for seamless display in PDF (DomPDF) and browser print.
+     */
+    protected function generateOptimizedWatermark($file)
+    {
+        $ext = strtolower($file->getClientOriginalExtension());
+        $filename = 'watermark_' . time() . '.png';
+        $destPath = public_path('storage/company/' . $filename);
+
+        if (!file_exists(dirname($destPath))) {
+            mkdir(dirname($destPath), 0755, true);
+        }
+
+        if (extension_loaded('gd') && in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+            try {
+                $srcPath = $file->getRealPath();
+                list($origWidth, $origHeight) = getimagesize($srcPath);
+
+                $srcImg = null;
+                if ($ext === 'jpg' || $ext === 'jpeg') {
+                    $srcImg = imagecreatefromjpeg($srcPath);
+                } elseif ($ext === 'png') {
+                    $srcImg = imagecreatefrompng($srcPath);
+                } elseif ($ext === 'webp') {
+                    $srcImg = imagecreatefromwebp($srcPath);
+                }
+
+                if ($srcImg) {
+                    $maxDim = 800;
+                    $scale = min($maxDim / max($origWidth, 1), $maxDim / max($origHeight, 1), 1.0);
+                    $newWidth = max(1, (int)($origWidth * $scale));
+                    $newHeight = max(1, (int)($origHeight * $scale));
+
+                    $destImg = imagecreatetruecolor($newWidth, $newHeight);
+                    imagealphablending($destImg, false);
+                    imagesavealpha($destImg, true);
+
+                    imagecopyresampled($destImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+                    for ($x = 0; $x < $newWidth; $x++) {
+                        for ($y = 0; $y < $newHeight; $y++) {
+                            $rgba = imagecolorat($destImg, $x, $y);
+                            $r = ($rgba >> 16) & 0xFF;
+                            $g = ($rgba >> 8) & 0xFF;
+                            $b = $rgba & 0xFF;
+
+                            if ($r > 235 && $g > 235 && $b > 235) {
+                                $transparent = imagecolorallocatealpha($destImg, 255, 255, 255, 127);
+                                imagesetpixel($destImg, $x, $y, $transparent);
+                            } else {
+                                $faintColor = imagecolorallocatealpha($destImg, $r, $g, $b, 107);
+                                imagesetpixel($destImg, $x, $y, $faintColor);
+                            }
+                        }
+                    }
+
+                    imagepng($destImg, $destPath, 9);
+                    imagedestroy($srcImg);
+                    imagedestroy($destImg);
+
+                    return 'company/' . $filename;
+                }
+            } catch (\Throwable $e) {
+                // Fallback to normal upload
+            }
+        }
+
+        return $file->store('company', 'public');
     }
 
     // ==========================================
