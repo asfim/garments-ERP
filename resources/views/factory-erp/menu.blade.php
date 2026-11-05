@@ -138,14 +138,14 @@
     <span>Expense (ব্যয়)</span>
 </a>
 
-<!-- ACC 4. Fund Transfers -->
-@php $isTrf = request()->routeIs('factory.accounts.transfers.*'); @endphp
-<a href="{{ route('factory.accounts.transfers.index') }}" 
-   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isTrf ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
-    <span class="w-6 h-6 rounded-lg {{ $isTrf ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20' }} flex items-center justify-center">
-        <i class="fa-solid fa-money-bill-transfer text-[11px]"></i>
+<!-- ACC 4. Journal Vouchers (জাবেদা) -->
+@php $isJournal = request()->routeIs('factory.accounts.journals.*'); @endphp
+<a href="{{ route('factory.accounts.journals.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isJournal ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isJournal ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-file-signature text-[11px]"></i>
     </span>
-    <span>Fund Transfer</span>
+    <span>Journal Voucher (জাবেদা)</span>
 </a>
 
 <!-- ACC 5. Chart of Accounts -->
@@ -158,8 +158,8 @@
     <span>Chart of Accounts</span>
 </a>
 
-<!-- ACC 6. General Ledger (খতিয়ান) -->
-@php $isLedger = request()->routeIs('factory.accounts.ledger.*'); @endphp
+<!-- ACC 6. General Ledger (খতিয়ান ও সহকারী) -->
+@php $isLedger = request()->routeIs('factory.accounts.ledger.*') || request()->routeIs('factory.accounts.ledgers.*'); @endphp
 <a href="{{ route('factory.accounts.ledger.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isLedger ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-500/25 border border-purple-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
     <span class="w-6 h-6 rounded-lg {{ $isLedger ? 'bg-white/20 text-white' : 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20' }} flex items-center justify-center">
@@ -169,7 +169,7 @@
 </a>
 
 <!-- ACC 7. Financial Reports -->
-@php $isReports = request()->routeIs('factory.accounts.reports.*'); @endphp
+@php $isReports = request()->routeIs('factory.accounts.reports.*') || request()->routeIs('factory.accounts.inventory-valuation.*') || request()->routeIs('factory.accounts.profitability.*'); @endphp
 <a href="{{ route('factory.accounts.reports.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isReports ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/25 border border-teal-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
     <span class="w-6 h-6 rounded-lg {{ $isReports ? 'bg-white/20 text-white' : 'bg-teal-500/10 text-teal-400 group-hover:bg-teal-500/20' }} flex items-center justify-center">

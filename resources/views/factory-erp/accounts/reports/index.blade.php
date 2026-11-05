@@ -48,6 +48,24 @@
             <i class="fa-solid fa-book text-sm"></i>
             <span>3. Day Book / Cash Book (দৈনিক ক্যাশ বুক)</span>
         </a>
+
+        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'balance_sheet']) }}" 
+           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 {{ $tab === 'balance_sheet' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+            <i class="fa-solid fa-landmark text-sm"></i>
+            <span>4. Balance Sheet (উদ্বৃত্তপত্র / স্থিতিপত্র)</span>
+        </a>
+
+        <a href="{{ route('factory.accounts.profitability.index') }}" 
+           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
+            <i class="fa-solid fa-chart-column text-sm"></i>
+            <span>5. Profitability Reports (মুনাফা প্রতিবেদন)</span>
+        </a>
+
+        <a href="{{ route('factory.accounts.inventory-valuation.index') }}" 
+           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
+            <i class="fa-solid fa-boxes-stacked text-sm"></i>
+            <span>6. FIFO Inventory Valuation (ইনভেন্টরি মূল্যায়ন)</span>
+        </a>
     </div>
 
     <!-- ========================================== -->
@@ -367,6 +385,152 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+    @endif
+
+    <!-- ========================================== -->
+    <!-- TAB 4: BALANCE SHEET (উদ্বৃত্তপত্র / স্থিতিপত্র) -->
+    <!-- ========================================== -->
+    @if($tab === 'balance_sheet' && $balanceSheetData)
+    <div class="space-y-6">
+        <!-- As of Date Selector & Balance Check -->
+        <div class="glass-panel p-3.5 rounded-2xl border border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+            <form method="GET" action="{{ route('factory.accounts.reports.index') }}" class="flex items-center gap-3 text-xs">
+                <input type="hidden" name="tab" value="balance_sheet">
+                <span class="text-slate-400 font-medium">As of Date (তারিখ পর্যন্ত):</span>
+                <input type="date" name="as_of_date" value="{{ $asOfDate }}" 
+                       class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 text-xs">
+                <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold transition-all">
+                    Generate Balance Sheet
+                </button>
+            </form>
+
+            <div>
+                @if($balanceSheetData['is_balanced'])
+                <span class="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Balance Sheet is Balanced (Assets = Liabilities + Equity)
+                </span>
+                @else
+                <span class="px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Variance: ৳ {{ number_format(abs($balanceSheetData['total_assets'] - $balanceSheetData['total_liabilities_and_equity']), 2) }}
+                </span>
+                @endif
+            </div>
+        </div>
+
+        <!-- Balance Sheet Split Cards (2 Columns: Assets vs Liabilities & Equity) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- LEFT COLUMN: ASSETS -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-vault"></i> Assets (সম্পদসমূহ)
+                    </h3>
+                    <span class="font-mono text-cyan-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_assets'], 2) }}</span>
+                </div>
+
+                <div class="space-y-2">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <tbody class="divide-y divide-slate-800/50 font-mono">
+                            @foreach($balanceSheetData['assets'] as $item)
+                            <tr class="hover:bg-slate-800/30">
+                                <td class="py-2 text-white font-sans font-medium">
+                                    <span class="text-amber-400 font-mono text-[11px] mr-1">#{{ $item['account']->account_code }}</span>
+                                    {{ $item['account']->name }}
+                                </td>
+                                <td class="py-2 text-right font-black text-cyan-400">
+                                    ৳ {{ number_format($item['balance'], 2) }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pt-3 border-t-2 border-slate-700 flex items-center justify-between font-black text-sm">
+                    <span class="text-white font-sans uppercase">Total Assets:</span>
+                    <span class="text-cyan-400 font-mono">৳ {{ number_format($balanceSheetData['total_assets'], 2) }}</span>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: LIABILITIES & EQUITY -->
+            <div class="space-y-6">
+
+                <!-- Liabilities Box -->
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice"></i> Liabilities (দায়সমূহ)
+                        </h3>
+                        <span class="font-mono text-rose-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_liabilities'], 2) }}</span>
+                    </div>
+
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <tbody class="divide-y divide-slate-800/50 font-mono">
+                            @forelse($balanceSheetData['liabilities'] as $item)
+                            <tr class="hover:bg-slate-800/30">
+                                <td class="py-2 text-white font-sans font-medium">
+                                    <span class="text-amber-400 font-mono text-[11px] mr-1">#{{ $item['account']->account_code }}</span>
+                                    {{ $item['account']->name }}
+                                </td>
+                                <td class="py-2 text-right font-black text-rose-400">
+                                    ৳ {{ number_format($item['balance'], 2) }}
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="2" class="py-2 text-slate-500 font-sans text-center">No outstanding liabilities.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Equity & Retained Earnings Box -->
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-scale-balanced"></i> Equity & Retained Earnings (মালিকানাস্বত্ব)
+                        </h3>
+                        <span class="font-mono text-emerald-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_equity'] + $balanceSheetData['period_earnings'], 2) }}</span>
+                    </div>
+
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <tbody class="divide-y divide-slate-800/50 font-mono">
+                            @foreach($balanceSheetData['equity'] as $item)
+                            <tr class="hover:bg-slate-800/30">
+                                <td class="py-2 text-white font-sans font-medium">
+                                    <span class="text-amber-400 font-mono text-[11px] mr-1">#{{ $item['account']->account_code }}</span>
+                                    {{ $item['account']->name }}
+                                </td>
+                                <td class="py-2 text-right font-black text-emerald-400">
+                                    ৳ {{ number_format($item['balance'], 2) }}
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            <tr class="hover:bg-slate-800/30">
+                                <td class="py-2 text-amber-300 font-sans font-bold">
+                                    <i class="fa-solid fa-chart-line text-[10px] mr-1"></i> Cumulative Net Profit / Retained Earnings
+                                </td>
+                                <td class="py-2 text-right font-black {{ $balanceSheetData['period_earnings'] >= 0 ? 'text-amber-300' : 'text-rose-400' }}">
+                                    ৳ {{ number_format($balanceSheetData['period_earnings'], 2) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="pt-3 border-t-2 border-slate-700 flex items-center justify-between font-black text-sm">
+                        <span class="text-white font-sans uppercase">Total Liabilities & Equity:</span>
+                        <span class="text-emerald-400 font-mono">৳ {{ number_format($balanceSheetData['total_liabilities_and_equity'], 2) }}</span>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
     @endif

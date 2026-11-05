@@ -149,6 +149,11 @@
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-3.5 px-4 font-mono font-bold text-amber-400">
                             {{ $v->voucher_no }}
+                            @if($v->source_module === 'App\Models\Delivery' || str_contains($v->reference_no ?? '', 'DEL-'))
+                            <span class="block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-sans font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 w-fit">
+                                <i class="fa-solid fa-truck text-[8px]"></i> Delivery Sales
+                            </span>
+                            @endif
                         </td>
                         <td class="py-3.5 px-4 font-mono text-slate-400">
                             {{ $v->voucher_date->format('d M, Y') }}

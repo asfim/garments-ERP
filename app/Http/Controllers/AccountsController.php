@@ -9,8 +9,15 @@ use App\Models\AccountTransaction;
 use App\Models\Customer;
 use App\Models\Supplier;
 use App\Models\HrEmployee;
+use App\Models\Product;
 use App\Models\CompanySetting;
+use App\Models\AccountingMapping;
 use App\Services\AccountingService;
+use App\Services\JournalPostingService;
+use App\Services\VoucherReversalService;
+use App\Services\FifoInventoryService;
+use App\Services\FinancialReportingService;
+use App\Services\ProfitabilityReportingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -347,6 +354,10 @@ class AccountsController extends Controller
 
     public function voucherDestroy(AccountVoucher $voucher, AccountingService $service)
     {
+        if ($voucher->source_module === \App\Models\Delivery::class) {
+            return redirect()->back()->with('error', "Cannot delete delivery sales voucher [{$voucher->voucher_no}] directly. To cancel this delivery, delete the delivery challan in Deliveries module.");
+        }
+
         $voucherNo = $voucher->voucher_no;
         $type = $voucher->voucher_type;
         $service->deleteVoucher($voucher);
@@ -477,9 +488,9 @@ class AccountsController extends Controller
     }
 
     // ==========================================
-    // 8. FINANCIAL REPORTS (PROFIT & LOSS, TRIAL BALANCE, DAY BOOK)
+    // 8. FINANCIAL REPORTS (PROFIT & LOSS, TRIAL BALANCE, DAY BOOK, BALANCE SHEET)
     // ==========================================
-    public function reportsIndex(Request $request, AccountingService $service)
+    public function reportsIndex(Request $request, AccountingService $service, FinancialReportingService $finService)
     {
         $tab = $request->get('tab', 'profit_loss');
         $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
@@ -490,6 +501,7 @@ class AccountsController extends Controller
         $profitLossData = null;
         $trialBalanceData = null;
         $dayBookData = null;
+        $balanceSheetData = null;
 
         if ($tab === 'profit_loss') {
             $profitLossData = $service->getProfitAndLoss($fromDate, $toDate);
@@ -497,16 +509,265 @@ class AccountsController extends Controller
             $trialBalanceData = $service->getTrialBalance($asOfDate);
         } elseif ($tab === 'day_book') {
             $dayBookData = $service->getDayBook($dayBookDate);
+        } elseif ($tab === 'balance_sheet') {
+            $balanceSheetData = $finService->getBalanceSheet($asOfDate);
         }
 
         return view('factory-erp.accounts.reports.index', compact(
             'tab', 'fromDate', 'toDate', 'asOfDate', 'dayBookDate',
-            'profitLossData', 'trialBalanceData', 'dayBookData'
+            'profitLossData', 'trialBalanceData', 'dayBookData', 'balanceSheetData'
         ));
     }
 
     // ==========================================
-    // 9. SYNC FACTORY ERP DATA INTO ACCOUNTS
+    // 9. MULTI-LINE JOURNAL VOUCHERS
+    // ==========================================
+    public function journalsIndex(Request $request)
+    {
+        $query = AccountVoucher::with(['lines.account', 'reversedBy', 'customer', 'supplier', 'employee'])
+            ->where('voucher_type', 'journal');
+
+        if ($request->filled('voucher_no')) {
+            $query->where('voucher_no', 'like', "%{$request->voucher_no}%");
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('voucher_date', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('voucher_date', '<=', $request->to_date);
+        }
+
+        $totalAmount = (clone $query)->sum('amount');
+        $journals = $query->orderBy('voucher_date', 'desc')->orderBy('id', 'desc')->paginate(20)->withQueryString();
+
+        return view('factory-erp.accounts.journals.index', compact('journals', 'totalAmount'));
+    }
+
+    public function journalsCreate()
+    {
+        $accounts = Account::where('status', 'active')->orderBy('account_code')->get();
+        $customers = Customer::orderBy('company_name')->get();
+        $suppliers = Supplier::orderBy('company_name')->get();
+        $employees = HrEmployee::where('status', 'active')->orderBy('first_name')->get();
+        $nextVoucherNo = AccountVoucher::generateVoucherNo('journal');
+
+        return view('factory-erp.accounts.journals.create', compact('accounts', 'customers', 'suppliers', 'employees', 'nextVoucherNo'));
+    }
+
+    public function journalsStore(Request $request, JournalPostingService $postingService)
+    {
+        $validated = $request->validate([
+            'voucher_date' => 'required|date',
+            'notes' => 'required|string|max:500',
+            'reference_no' => 'nullable|string|max:100',
+            'customer_id' => 'nullable|exists:customers,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'employee_id' => 'nullable|exists:hr_employees,id',
+            'lines' => 'required|array|min:2',
+            'lines.*.account_id' => 'required|exists:accounts,id',
+            'lines.*.type' => 'required|in:debit,credit',
+            'lines.*.amount' => 'required|numeric|min:0.01',
+            'lines.*.narration' => 'nullable|string|max:255',
+        ]);
+
+        $debitLines = [];
+        $creditLines = [];
+        $totalDr = 0.0;
+        $totalCr = 0.0;
+
+        foreach ($validated['lines'] as $line) {
+            $amt = (float) $line['amount'];
+            if ($line['type'] === 'debit') {
+                $debitLines[] = [
+                    'account_id' => $line['account_id'],
+                    'amount' => $amt,
+                    'narration' => $line['narration'] ?? null,
+                ];
+                $totalDr += $amt;
+            } else {
+                $creditLines[] = [
+                    'account_id' => $line['account_id'],
+                    'amount' => $amt,
+                    'narration' => $line['narration'] ?? null,
+                ];
+                $totalCr += $amt;
+            }
+        }
+
+        if (count($debitLines) === 0 || count($creditLines) === 0) {
+            return redirect()->back()->withInput()->with('error', 'A journal entry must contain at least one debit line and one credit line.');
+        }
+
+        if (abs($totalDr - $totalCr) > 0.01) {
+            return redirect()->back()->withInput()->with('error', sprintf(
+                'Journal is unbalanced! Total Debit (৳ %.2f) must equal Total Credit (৳ %.2f). Difference: ৳ %.2f',
+                $totalDr, $totalCr, abs($totalDr - $totalCr)
+            ));
+        }
+
+        try {
+            $voucher = $postingService->postJournal([
+                'voucher_type' => 'journal',
+                'voucher_date' => $validated['voucher_date'],
+                'notes' => $validated['notes'],
+                'reference_no' => $validated['reference_no'] ?? null,
+                'customer_id' => $validated['customer_id'] ?? null,
+                'supplier_id' => $validated['supplier_id'] ?? null,
+                'employee_id' => $validated['employee_id'] ?? null,
+                'debit_lines' => $debitLines,
+                'credit_lines' => $creditLines,
+            ]);
+
+            return redirect()->route('factory.accounts.journals.index')
+                ->with('success', "Journal voucher {$voucher->voucher_no} posted successfully! Total ৳ " . number_format($voucher->amount, 2));
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to post journal: ' . $e->getMessage());
+        }
+    }
+
+    // ==========================================
+    // 10. VOUCHER REVERSAL
+    // ==========================================
+    public function voucherReverse(AccountVoucher $voucher, Request $request, VoucherReversalService $reversalService)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $reversalVoucher = $reversalService->reverseVoucher($voucher, $validated['reason'] ?? 'Reversed by user');
+            return redirect()->back()->with('success', "Voucher {$voucher->voucher_no} reversed successfully via contra-voucher {$reversalVoucher->voucher_no}!");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Reversal failed: ' . $e->getMessage());
+        }
+    }
+
+    // ==========================================
+    // 11. ACCOUNTING MAPPINGS
+    // ==========================================
+    public function mappingsIndex()
+    {
+        $mappings = AccountingMapping::with('account')->get();
+        $accounts = Account::where('status', 'active')->orderBy('account_code')->get();
+
+        return view('factory-erp.accounts.mappings.index', compact('mappings', 'accounts'));
+    }
+
+    public function mappingsUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'mappings' => 'required|array',
+            'mappings.*' => 'required|exists:accounts,id',
+        ]);
+
+        foreach ($validated['mappings'] as $key => $accountId) {
+            AccountingMapping::where('mapping_key', $key)->update(['account_id' => $accountId]);
+        }
+
+        return redirect()->route('factory.accounts.mappings.index')
+            ->with('success', 'Accounting system mappings updated successfully!');
+    }
+
+    // ==========================================
+    // 12. INVENTORY VALUATION (FIFO LAYERS)
+    // ==========================================
+    public function inventoryValuationIndex(Request $request, FifoInventoryService $fifoService)
+    {
+        $productId = $request->filled('product_id') ? (int)$request->product_id : null;
+        $valuationData = $fifoService->getInventoryValuationReport($productId);
+        $products = Product::orderBy('name')->get();
+
+        return view('factory-erp.accounts.inventory-valuation.index', compact('valuationData', 'products', 'productId'));
+    }
+
+    // ==========================================
+    // 13. PROFITABILITY REPORTS
+    // ==========================================
+    public function profitabilityIndex(Request $request, ProfitabilityReportingService $profitService)
+    {
+        $tab = $request->get('tab', 'product');
+        $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));
+        $productId = $request->filled('product_id') ? (int)$request->product_id : null;
+        $customerId = $request->filled('customer_id') ? (int)$request->customer_id : null;
+
+        $productData = null;
+        $deliveryData = null;
+
+        if ($tab === 'product') {
+            $productData = $profitService->getProductProfitability($fromDate, $toDate, $productId);
+        } else {
+            $deliveryData = $profitService->getDeliveryProfitability($fromDate, $toDate, $customerId);
+        }
+
+        $products = Product::orderBy('name')->get();
+        $customers = Customer::orderBy('company_name')->get();
+
+        return view('factory-erp.accounts.profit-reports.index', compact(
+            'tab', 'fromDate', 'toDate', 'productId', 'customerId',
+            'productData', 'deliveryData', 'products', 'customers'
+        ));
+    }
+
+    // ==========================================
+    // 14. SUB-LEDGERS (CUSTOMER, SUPPLIER, EMPLOYEE)
+    // ==========================================
+    public function customerLedgerIndex(Request $request, FinancialReportingService $reportingService)
+    {
+        $customers = Customer::orderBy('company_name')->get();
+        $selectedCustomerId = $request->get('customer_id', $customers->first()?->id);
+        $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));
+
+        $selectedCustomer = Customer::find($selectedCustomerId);
+        $ledgerData = null;
+
+        if ($selectedCustomer) {
+            $ledgerData = $reportingService->getCustomerLedger($selectedCustomer, $fromDate, $toDate);
+        }
+
+        return view('factory-erp.accounts.ledgers.customer', compact('customers', 'selectedCustomer', 'fromDate', 'toDate', 'ledgerData'));
+    }
+
+    public function supplierLedgerIndex(Request $request, FinancialReportingService $reportingService)
+    {
+        $suppliers = Supplier::orderBy('company_name')->get();
+        $selectedSupplierId = $request->get('supplier_id', $suppliers->first()?->id);
+        $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));
+
+        $selectedSupplier = Supplier::find($selectedSupplierId);
+        $ledgerData = null;
+
+        if ($selectedSupplier) {
+            $ledgerData = $reportingService->getSupplierLedger($selectedSupplier, $fromDate, $toDate);
+        }
+
+        return view('factory-erp.accounts.ledgers.supplier', compact('suppliers', 'selectedSupplier', 'fromDate', 'toDate', 'ledgerData'));
+    }
+
+    public function employeeLedgerIndex(Request $request, FinancialReportingService $reportingService)
+    {
+        $employees = HrEmployee::orderBy('first_name')->get();
+        $selectedEmployeeId = $request->get('employee_id', $employees->first()?->id);
+        $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));
+
+        $selectedEmployee = HrEmployee::find($selectedEmployeeId);
+        $ledgerData = null;
+
+        if ($selectedEmployee) {
+            $ledgerData = $reportingService->getEmployeeLedger($selectedEmployee, $fromDate, $toDate);
+        }
+
+        return view('factory-erp.accounts.ledgers.employee', compact('employees', 'selectedEmployee', 'fromDate', 'toDate', 'ledgerData'));
+    }
+
+    // ==========================================
+    // 15. SYNC FACTORY ERP DATA INTO ACCOUNTS
     // ==========================================
     public function syncFactoryData(AccountingService $service)
     {

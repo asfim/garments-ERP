@@ -11,6 +11,12 @@ class AccountVoucher extends Model
     protected $fillable = [
         'voucher_no',
         'voucher_type', // income, expense, transfer, journal
+        'status', // draft, posted, reversed
+        'is_reversed',
+        'reversed_by_voucher_id',
+        'reversal_reason',
+        'source_module',
+        'source_id',
         'voucher_date',
         'amount',
         'debit_account_id',
@@ -31,6 +37,7 @@ class AccountVoucher extends Model
         'voucher_date' => 'date',
         'cheque_date' => 'date',
         'amount' => 'decimal:2',
+        'is_reversed' => 'boolean',
     ];
 
     public function debitAccount(): BelongsTo
@@ -66,6 +73,31 @@ class AccountVoucher extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(AccountTransaction::class, 'voucher_id');
+    }
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(AccountVoucherLine::class, 'voucher_id');
+    }
+
+    public function sourceLink()
+    {
+        return $this->hasOne(AccountingSourceLink::class, 'voucher_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AccountingAuditLog::class, 'voucher_id');
+    }
+
+    public function reversal()
+    {
+        return $this->hasOne(AccountingReversal::class, 'original_voucher_id');
+    }
+
+    public function reversedByVoucher(): BelongsTo
+    {
+        return $this->belongsTo(AccountVoucher::class, 'reversed_by_voucher_id');
     }
 
     /**

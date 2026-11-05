@@ -568,59 +568,83 @@ class AccountingService
         $payroll->loadMissing(['employee']);
         $ref = "PAY-{$payroll->payroll_code}";
 
-        $existing = AccountVoucher::where('reference_no', $ref)
-            ->where('voucher_type', 'expense')
-            ->first();
+        $existing = AccountVoucher::where('reference_no', $ref)->first();
 
         if ($payroll->payment_status !== 'paid') {
             if ($existing) {
-                $this->deleteVoucher($existing);
+                app(VoucherReversalService::class)->reverse($existing, "Payroll marked unpaid");
             }
             return null;
         }
 
         $netSalary = (float) $payroll->net_salary;
-        if ($netSalary <= 0) return null;
+        $advDeduction = (float) $payroll->advance_deduction;
+        $grossSalary = round($netSalary + (float)$payroll->deductions, 2);
 
-        $expenseAcc = Account::where('account_code', '5003')->first() 
-            ?? Account::where('type', 'expense')->first();
+        if ($netSalary <= 0 && $grossSalary <= 0) return null;
+
+        $salaryExpenseAcc = \App\Models\AccountingMapping::getAccount('payroll_expense', '5003');
+        $salaryPayableAcc = \App\Models\AccountingMapping::getAccount('payroll_payable', '2010');
+        $advanceReceivableAcc = \App\Models\AccountingMapping::getAccount('advance_receivable', '1060');
         $paidFromAcc = $this->resolveLiquidAccount($payroll->payment_method);
 
-        if (!$expenseAcc || !$paidFromAcc) return null;
+        if (!$salaryExpenseAcc || !$salaryPayableAcc || !$paidFromAcc) return null;
 
         $paymentDate = $payroll->payment_date ? Carbon::parse($payroll->payment_date)->format('Y-m-d') : date('Y-m-d');
         $empName = $payroll->employee ? "{$payroll->employee->name} ({$payroll->employee->employee_code})" : 'Worker';
 
         if ($existing) {
-            if ((float)$existing->amount !== $netSalary) {
-                $this->deleteVoucher($existing);
-                return $this->recordExpense([
-                    'voucher_no' => $existing->voucher_no,
-                    'voucher_date' => $paymentDate,
-                    'expense_account_id' => $expenseAcc->id,
-                    'paid_from_account_id' => $paidFromAcc->id,
-                    'amount' => $netSalary,
-                    'party_name' => $empName,
-                    'employee_id' => $payroll->employee_id,
-                    'payment_method' => strtolower($payroll->payment_method ?: 'cash'),
-                    'reference_no' => $ref,
-                    'notes' => "Worker Salary for {$payroll->month} - {$empName}",
-                ]);
-            }
             return $existing;
         }
 
-        return $this->recordExpense([
-            'voucher_date' => $paymentDate,
-            'expense_account_id' => $expenseAcc->id,
-            'paid_from_account_id' => $paidFromAcc->id,
-            'amount' => $netSalary,
-            'party_name' => $empName,
-            'employee_id' => $payroll->employee_id,
-            'payment_method' => strtolower($payroll->payment_method ?: 'cash'),
-            'reference_no' => $ref,
-            'notes' => "Worker Salary for {$payroll->month} - {$empName}",
-        ]);
+        // Post complete multi-line compound journal for Payroll Accrual, Advance Recovery, and Net Disbursement
+        // Debit: Salary Expense (gross)
+        // Credit: Employee Advance Receivable (advance deducted)
+        // Credit: Cash/Bank (net paid)
+        // If other deductions exist, credit appropriate clearing/payable
+        $lines = [];
+        $lines[] = [
+            'account_id' => $salaryExpenseAcc->id,
+            'type' => 'debit',
+            'amount' => $netSalary + $advDeduction,
+            'narration' => "Salary & wages for {$payroll->month} - {$empName}",
+        ];
+
+        if ($advDeduction > 0 && $advanceReceivableAcc) {
+            $lines[] = [
+                'account_id' => $advanceReceivableAcc->id,
+                'type' => 'credit',
+                'amount' => $advDeduction,
+                'narration' => "Advance salary deduction recovery for {$empName}",
+            ];
+        }
+
+        if ($netSalary > 0) {
+            $lines[] = [
+                'account_id' => $paidFromAcc->id,
+                'type' => 'credit',
+                'amount' => $netSalary,
+                'narration' => "Net salary disbursement via " . ucfirst($payroll->payment_method ?: 'cash'),
+            ];
+        }
+
+        return app(JournalPostingService::class)->post(
+            [
+                'voucher_type' => 'expense',
+                'voucher_date' => $paymentDate,
+                'party_name' => $empName,
+                'employee_id' => $payroll->employee_id,
+                'payment_method' => strtolower($payroll->payment_method ?: 'cash'),
+                'reference_no' => $ref,
+                'notes' => "Worker Payroll disbursement for {$payroll->month} - {$empName}",
+            ],
+            $lines,
+            [
+                'source_type' => \App\Models\HrPayroll::class,
+                'source_id' => $payroll->id,
+                'event_type' => 'payroll_disbursement',
+            ]
+        );
     }
 
     /**
@@ -631,13 +655,11 @@ class AccountingService
         $advance->loadMissing(['employee']);
         $ref = "ADV-{$advance->id}";
 
-        $existing = AccountVoucher::where('reference_no', $ref)
-            ->where('voucher_type', 'expense')
-            ->first();
+        $existing = AccountVoucher::where('reference_no', $ref)->first();
 
         if ($advance->status !== 'approved' && $advance->status !== 'recovered') {
             if ($existing) {
-                $this->deleteVoucher($existing);
+                app(VoucherReversalService::class)->reverse($existing, "Advance rejected or cancelled");
             }
             return null;
         }
@@ -645,11 +667,10 @@ class AccountingService
         $amount = (float) $advance->amount;
         if ($amount <= 0) return null;
 
-        $expenseAcc = Account::where('account_code', '5003')->first() 
-            ?? Account::where('type', 'expense')->first();
+        $advanceReceivableAcc = \App\Models\AccountingMapping::getAccount('advance_receivable', '1060');
         $paidFromAcc = $this->resolveLiquidAccount($advance->payment_method);
 
-        if (!$expenseAcc || !$paidFromAcc) return null;
+        if (!$advanceReceivableAcc || !$paidFromAcc) return null;
 
         $date = Carbon::parse($advance->advance_date)->format('Y-m-d');
         $empName = $advance->employee ? "{$advance->employee->name} ({$advance->employee->employee_code})" : 'Employee';
@@ -658,17 +679,72 @@ class AccountingService
             return $existing;
         }
 
-        return $this->recordExpense([
-            'voucher_date' => $date,
-            'expense_account_id' => $expenseAcc->id,
-            'paid_from_account_id' => $paidFromAcc->id,
-            'amount' => $amount,
-            'party_name' => $empName,
-            'employee_id' => $advance->employee_id,
-            'payment_method' => strtolower($advance->payment_method ?: 'cash'),
-            'reference_no' => $ref,
-            'notes' => "Advance Salary Disbursement for {$empName} (Deduct Month: {$advance->deduct_month})",
-        ]);
+        return app(JournalPostingService::class)->post(
+            [
+                'voucher_type' => 'expense',
+                'voucher_date' => $date,
+                'party_name' => $empName,
+                'employee_id' => $advance->employee_id,
+                'payment_method' => strtolower($advance->payment_method ?: 'cash'),
+                'reference_no' => $ref,
+                'notes' => "Advance Salary Loan disbursement for {$empName} (Deduct Month: {$advance->deduct_month})",
+            ],
+            [
+                ['account_id' => $advanceReceivableAcc->id, 'type' => 'debit', 'amount' => $amount, 'narration' => "Advance salary loan to {$empName}"],
+                ['account_id' => $paidFromAcc->id, 'type' => 'credit', 'amount' => $amount, 'narration' => "Advance salary disbursed via " . ucfirst($advance->payment_method ?: 'cash')],
+            ],
+            [
+                'source_type' => \App\Models\HrAdvance::class,
+                'source_id' => $advance->id,
+                'event_type' => 'advance_disbursement',
+            ]
+        );
+    }
+
+    /**
+     * Sync Product Delivery Sales Revenue into Accounts as Income Voucher
+     */
+    public function syncDeliveryRevenue(\App\Models\Delivery $delivery): ?AccountVoucher
+    {
+        $totalDeliverAmount = (float) $delivery->total_delivered_amount;
+        if ($totalDeliverAmount <= 0) {
+            return null;
+        }
+
+        $delivery->loadMissing(['customer', 'order']);
+        $delNumber = $delivery->delivery_number;
+        $orderNumber = $delivery->order?->order_number ?? 'N/A';
+        $customerName = $delivery->customer?->company_name ?? 'Customer';
+
+        $arAcc = \App\Models\AccountingMapping::getAccount('accounts_receivable', '1050');
+        $salesAcc = \App\Models\AccountingMapping::getAccount('sales', '4001');
+
+        if (!$arAcc || !$salesAcc) {
+            return null;
+        }
+
+        $deliveryDate = $delivery->delivery_date ? Carbon::parse($delivery->delivery_date)->format('Y-m-d') : date('Y-m-d');
+
+        return app(JournalPostingService::class)->post(
+            [
+                'voucher_type' => 'income',
+                'voucher_date' => $deliveryDate,
+                'party_name' => $customerName,
+                'customer_id' => $delivery->customer_id,
+                'payment_method' => 'other',
+                'notes' => "Product Delivery Sales Revenue #{$delNumber} (Order #{$orderNumber})",
+                'reference_no' => $delNumber,
+            ],
+            [
+                ['account_id' => $arAcc->id, 'type' => 'debit', 'amount' => $totalDeliverAmount, 'narration' => "Accounts receivable for Delivery #{$delNumber}"],
+                ['account_id' => $salesAcc->id, 'type' => 'credit', 'amount' => $totalDeliverAmount, 'narration' => "Product sales revenue for Delivery #{$delNumber}"],
+            ],
+            [
+                'source_type' => \App\Models\Delivery::class,
+                'source_id' => $delivery->id,
+                'event_type' => 'sales_revenue',
+            ]
+        );
     }
 
     /**
@@ -679,8 +755,17 @@ class AccountingService
         $ordersCount = 0;
         $payrollsCount = 0;
         $advancesCount = 0;
+        $deliveriesCount = 0;
 
-        // 1. Sync all paid orders
+        // 1. Sync all product delivery sales revenue
+        $deliveries = \App\Models\Delivery::where('total_delivered_amount', '>', 0)->get();
+        foreach ($deliveries as $delivery) {
+            if ($this->syncDeliveryRevenue($delivery)) {
+                $deliveriesCount++;
+            }
+        }
+
+        // 2. Sync all paid orders
         $orders = \App\Models\Order::where('paid_amount', '>', 0)->get();
         foreach ($orders as $order) {
             if ($this->syncOrderPayment($order)) {
@@ -688,7 +773,7 @@ class AccountingService
             }
         }
 
-        // 2. Sync all paid payrolls
+        // 3. Sync all paid payrolls
         $payrolls = \App\Models\HrPayroll::where('payment_status', 'paid')->get();
         foreach ($payrolls as $payroll) {
             if ($this->syncPayrollPayment($payroll)) {
@@ -696,7 +781,7 @@ class AccountingService
             }
         }
 
-        // 3. Sync all approved advances
+        // 4. Sync all approved advances
         $advances = \App\Models\HrAdvance::whereIn('status', ['approved', 'recovered'])->get();
         foreach ($advances as $advance) {
             if ($this->syncAdvancePayment($advance)) {
@@ -705,10 +790,11 @@ class AccountingService
         }
 
         return [
+            'deliveries_synced' => $deliveriesCount,
             'orders_synced' => $ordersCount,
             'payrolls_synced' => $payrollsCount,
             'advances_synced' => $advancesCount,
-            'total_synced' => $ordersCount + $payrollsCount + $advancesCount,
+            'total_synced' => $deliveriesCount + $ordersCount + $payrollsCount + $advancesCount,
         ];
     }
 }

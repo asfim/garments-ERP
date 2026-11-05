@@ -179,19 +179,40 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::get('/transfers', [AccountsController::class, 'transferIndex'])->name('transfers.index');
         Route::post('/transfers', [AccountsController::class, 'transferStore'])->name('transfers.store');
 
-        // Universal Voucher Show & Delete
+        // Universal Voucher Show, Reversal & Delete
         Route::get('/vouchers/{voucher}', [AccountsController::class, 'voucherShow'])->name('vouchers.show');
+        Route::post('/vouchers/{voucher}/reverse', [AccountsController::class, 'voucherReverse'])->name('vouchers.reverse');
         Route::delete('/vouchers/{voucher}', [AccountsController::class, 'voucherDestroy'])->name('vouchers.destroy');
+
+        // Multi-line Journal Vouchers
+        Route::get('/journals', [AccountsController::class, 'journalsIndex'])->name('journals.index');
+        Route::get('/journals/create', [AccountsController::class, 'journalsCreate'])->name('journals.create');
+        Route::post('/journals', [AccountsController::class, 'journalsStore'])->name('journals.store');
 
         // Chart of Accounts
         Route::get('/chart', [AccountsController::class, 'chartIndex'])->name('chart.index');
         Route::post('/chart', [AccountsController::class, 'chartStore'])->name('chart.store');
         Route::put('/chart/{account}', [AccountsController::class, 'chartUpdate'])->name('chart.update');
 
+        // Accounting System Mappings
+        Route::get('/mappings', [AccountsController::class, 'mappingsIndex'])->name('mappings.index');
+        Route::post('/mappings', [AccountsController::class, 'mappingsUpdate'])->name('mappings.update');
+
         // General Ledger (খতিয়ান)
         Route::get('/ledger', [AccountsController::class, 'ledgerIndex'])->name('ledger.index');
 
-        // Financial Reports (Profit & Loss, Trial Balance, Day Book)
+        // Partner Sub-Ledgers
+        Route::get('/ledgers/customer', [AccountsController::class, 'customerLedgerIndex'])->name('ledgers.customer');
+        Route::get('/ledgers/supplier', [AccountsController::class, 'supplierLedgerIndex'])->name('ledgers.supplier');
+        Route::get('/ledgers/employee', [AccountsController::class, 'employeeLedgerIndex'])->name('ledgers.employee');
+
+        // FIFO Inventory Valuation
+        Route::get('/inventory-valuation', [AccountsController::class, 'inventoryValuationIndex'])->name('inventory-valuation.index');
+
+        // Profitability Reports (Product-wise & Delivery-wise)
+        Route::get('/profitability', [AccountsController::class, 'profitabilityIndex'])->name('profitability.index');
+
+        // Financial Reports (Profit & Loss, Trial Balance, Day Book, Balance Sheet)
         Route::get('/reports', [AccountsController::class, 'reportsIndex'])->name('reports.index');
 
         // Sync Factory ERP Data

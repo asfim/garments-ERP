@@ -913,15 +913,23 @@ class FactoryErpController extends Controller
         ]);
 
         $product = Product::with('unit')->findOrFail($validated['product_id']);
+        $unitCost = (float) $product->production_price;
+        $producedQty = (float) $validated['produced_qty'];
+        $totalCost = round($producedQty * $unitCost, 2);
 
         DB::beginTransaction();
         try {
+            $batchNumber = 'BATCH-' . date('Ym') . '-' . str_pad((Production::count() + 1), 4, '0', STR_PAD_LEFT);
+
             $production = Production::create([
                 'product_id' => $product->id,
                 'unit_id' => $product->unit_id,
                 'production_date' => $validated['production_date'],
                 'target_qty' => $validated['target_qty'],
-                'produced_qty' => $validated['produced_qty'],
+                'produced_qty' => $producedQty,
+                'batch_number' => $batchNumber,
+                'unit_cost_snapshot' => $unitCost,
+                'total_cost' => $totalCost,
                 'notes' => $validated['notes'] ?? null
             ]);
 
@@ -934,22 +942,59 @@ class FactoryErpController extends Controller
             ]);
 
             $prevStock = $stock->current_stock;
-            $stock->current_stock += $validated['produced_qty'];
-            $stock->total_produced += $validated['produced_qty'];
+            $stock->current_stock += $producedQty;
+            $stock->total_produced += $producedQty;
             $stock->save();
 
             StockLog::create([
                 'product_id' => $product->id,
                 'type' => 'production',
-                'qty' => $validated['produced_qty'],
+                'qty' => $producedQty,
                 'previous_stock' => $prevStock,
                 'new_stock' => $stock->current_stock,
-                'reference_id' => 'PROD-' . $production->id,
-                'notes' => 'Produced ' . $validated['produced_qty'] . ' ' . $product->unit->name
+                'reference_id' => $batchNumber,
+                'notes' => 'Produced ' . $producedQty . ' ' . $product->unit->name . ' (Batch #' . $batchNumber . ')'
             ]);
 
+            // CREATE FIFO INVENTORY COST LAYER
+            app(\App\Services\FifoInventoryService::class)->createCostLayer(
+                $product,
+                $producedQty,
+                $unitCost,
+                $batchNumber,
+                $validated['production_date'],
+                $production,
+                $validated['notes'] ?? "Production Batch #{$batchNumber}"
+            );
+
+            // POST DOUBLE-ENTRY MANUFACTURING COST ABSORPTION JOURNAL
+            if ($totalCost > 0) {
+                $finishedGoodsAcc = \App\Models\AccountingMapping::getAccount('finished_goods', '1040');
+                $absorptionAcc = \App\Models\AccountingMapping::getAccount('production_absorption', '5200');
+
+                if ($finishedGoodsAcc && $absorptionAcc) {
+                    app(\App\Services\JournalPostingService::class)->post(
+                        [
+                            'voucher_type' => 'journal',
+                            'voucher_date' => $validated['production_date'],
+                            'notes' => "Production batch #{$batchNumber} for {$product->name} ({$producedQty} {$product->unit->name})",
+                            'reference_no' => $batchNumber,
+                        ],
+                        [
+                            ['account_id' => $finishedGoodsAcc->id, 'type' => 'debit', 'amount' => $totalCost, 'narration' => "Finished goods inventory addition for Batch #{$batchNumber}"],
+                            ['account_id' => $absorptionAcc->id, 'type' => 'credit', 'amount' => $totalCost, 'narration' => "Manufacturing absorption clearing for Batch #{$batchNumber}"],
+                        ],
+                        [
+                            'source_type' => Production::class,
+                            'source_id' => $production->id,
+                            'event_type' => 'production_clearing',
+                        ]
+                    );
+                }
+            }
+
             DB::commit();
-            return redirect()->back()->with('success', 'Production recorded! ' . $validated['produced_qty'] . ' ' . $product->unit->name . ' auto-added to Stock.');
+            return redirect()->back()->with('success', 'Production recorded! ' . $producedQty . ' ' . $product->unit->name . ' added to Stock (Batch #' . $batchNumber . ') with FIFO layer created.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Error saving production: ' . $e->getMessage());
@@ -971,10 +1016,15 @@ class FactoryErpController extends Controller
             $oldProduced = floatval($production->produced_qty);
             $newProduced = floatval($validated['produced_qty']);
             $diff = $newProduced - $oldProduced;
+            $unitCost = (float) ($production->unit_cost_snapshot > 0 ? $production->unit_cost_snapshot : $production->product->production_price);
+
+            // Check FIFO layer edit safety (cannot reduce below already consumed qty)
+            app(\App\Services\FifoInventoryService::class)->updateProductionLayer($production, $newProduced, $unitCost);
 
             $production->production_date = $validated['production_date'];
             $production->target_qty = $validated['target_qty'];
             $production->produced_qty = $newProduced;
+            $production->total_cost = round($newProduced * $unitCost, 2);
             $production->notes = $validated['notes'] ?? null;
             $production->save();
 
@@ -991,7 +1041,7 @@ class FactoryErpController extends Controller
                 'qty' => abs($diff),
                 'previous_stock' => $prevStock,
                 'new_stock' => $stock->current_stock,
-                'reference_id' => 'PROD-' . $production->id,
+                'reference_id' => $production->batch_number ?: ('PROD-' . $production->id),
                 'notes' => 'Production batch updated (Qty diff: ' . ($diff >= 0 ? '+' : '') . $diff . ')'
             ]);
 
@@ -1008,6 +1058,20 @@ class FactoryErpController extends Controller
         $production = Production::findOrFail($id);
         DB::beginTransaction();
         try {
+            // Check FIFO safety before deleting
+            app(\App\Services\FifoInventoryService::class)->deleteProductionLayer($production);
+
+            // Reverse any linked accounting voucher safely
+            $sourceLink = \App\Models\AccountingSourceLink::where('source_type', Production::class)
+                ->where('source_id', $production->id)
+                ->first();
+            if ($sourceLink && $sourceLink->voucher && !$sourceLink->voucher->is_reversed) {
+                app(\App\Services\VoucherReversalService::class)->reverse(
+                    $sourceLink->voucher,
+                    "Reversal due to deletion of production batch #{$production->batch_number}"
+                );
+            }
+
             $stock = Stock::where('product_id', $production->product_id)->first();
             if ($stock) {
                 $prevStock = $stock->current_stock;
@@ -1028,7 +1092,7 @@ class FactoryErpController extends Controller
 
             $production->delete();
             DB::commit();
-            return redirect()->back()->with('success', 'Production record deleted and inventory reversed!');
+            return redirect()->back()->with('success', 'Production record deleted, FIFO layer removed, and inventory reversed!');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Error deleting production: ' . $e->getMessage());
@@ -1348,6 +1412,7 @@ class FactoryErpController extends Controller
             ]);
 
             $allDelivered = true;
+            $totalDeliveryCogs = 0.0;
 
             foreach ($request->items as $itemInput) {
                 $deliverQty = floatval($itemInput['deliver_qty']);
@@ -1357,14 +1422,21 @@ class FactoryErpController extends Controller
                 $product = Product::findOrFail($orderItem->product_id);
 
                 // Create delivery item
-                DeliveryItem::create([
+                $deliveryItem = DeliveryItem::create([
                     'delivery_id' => $delivery->id,
                     'order_item_id' => $orderItem->id,
                     'product_id' => $product->id,
                     'qty' => $deliverQty,
                     'sell_price' => $orderItem->sell_price,
-                    'total_price' => $deliverQty * $orderItem->sell_price
+                    'total_price' => $deliverQty * $orderItem->sell_price,
+                    'fifo_unit_cost' => 0,
+                    'fifo_total_cost' => 0,
+                    'gross_profit' => 0,
                 ]);
+
+                // Run FIFO Inventory Allocation & COGS calculation
+                $fifoResult = app(\App\Services\FifoInventoryService::class)->allocateFifo($product, $deliverQty, $deliveryItem);
+                $totalDeliveryCogs = round($totalDeliveryCogs + $fifoResult['total_cogs'], 2);
 
                 // Update Order Item delivered & due qty
                 $orderItem->delivered_qty += $deliverQty;
@@ -1390,7 +1462,7 @@ class FactoryErpController extends Controller
                         'previous_stock' => $prevStock,
                         'new_stock' => $stock->current_stock,
                         'reference_id' => $delivery->delivery_number,
-                        'notes' => "Delivered to Customer (Order: {$order->order_number})"
+                        'notes' => "Delivered to Customer (Order: {$order->order_number}) - FIFO Cost: ৳" . number_format($fifoResult['total_cogs'], 2)
                     ]);
                 }
             }
@@ -1399,6 +1471,61 @@ class FactoryErpController extends Controller
             $remainingDues = OrderItem::where('order_id', $order->id)->where('due_qty', '>', 0)->count();
             $order->delivery_status = ($remainingDues == 0) ? 'delivered' : 'partial';
             $order->save();
+
+            // DOUBLE-ENTRY POSTING: 1. Sales Delivery Revenue Income Voucher
+            if ($totalDeliverAmount > 0) {
+                $arAcc = \App\Models\AccountingMapping::getAccount('accounts_receivable', '1050');
+                $salesAcc = \App\Models\AccountingMapping::getAccount('sales', '4001');
+
+                if ($arAcc && $salesAcc) {
+                    app(\App\Services\JournalPostingService::class)->post(
+                        [
+                            'voucher_type' => 'income',
+                            'voucher_date' => $request->delivery_date,
+                            'party_name' => $order->customer?->company_name ?? 'Customer',
+                            'customer_id' => $order->customer_id,
+                            'payment_method' => 'other',
+                            'notes' => "Product Delivery Sales Revenue #{$delNumber} (Order #{$order->order_number})",
+                            'reference_no' => $delNumber,
+                        ],
+                        [
+                            ['account_id' => $arAcc->id, 'type' => 'debit', 'amount' => $totalDeliverAmount, 'narration' => "Accounts receivable for Delivery #{$delNumber}"],
+                            ['account_id' => $salesAcc->id, 'type' => 'credit', 'amount' => $totalDeliverAmount, 'narration' => "Product sales revenue for Delivery #{$delNumber}"],
+                        ],
+                        [
+                            'source_type' => Delivery::class,
+                            'source_id' => $delivery->id,
+                            'event_type' => 'sales_revenue',
+                        ]
+                    );
+                }
+            }
+
+            // DOUBLE-ENTRY POSTING: 2. COGS Journal
+            if ($totalDeliveryCogs > 0) {
+                $cogsAcc = \App\Models\AccountingMapping::getAccount('cogs', '5100');
+                $finishedGoodsAcc = \App\Models\AccountingMapping::getAccount('finished_goods', '1040');
+
+                if ($cogsAcc && $finishedGoodsAcc) {
+                    app(\App\Services\JournalPostingService::class)->post(
+                        [
+                            'voucher_type' => 'journal',
+                            'voucher_date' => $request->delivery_date,
+                            'notes' => "Cost of Goods Sold (FIFO) for Delivery #{$delNumber}",
+                            'reference_no' => "COGS-{$delNumber}",
+                        ],
+                        [
+                            ['account_id' => $cogsAcc->id, 'type' => 'debit', 'amount' => $totalDeliveryCogs, 'narration' => "COGS recognition for Delivery #{$delNumber}"],
+                            ['account_id' => $finishedGoodsAcc->id, 'type' => 'credit', 'amount' => $totalDeliveryCogs, 'narration' => "Inventory relief (FIFO) for Delivery #{$delNumber}"],
+                        ],
+                        [
+                            'source_type' => Delivery::class,
+                            'source_id' => $delivery->id,
+                            'event_type' => 'cogs',
+                        ]
+                    );
+                }
+            }
 
             DB::commit();
             return redirect()->route('factory.deliveries.index')->with('success', "Delivery {$delNumber} processed! Factory Stock and Order Due have been updated.");
@@ -1415,6 +1542,9 @@ class FactoryErpController extends Controller
         DB::beginTransaction();
         try {
             foreach ($delivery->items as $delItem) {
+                // Rollback FIFO allocations safely
+                app(\App\Services\FifoInventoryService::class)->rollbackAllocations($delItem);
+
                 // 1. Return stock to warehouse
                 $stock = Stock::where('product_id', $delItem->product_id)->first();
                 if ($stock) {
@@ -1457,6 +1587,19 @@ class FactoryErpController extends Controller
                     $order->delivery_status = 'partial';
                 }
                 $order->save();
+            }
+
+            // Reverse any linked accounting vouchers (Sales Revenue & COGS)
+            $sourceLinks = \App\Models\AccountingSourceLink::where('source_type', Delivery::class)
+                ->where('source_id', $delivery->id)
+                ->get();
+            foreach ($sourceLinks as $link) {
+                if ($link->voucher && !$link->voucher->is_reversed) {
+                    app(\App\Services\VoucherReversalService::class)->reverse(
+                        $link->voucher,
+                        "Reversal due to cancellation of Delivery #{$delivery->delivery_number}"
+                    );
+                }
             }
 
             // 4. Delete delivery items and delivery

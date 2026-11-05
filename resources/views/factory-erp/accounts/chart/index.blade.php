@@ -16,6 +16,11 @@
         </div>
 
         <div class="flex items-center gap-2.5">
+            <a href="{{ route('factory.accounts.mappings.index') }}" 
+               class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders"></i>
+                <span>System Mappings (ম্যাপিং সেটিংস)</span>
+            </a>
             <button onclick="openAddAccountModal()" 
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2">
                 <i class="fa-solid fa-plus-circle"></i>
