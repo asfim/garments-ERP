@@ -46,9 +46,15 @@
 
     @php
         $globalCompanySetting = $globalCompany ?? \App\Models\CompanySetting::first();
-        $globalWatermarkSrc = !empty($globalCompanySetting?->print_logo) && file_exists(public_path('storage/' . $globalCompanySetting->print_logo))
-            ? asset('storage/' . $globalCompanySetting->print_logo)
-            : (!empty($globalCompanySetting?->logo) && file_exists(public_path('storage/' . $globalCompanySetting->logo)) ? asset('storage/' . $globalCompanySetting->logo) : null);
+        $globalWatermarkSrc = null;
+        $gWmFile = !empty($globalCompanySetting?->print_logo) && file_exists(public_path('storage/' . $globalCompanySetting->print_logo))
+            ? public_path('storage/' . $globalCompanySetting->print_logo)
+            : (!empty($globalCompanySetting?->logo) && file_exists(public_path('storage/' . $globalCompanySetting->logo)) ? public_path('storage/' . $globalCompanySetting->logo) : null);
+        if ($gWmFile && file_exists($gWmFile)) {
+            $ext = strtolower(pathinfo($gWmFile, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/jpeg');
+            $globalWatermarkSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($gWmFile));
+        }
     @endphp
 
     @if($globalWatermarkSrc)

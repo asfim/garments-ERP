@@ -131,29 +131,16 @@
 
         <div class="relative z-10 space-y-6">
 
-            <!-- Header (Bound to Company Settings) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-700/80">
-                <div class="flex items-center gap-3.5">
-                    @if(!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)))
-                        <div class="h-14 w-auto min-w-[56px] max-w-[200px] rounded-2xl bg-white p-1.5 flex items-center justify-center border border-slate-700/70 overflow-hidden flex-shrink-0 shadow-sm">
-                            <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo" class="h-full w-auto max-w-full object-contain">
-                        </div>
-                    @endif
-                    <div>
-                        <h1 class="text-2xl font-black text-white tracking-wide">
-                            {{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}
-                        </h1>
-                        <p class="text-xs text-slate-400 mt-1">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
-                        <p class="text-xs text-slate-400">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'info@turkeybangla.com' }}</p>
-                    </div>
-                </div>
+            <!-- Official Header Matching Image 2 -->
+            @include('factory-erp.common.web-header')
 
-                <div class="text-right">
-                    <span class="doc-badge px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 font-mono font-bold text-sm border border-cyan-500/30">
-                        INVOICE
-                    </span>
-                    <p class="text-sm font-mono font-bold text-white mt-2">{{ $order->order_number }}</p>
-                    <p class="text-xs text-slate-400">Date: {{ date('d M, Y', strtotime($order->order_date)) }}</p>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                <span class="doc-badge px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 font-mono font-bold text-xs border border-cyan-500/30">
+                    TAX INVOICE
+                </span>
+                <div class="text-right text-xs">
+                    <span class="font-mono font-bold text-white">Invoice #{{ $order->order_number }}</span>
+                    <span class="text-slate-400 ml-2">Date: {{ date('d M, Y', strtotime($order->order_date)) }}</span>
                 </div>
             </div>
 
@@ -236,6 +223,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Official Footer Matching Image 2 -->
+            @include('factory-erp.common.web-footer')
 
         </div>
 

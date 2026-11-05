@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <title>Employees Directory</title>
     <style>
+        @page {
+            margin: 25px 25px 75px 25px;
+        }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #1e293b;
             font-size: 10px;
             line-height: 1.3;
-            padding: 10px;
+            padding: 0;
+            margin: 0;
         }
         .watermark {
             position: fixed;
@@ -99,52 +103,16 @@
 </head>
 <body>
 
-    @php
-        $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
-        $watermarkBase64 = null;
-        $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
-            ? public_path('storage/' . $company->print_logo)
-            : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
+    <!-- Official PDF Header Matching Image 2 -->
+    @include('factory-erp.common.pdf-header')
 
-        if ($watermarkFile && file_exists($watermarkFile)) {
-            $type = pathinfo($watermarkFile, PATHINFO_EXTENSION);
-            $data = file_get_contents($watermarkFile);
-            $watermarkBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-
-        $logoBase64 = null;
-        if (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
-            $logoFile = public_path('storage/' . $company->logo);
-            $type = pathinfo($logoFile, PATHINFO_EXTENSION);
-            $data = file_get_contents($logoFile);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-    @endphp
-
-    @if($watermarkBase64)
-        <div class="watermark">
-            <img src="{{ $watermarkBase64 }}" alt="Watermark">
-        </div>
-    @endif
-
-    <table class="header-table">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
         <tr>
-            <td style="width: 175px; vertical-align: middle;">
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" style="max-width: 165px; max-height: 60px; height: auto; width: auto; object-fit: contain;">
-                @else
-                    <div style="font-size: 16px; font-weight: bold; color: #0284c7;">{{ $company->company_name ?? 'TBG ERP' }}</div>
-                @endif
+            <td style="text-align: left; vertical-align: middle;">
+                <div class="doc-badge" style="background-color: #00adef;">EMPLOYEES DIRECTORY</div>
             </td>
-            <td style="vertical-align: middle; padding-left: 10px;">
-                <div class="company-title">{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</div>
-                <div class="company-info">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka - 1710' }}</div>
-                <div class="company-info">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'hr@turkeybangla.com' }}</div>
-            </td>
-            <td style="text-align: right; vertical-align: middle; width: 180px;">
-                <div class="doc-badge">EMPLOYEES DIRECTORY</div>
-                <div class="date-text">Generated: {{ date('d M, Y h:i A') }}</div>
-                <div class="date-text">Total Staff: {{ $employees->count() }} Workers</div>
+            <td style="text-align: right; vertical-align: middle; font-size: 10px;">
+                Generated: {{ date('d M, Y') }} | Total Staff: {{ $employees->count() }} Workers
             </td>
         </tr>
     </table>
@@ -189,9 +157,8 @@
         </tbody>
     </table>
 
-    <div class="footer">
-        <p>CONFIDENTIAL • TBG GARMENTS HUMAN RESOURCES MANAGEMENT SYSTEM</p>
-    </div>
+    <!-- Official PDF Footer Matching Image 2 -->
+    @include('factory-erp.common.pdf-footer')
 
 </body>
 </html>

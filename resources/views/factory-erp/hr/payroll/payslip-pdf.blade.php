@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <title>Payslip - {{ $payroll->employee->employee_code ?? '' }}</title>
     <style>
+        @page {
+            margin: 25px 25px 75px 25px;
+        }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #1e293b;
             font-size: 11px;
             line-height: 1.4;
-            padding: 15px;
+            padding: 0;
+            margin: 0;
         }
         .watermark {
             position: fixed;
@@ -131,52 +135,16 @@
 </head>
 <body>
 
-    @php
-        $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
-        $watermarkBase64 = null;
-        $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
-            ? public_path('storage/' . $company->print_logo)
-            : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
+    <!-- Official PDF Header Matching Image 2 -->
+    @include('factory-erp.common.pdf-header')
 
-        if ($watermarkFile && file_exists($watermarkFile)) {
-            $type = pathinfo($watermarkFile, PATHINFO_EXTENSION);
-            $data = file_get_contents($watermarkFile);
-            $watermarkBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-
-        $logoBase64 = null;
-        if (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
-            $logoFile = public_path('storage/' . $company->logo);
-            $type = pathinfo($logoFile, PATHINFO_EXTENSION);
-            $data = file_get_contents($logoFile);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-    @endphp
-
-    @if($watermarkBase64)
-        <div class="watermark">
-            <img src="{{ $watermarkBase64 }}" alt="Watermark">
-        </div>
-    @endif
-
-    <table class="header-table">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
         <tr>
-            <td style="width: 175px; vertical-align: middle;">
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" style="max-width: 165px; max-height: 65px; height: auto; width: auto; object-fit: contain;">
-                @else
-                    <div style="font-size: 18px; font-weight: bold; color: #059669;">{{ $company->company_name ?? 'TBG ERP' }}</div>
-                @endif
+            <td style="text-align: left; vertical-align: middle;">
+                <div class="doc-badge" style="background-color: #00adef;">SALARY PAYSLIP</div>
             </td>
-            <td style="vertical-align: middle; padding-left: 10px;">
-                <div class="company-title">{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</div>
-                <div class="company-info">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka - 1710' }}</div>
-                <div class="company-info">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'hr@turkeybangla.com' }}</div>
-            </td>
-            <td style="text-align: right; vertical-align: middle; width: 170px;">
-                <div class="doc-badge">SALARY PAYSLIP</div>
-                <div style="font-size: 9px; color: #64748b; margin-top: 4px;">Month: <strong>{{ \Carbon\Carbon::parse($payroll->month . '-01')->format('F Y') }}</strong></div>
-                <div style="font-size: 9px; color: #64748b;">Slip: <strong>{{ $payroll->payroll_code }}</strong></div>
+            <td style="text-align: right; vertical-align: middle; font-size: 10px;">
+                Month: <strong>{{ \Carbon\Carbon::parse($payroll->month . '-01')->format('F Y') }}</strong> | Slip: <strong>{{ $payroll->payroll_code }}</strong>
             </td>
         </tr>
     </table>
@@ -310,9 +278,8 @@
         </tr>
     </table>
 
-    <div class="footer-note">
-        CONFIDENTIAL • THIS IS A SYSTEM GENERATED COMPUTERIZED PAYSLIP • TURKEY BANGLA GARMENTS LTD
-    </div>
+    <!-- Official PDF Footer Matching Image 2 -->
+    @include('factory-erp.common.pdf-footer')
 
 </body>
 </html>

@@ -20,7 +20,7 @@
                 @endif
                 <div>
                     <h1 class="text-base font-extrabold tracking-wide text-white flex items-center gap-2 group-hover:text-cyan-300 transition-colors">
-                        {{ $globalCompany->company_name ?? 'Turkey Bangla Garments Ltd' }}
+                        {{ $globalCompany->company_name ?? 'Turkey Bangla Consumer and Food' }}
                     </h1>
                     <p class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
                         <span class="text-cyan-400">Business ERP Solution</span>

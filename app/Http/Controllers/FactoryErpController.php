@@ -26,9 +26,15 @@ class FactoryErpController extends Controller
     public function settingsIndex()
     {
         $setting = CompanySetting::first() ?? new CompanySetting([
-            'company_name' => 'Turkey Bangla Garments Ltd',
-            'address' => 'Tongi Industrial Area, Gazipur, Dhaka',
-            'phone' => '+880 1712-345678'
+            'company_name' => 'Turkey Bangla Consumer and Food',
+            'tagline' => 'Quality is our Priority',
+            'trade_licence' => '019268',
+            'tin_no' => '369123229836',
+            'address' => 'Zawad House, House# 73 ( 1st Floor ), Road# 14, Sector# 13, Uttara, Dhaka-1230, Bangladesh.',
+            'phone' => '+8801891153903, +8801718521488',
+            'hotline' => '+8801891-153903',
+            'email' => 'turkiasugarbd@gmail.com',
+            'website' => 'Turkiabazar.com',
         ]);
         return view('factory-erp.settings.index', compact('setting'));
     }
@@ -37,7 +43,11 @@ class FactoryErpController extends Controller
     {
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
+            'tagline' => 'nullable|string|max:255',
+            'trade_licence' => 'nullable|string|max:100',
+            'tin_no' => 'nullable|string|max:100',
             'phone' => 'required|string|max:100',
+            'hotline' => 'nullable|string|max:100',
             'address' => 'required|string|max:500',
             'email' => 'nullable|string|max:100',
             'website' => 'nullable|string|max:100',
@@ -47,7 +57,11 @@ class FactoryErpController extends Controller
 
         $setting = CompanySetting::first() ?? new CompanySetting();
         $setting->company_name = $validated['company_name'];
+        $setting->tagline = $validated['tagline'] ?? null;
+        $setting->trade_licence = $validated['trade_licence'] ?? null;
+        $setting->tin_no = $validated['tin_no'] ?? null;
         $setting->phone = $validated['phone'];
+        $setting->hotline = $validated['hotline'] ?? null;
         $setting->address = $validated['address'];
         $setting->email = $validated['email'] ?? null;
         $setting->website = $validated['website'] ?? null;

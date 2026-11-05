@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <title>Invoice - {{ $order->order_number }}</title>
     <style>
+        @page {
+            margin: 25px 25px 75px 25px;
+        }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #333;
             font-size: 12px;
             line-height: 1.4;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
         .watermark {
             position: fixed;
@@ -125,51 +129,17 @@
     </style>
 </head>
 <body>
-@php
-    $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
-    $watermarkBase64 = null;
-    $watermarkFile = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
-        ? public_path('storage/' . $company->print_logo)
-        : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
 
-    if ($watermarkFile && file_exists($watermarkFile)) {
-        $type = pathinfo($watermarkFile, PATHINFO_EXTENSION);
-        $data = file_get_contents($watermarkFile);
-        $watermarkBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-    }
+    <!-- Official PDF Header Matching Image 2 -->
+    @include('factory-erp.common.pdf-header')
 
-    $logoBase64 = null;
-    if (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo))) {
-        $logoFile = public_path('storage/' . $company->logo);
-        $type = pathinfo($logoFile, PATHINFO_EXTENSION);
-        $data = file_get_contents($logoFile);
-        $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-    }
-@endphp
-
-    @if($watermarkBase64)
-    <div class="watermark">
-        <img src="{{ $watermarkBase64 }}" alt="Watermark">
-    </div>
-    @endif
-
-    <!-- Header bound to Company Settings -->
-    <table class="header-table">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
         <tr>
-            @if($logoBase64)
-            <td style="width: 175px; vertical-align: top; padding-right: 15px;">
-                <img src="{{ $logoBase64 }}" style="max-width: 165px; max-height: 65px; width: auto; height: auto;" alt="Logo">
+            <td style="text-align: left; vertical-align: middle;">
+                <span class="doc-badge" style="background-color: #00adef;">TAX INVOICE</span>
             </td>
-            @endif
-            <td style="vertical-align: top;">
-                <h1 class="company-title">{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</h1>
-                <p class="company-info">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
-                <p class="company-info">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'info@turkeybangla.com' }}</p>
-            </td>
-            <td class="doc-title" style="width: 30%;">
-                <span class="doc-badge">TAX INVOICE</span>
-                <p style="margin: 4px 0 0 0; font-weight: bold; font-size: 13px;"># {{ $order->order_number }}</p>
-                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">Date: {{ date('d M, Y', strtotime($order->order_date)) }}</p>
+            <td style="text-align: right; vertical-align: middle; font-size: 11px;">
+                <strong>Invoice #{{ $order->order_number }}</strong> | Date: {{ date('d M, Y', strtotime($order->order_date)) }}
             </td>
         </tr>
     </table>
@@ -234,9 +204,8 @@
         </tr>
     </table>
 
-    <div class="footer-note">
-        Thank you for choosing {{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}. Generated on {{ date('d F Y, h:i A') }}.
-    </div>
+    <!-- Official PDF Footer Matching Image 2 -->
+    @include('factory-erp.common.pdf-footer')
 
 </body>
 </html>

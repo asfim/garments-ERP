@@ -280,30 +280,50 @@
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Income Category / Head -->
+                <!-- Income Category / Head (Dynamic: Turkey Bangla Products from Image 2 & General Heads) -->
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Income Head (আয়ের খাত) <span class="text-rose-400">*</span></label>
-                    <select name="income_account_id" required
+                    <select name="income_account_id" id="incomeAccountSelect" onchange="handleIncomeHeadChange(this)" required
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="">Select Income Account</option>
-                        @foreach($incomeAccounts as $acc)
-                        <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->category }})</option>
-                        @endforeach
+                        <option value="">Select Income Account / Product</option>
+
+                        @if(isset($products) && $products->count() > 0)
+                        <optgroup label="🛍️ পণ্য বিক্রয় আয় (Turkey Bangla Consumer & Food - ৭টি পণ্য)">
+                            @foreach($products as $prod)
+                            <option value="13"
+                                    data-is-product="true"
+                                    data-product-name="{{ $prod->name }}"
+                                    data-rate="{{ $prod->sell_price }}">
+                                {{ $prod->name }} — ৳ {{ number_format($prod->sell_price, 2) }} / {{ $prod->unit->short_code ?? 'Pcs' }}
+                            </option>
+                            @endforeach
+                        </optgroup>
+                        @endif
+
+                        <optgroup label="💼 সাধারণ আয়ের খাত (General Income Heads)">
+                            @foreach($incomeAccounts as $acc)
+                            <option value="{{ $acc->id }}" data-is-product="false" data-account-name="{{ $acc->name }}">
+                                {{ $acc->name }}
+                            </option>
+                            @endforeach
+                        </optgroup>
                     </select>
                 </div>
 
-                <!-- Deposit To Account -->
+                <!-- Deposit To Account (User rule: strictly Cash in Hand) -->
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Deposit To (জমা হবে যে অ্যাকাউন্টে) <span class="text-rose-400">*</span></label>
                     <select name="deposit_account_id" required
-                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="">Select Cash / Bank Account</option>
+                            class="w-full bg-slate-950/80 border border-emerald-500/50 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                         @foreach($liquidAccounts as $acc)
-                        <option value="{{ $acc->id }}">
-                            {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
+                        <option value="{{ $acc->id }}" {{ $loop->first ? 'selected' : '' }}>
+                            💵 {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
                         </option>
                         @endforeach
                     </select>
+                    <p class="text-[10px] text-emerald-400 mt-1 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-money-bill-wave text-[9px]"></i> শুধুমাত্র ক্যাশ ইন হ্যান্ড একাউন্ট (Cash Only)
+                    </p>
                 </div>
 
                 <!-- Amount -->
@@ -311,7 +331,7 @@
                     <label class="block text-slate-300 font-bold mb-1">Income Amount (পরিমাণ ৳) <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-slate-400 font-bold">৳</span>
-                        <input type="number" step="0.01" min="0.01" name="amount" placeholder="0.00" required
+                        <input type="number" step="0.01" min="0.01" name="amount" id="incomeAmountInput" placeholder="0.00" required
                                class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2.5 text-slate-200 font-mono font-bold text-sm focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
@@ -329,33 +349,26 @@
                 </div>
 
                 <!-- Received From (Party Name) -->
-                <div>
+                <div class="sm:col-span-2">
                     <label class="block text-slate-300 font-bold mb-1">Received From (প্রদানকারী ব্যক্তির নাম/কোম্পানি)</label>
-                    <input type="text" name="party_name" id="incomePartyName" placeholder="e.g. Md. Hasan / Square Fashion"
+                    <input type="text" name="party_name" id="incomePartyName" placeholder="e.g. Md. Hasan / Turkish Cafe & Resto"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
 
-                <!-- Payment Method -->
+                <!-- Method & Ref comment kore rakha holo (Hidden default to cash) -->
+                <input type="hidden" name="payment_method" value="cash">
+                <!--
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Payment Method (পরিশোধ মাধ্যম) <span class="text-rose-400">*</span></label>
-                    <select name="payment_method" required
-                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
-                        <option value="cash">Cash (নগদ টাকা)</option>
-                        <option value="bank">Bank Transfer (ব্যাংক ট্রান্সফার)</option>
-                        <option value="cheque">Cheque (চেক)</option>
-                        <option value="bkash">bKash (বিকাশ)</option>
-                        <option value="nagad">Nagad (নগদ)</option>
-                        <option value="rocket">Rocket (রকেট)</option>
-                        <option value="other">Other Method</option>
+                    <select name="payment_method">
+                        <option value="cash" selected>Cash (নগদ টাকা)</option>
                     </select>
                 </div>
-
-                <!-- Reference / Cheque No -->
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Reference No / Cheque No / TrxID</label>
-                    <input type="text" name="reference_no" placeholder="e.g. CHQ-981245 or TRX-87234"
-                           class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <input type="text" name="reference_no" placeholder="e.g. CHQ-981245 or TRX-87234">
                 </div>
+                -->
             </div>
 
             <!-- Notes & Attachment -->
@@ -367,7 +380,7 @@
                 </div>
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Notes / Description (বিবরণ)</label>
-                    <input type="text" name="notes" placeholder="e.g. Waste fabric scrap sales batch #4"
+                    <input type="text" name="notes" id="incomeNotesInput" placeholder="e.g. Jumbo straw sales / Delivery collection"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
@@ -487,6 +500,27 @@ function autoFillPayer() {
     const name = opt ? opt.getAttribute('data-name') : '';
     if (name) {
         document.getElementById('incomePartyName').value = name;
+    }
+}
+function handleIncomeHeadChange(select) {
+    if (!select) return;
+    const opt = select.options[select.selectedIndex];
+    if (!opt) return;
+
+    const isProduct = opt.getAttribute('data-is-product') === 'true';
+    const prodName = opt.getAttribute('data-product-name');
+    const rate = opt.getAttribute('data-rate');
+
+    const amountInput = document.getElementById('incomeAmountInput');
+    const notesInput = document.getElementById('incomeNotesInput');
+
+    if (isProduct && prodName) {
+        if (notesInput && (!notesInput.value || notesInput.value.startsWith('Product Sales:') || notesInput.value.startsWith('Sales of '))) {
+            notesInput.value = 'Sales of ' + prodName + ' (Rate: ৳ ' + rate + ')';
+        }
+        if (amountInput && (!amountInput.value || parseFloat(amountInput.value) <= 0)) {
+            amountInput.value = rate;
+        }
     }
 }
 function showVoucherDetails(arg) {

@@ -122,8 +122,35 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Company Tagline (স্লোগান)</label>
+                    <input type="text" name="tagline" value="{{ old('tagline', $setting->tagline ?? 'Quality is our Priority') }}"
+                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Trade Licence No</label>
+                    <input type="text" name="trade_licence" value="{{ old('trade_licence', $setting->trade_licence ?? '019268') }}"
+                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">TIN No</label>
+                    <input type="text" name="tin_no" value="{{ old('tin_no', $setting->tin_no ?? '369123229836') }}"
+                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number(s) *</label>
                     <input type="text" name="phone" value="{{ old('phone', $setting->phone) }}" required
+                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Hotline Number</label>
+                    <input type="text" name="hotline" value="{{ old('hotline', $setting->hotline ?? '+8801891-153903') }}"
                            class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
                 </div>
             </div>

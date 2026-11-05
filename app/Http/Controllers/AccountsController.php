@@ -142,18 +142,23 @@ class AccountsController extends Controller
         $totalFilteredIncome = (clone $query)->sum('amount');
         $vouchers = $query->orderBy('voucher_date', 'desc')->orderBy('id', 'desc')->paginate(20)->withQueryString();
 
-        // Dropdown data
+        // Dropdown data: User rule: Deposit To strictly Cash in Hand
         $incomeAccounts = Account::where('type', 'income')->where('status', 'active')->orderBy('name')->get();
         $liquidAccounts = Account::where('type', 'asset')
-            ->whereIn('category', ['Cash in Hand', 'Bank Account', 'Mobile Banking'])
+            ->where('category', 'Cash in Hand')
             ->where('status', 'active')
-            ->orderBy('name')
+            ->orderBy('id', 'asc')
             ->get();
         $customers = Customer::orderBy('company_name')->get();
+        // Load Turkey Bangla Consumer & Food products (from Image 2)
+        $products = Product::where('id', '>=', 24)->orderBy('id', 'asc')->get();
+        if ($products->isEmpty()) {
+            $products = Product::orderBy('id', 'asc')->get();
+        }
         $nextVoucherNo = AccountVoucher::generateVoucherNo('income');
 
         return view('factory-erp.accounts.income.index', compact(
-            'vouchers', 'totalFilteredIncome', 'incomeAccounts', 'liquidAccounts', 'customers', 'nextVoucherNo'
+            'vouchers', 'totalFilteredIncome', 'incomeAccounts', 'liquidAccounts', 'customers', 'products', 'nextVoucherNo'
         ));
     }
 

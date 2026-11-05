@@ -25,6 +25,17 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+        /* Top Left Cyan Accent Triangle (Matching Image 2) */
+        .header-accent-triangle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-top: 60px solid #00adef;
+            border-right: 85px solid transparent;
+            z-index: 5;
+        }
         /* Background Watermark / Jolchap */
         .watermark-container {
             position: absolute;
@@ -38,7 +49,7 @@
             align-items: center;
             justify-content: center;
             width: 70%;
-            opacity: 0.20;
+            opacity: 0.16;
         }
         .watermark-img {
             max-width: 100%;
@@ -51,52 +62,73 @@
             position: relative;
             z-index: 1;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 16px;
-            margin-bottom: 18px;
+        .header-center {
+            text-align: center;
+            margin-bottom: 8px;
         }
-        .header-brand {
-            display: flex;
+        .header-brand-wrap {
+            display: inline-flex;
             align-items: center;
-            gap: 16px;
+            justify-content: center;
+            gap: 14px;
         }
         .header-logo img {
-            max-height: 56px;
+            max-height: 54px;
             max-width: 130px;
             object-fit: contain;
             display: block;
         }
+        .company-info {
+            text-align: left;
+        }
         .company-info h1 {
             margin: 0;
-            font-size: 21px;
-            text-transform: uppercase;
+            font-size: 22px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: 0.5px;
+            text-transform: none;
         }
-        .company-info p {
-            margin: 3px 0 0 0;
+        .company-info .tagline {
+            margin: 2px 0 0 0;
             font-size: 11px;
+            font-style: italic;
+            font-weight: bold;
             color: #475569;
         }
-        .voucher-badge {
-            text-align: right;
-            flex-shrink: 0;
+        .license-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2.5px solid #00adef;
+            padding-bottom: 6px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #0f172a;
         }
-        .voucher-badge span {
+        .voucher-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .voucher-badge-box {
             display: inline-block;
             background: #be123c;
             color: #fff;
             font-weight: 800;
             font-size: 12px;
-            padding: 5px 14px;
+            padding: 4px 14px;
             border-radius: 4px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        .voucher-no-text {
+            font-family: monospace;
+            font-weight: 800;
+            font-size: 13px;
+            color: #0f172a;
         }
         .meta-grid {
             display: grid;
@@ -141,7 +173,7 @@
             border: 1px solid #fecdd3;
             padding: 14px 20px;
             border-radius: 6px;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
         }
         .amount-words {
             font-size: 12px;
@@ -157,7 +189,7 @@
         .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 60px;
+            margin-top: 45px;
             padding-top: 10px;
             font-size: 11px;
             color: #334155;
@@ -168,6 +200,29 @@
             border-top: 1px dashed #64748b;
             padding-top: 6px;
             font-weight: 600;
+        }
+        /* Footer matching Image 2 */
+        .voucher-footer {
+            border-top: 2.5px solid #00adef;
+            margin-top: 35px;
+            padding-top: 10px;
+            font-size: 10px;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .voucher-footer .left-col {
+            line-height: 1.5;
+        }
+        .voucher-footer .right-col {
+            text-align: right;
+            line-height: 1.5;
+            max-width: 55%;
+        }
+        .voucher-footer .cyan-label {
+            color: #00adef;
+            font-weight: bold;
         }
         .no-print {
             max-width: 820px;
@@ -223,7 +278,7 @@
             }
             .watermark-container {
                 display: flex !important;
-                opacity: 0.20 !important;
+                opacity: 0.16 !important;
             }
             .watermark-img {
                 mix-blend-mode: multiply !important;
@@ -247,13 +302,29 @@
 
     @php
         $company = $company ?? ($globalCompany ?? \App\Models\CompanySetting::first());
-        $watermarkSrc = !empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
-            ? asset('storage/' . $company->print_logo)
-            : (!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)) ? asset('storage/' . $company->logo) : null);
 
-        $headerLogoSrc = !empty($company->logo) && file_exists(public_path('storage/' . $company->logo))
-            ? asset('storage/' . $company->logo)
-            : (!empty($company->print_logo) && file_exists(public_path('storage/' . $company->print_logo)) ? asset('storage/' . $company->print_logo) : null);
+        // Header Logo Base64
+        $headerLogoSrc = null;
+        if (!empty($company?->logo)) {
+            $logoFile = public_path('storage/' . $company->logo);
+            if (file_exists($logoFile)) {
+                $ext = strtolower(pathinfo($logoFile, PATHINFO_EXTENSION));
+                $mime = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/jpeg');
+                $headerLogoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
+            }
+        }
+
+        // Watermark Logo Base64 (জলছাপ - Bound to /factory/settings)
+        $watermarkSrc = null;
+        $wmFile = !empty($company?->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
+            ? public_path('storage/' . $company->print_logo)
+            : (!empty($company?->logo) && file_exists(public_path('storage/' . $company->logo)) ? public_path('storage/' . $company->logo) : null);
+
+        if ($wmFile && file_exists($wmFile)) {
+            $ext = strtolower(pathinfo($wmFile, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : (($ext === 'svg') ? 'image/svg+xml' : 'image/jpeg');
+            $watermarkSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($wmFile));
+        }
     @endphp
 
     <div class="no-print">
@@ -266,7 +337,10 @@
     </div>
 
     <div class="voucher-box">
-        <!-- Background Watermark / Jolchap (জলছাপ) -->
+        <!-- Top Left Cyan Geometric Accent Triangle (Exact Image 2 Match) -->
+        <div class="header-accent-triangle" aria-hidden="true"></div>
+
+        <!-- Background Watermark / Jolchap (জলছাপ - Bound to /factory/settings) -->
         @if($watermarkSrc)
         <div class="watermark-container">
             <img src="{{ $watermarkSrc }}" alt="Company Watermark" class="watermark-img">
@@ -274,23 +348,33 @@
         @endif
 
         <div class="voucher-content">
-            <!-- Header -->
-            <div class="header">
-                <div class="header-brand">
+            <!-- Header Brand (Image 2 Design) -->
+            <div class="header-center">
+                <div class="header-brand-wrap">
                     @if($headerLogoSrc)
                     <div class="header-logo">
                         <img src="{{ $headerLogoSrc }}" alt="Logo">
                     </div>
                     @endif
                     <div class="company-info">
-                        <h1>{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</h1>
-                        <p>{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
-                        <p>Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'accounts@turkeybangla.com' }}</p>
+                        <h1>{{ $company->company_name ?? 'Turkey Bangla Consumer and Food' }}</h1>
+                        <p class="tagline">{{ $company->tagline ?? 'Quality is our Priority' }}</p>
                     </div>
                 </div>
-                <div class="voucher-badge">
-                    <span>Debit Voucher</span>
-                    <p style="margin: 6px 0 0 0; font-family: monospace; font-weight: 800; font-size: 13px;">{{ $voucher->voucher_no }}</p>
+            </div>
+
+            <!-- Subheader: Trade Licence & TIN No. with Cyan Divider Line -->
+            <div class="license-bar">
+                <span>Trade Licence No. {{ $company->trade_licence ?? '019268' }}</span>
+                <span>TIN No. {{ $company->tin_no ?? '369123229836' }}</span>
+            </div>
+
+            <div class="voucher-header-row">
+                <div>
+                    <span class="voucher-badge-box">Debit Voucher (খরচ ভাউচার)</span>
+                </div>
+                <div class="voucher-no-text">
+                    Voucher No: <span style="color: #be123c;">{{ $voucher->voucher_no }}</span>
                 </div>
             </div>
 
@@ -303,7 +387,7 @@
                     <strong>Payment Method:</strong> {{ $voucher->payment_method_label }}
                 </div>
                 <div class="meta-item">
-                    <strong>Paid From A/C:</strong> {{ $voucher->creditAccount?->name ?? 'Cash in Hand' }}
+                    <strong>Paid From A/C:</strong> {{ $voucher->creditAccount?->name ?? 'Cash in Hand (প্রধান ক্যাশ)' }}
                 </div>
                 <div class="meta-item">
                     <strong>Bill / Ref No:</strong> {{ $voucher->reference_no ?: 'N/A' }}
@@ -358,6 +442,19 @@
                 <div class="sign-line">Prepared By</div>
                 <div class="sign-line">Checked By</div>
                 <div class="sign-line">Managing Director / Partner</div>
+            </div>
+
+            <!-- Footer (Image 2 Design: Cyan Top Border, 2 Columns) -->
+            <div class="voucher-footer">
+                <div class="left-col">
+                    <div><span class="cyan-label">Email:</span> {{ $company->email ?? 'turkiasugarbd@gmail.com' }}</div>
+                    <div><span class="cyan-label">Phone:</span> {{ $company->phone ?? '+8801891153903, +8801718521488' }}</div>
+                    <div><span class="cyan-label">Web:</span> {{ $company->website ?? 'Turkiabazar.com' }}</div>
+                </div>
+                <div class="right-col">
+                    <div><strong>Head Office:</strong> {{ $company->address ?? 'Zawad House, House# 73 (1st Floor), Road# 14, Sector# 13, Uttara, Dhaka-1230, Bangladesh.' }}</div>
+                    <div style="margin-top: 3px;"><strong>Hotline:</strong> <span style="color: #00adef; font-weight: bold;">{{ $company->hotline ?? '+8801891-153903' }}</span></div>
+                </div>
             </div>
         </div>
     </div>

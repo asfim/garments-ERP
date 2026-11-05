@@ -141,35 +141,16 @@
 
             <div class="relative z-10 space-y-6">
 
-            <!-- Company & Payslip Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/80 pb-5 mb-5 gap-4">
-                <div class="flex items-center gap-3.5">
-                    @if(!empty($company->logo) && file_exists(public_path('storage/' . $company->logo)))
-                        <div class="h-14 w-auto max-w-[180px] bg-white rounded-xl p-1 border border-cyan-400/50 flex items-center justify-center">
-                            <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo" class="h-full w-auto max-w-full object-contain">
-                        </div>
-                    @else
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-black text-white text-lg">
-                            TBG
-                        </div>
-                    @endif
-                    <div>
-                        <h1 class="text-xl font-extrabold text-white">{{ $company->company_name ?? 'Turkey Bangla Garments Ltd' }}</h1>
-                        <p class="text-xs text-slate-400">{{ $company->address ?? 'Tongi Industrial Area, Gazipur, Dhaka' }}</p>
-                        <p class="text-[11px] text-slate-400">Phone: {{ $company->phone ?? '+880 1712-345678' }} | Email: {{ $company->email ?? 'hr@turkeybangla.com' }}</p>
-                    </div>
-                </div>
+            <!-- Official Header Matching Image 2 -->
+            @include('factory-erp.common.web-header')
 
-                <div class="text-right">
-                    <div class="inline-block px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-xs font-mono border border-emerald-500/40">
-                        SALARY PAYSLIP
-                    </div>
-                    <div class="text-xs text-slate-300 font-mono font-bold mt-1.5">
-                        Month: {{ \Carbon\Carbon::parse($payroll->month . '-01')->format('F Y') }}
-                    </div>
-                    <div class="text-[10px] text-slate-400 font-mono">
-                        Date: {{ $payroll->payment_date ? $payroll->payment_date->format('d M, Y') : date('d M, Y') }}
-                    </div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/60 mb-5">
+                <span class="inline-block px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-xs font-mono border border-emerald-500/40 uppercase">
+                    SALARY PAYSLIP (বেতন রশিদ)
+                </span>
+                <div class="text-right text-xs">
+                    <span class="text-slate-300 font-mono font-bold">Month: {{ \Carbon\Carbon::parse($payroll->month . '-01')->format('F Y') }}</span>
+                    <span class="text-slate-400 font-mono ml-2">Date: {{ $payroll->payment_date ? $payroll->payment_date->format('d M, Y') : date('d M, Y') }}</span>
                 </div>
             </div>
 
@@ -308,8 +289,11 @@
             </div>
 
             <div class="mt-8 text-center text-[10px] text-slate-400">
-                This is a computer-generated salary payslip from TBG Garments ERP Solution.
+                This is a computer-generated salary payslip from Turkey Bangla Consumer and Food ERP Solution.
             </div>
+
+            <!-- Official Footer Matching Image 2 -->
+            @include('factory-erp.common.web-footer')
 
             </div>
         </div>
