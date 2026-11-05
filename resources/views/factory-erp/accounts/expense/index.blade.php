@@ -277,18 +277,20 @@
                     </select>
                 </div>
 
-                <!-- Paid From Account -->
+                <!-- Paid From Account (User rule: strictly Cash in Hand) -->
                 <div>
                     <label class="block text-slate-300 font-bold mb-1">Paid From (পরিশোধের অ্যাকাউন্ট) <span class="text-rose-400">*</span></label>
                     <select name="paid_from_account_id" required
-                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
-                        <option value="">Select Cash / Bank Account</option>
+                            class="w-full bg-slate-950/80 border border-emerald-500/50 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                         @foreach($liquidAccounts as $acc)
-                        <option value="{{ $acc->id }}">
-                            {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
+                        <option value="{{ $acc->id }}" {{ $loop->first ? 'selected' : '' }}>
+                            💵 {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
                         </option>
                         @endforeach
                     </select>
+                    <p class="text-[10px] text-emerald-400 mt-1 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-money-bill-wave text-[9px]"></i> শুধুমাত্র প্রধান ক্যাশ থেকে পরিশোধ হবে (Cash Only)
+                    </p>
                 </div>
 
                 <!-- Amount -->

@@ -445,21 +445,9 @@ class AccountingService
     /**
      * Resolve liquid payment account from method string
      */
-    public function resolveLiquidAccount(?string $method): Account
+    public function resolveLiquidAccount(?string $method = 'cash'): Account
     {
-        $m = strtolower(trim((string)$method));
-        if (str_contains($m, 'bank') || str_contains($m, 'dbbl') || str_contains($m, 'ibbl') || str_contains($m, 'cheque')) {
-            $bank = Account::where('category', 'Bank Account')->where('status', 'active')->first();
-            if ($bank) return $bank;
-        } elseif (str_contains($m, 'bkash')) {
-            $bkash = Account::where('account_code', '1020')->first();
-            if ($bkash) return $bkash;
-        } elseif (str_contains($m, 'nagad')) {
-            $nagad = Account::where('account_code', '1021')->first();
-            if ($nagad) return $nagad;
-        }
-
-        // Default to Cash in Hand
+        // User rule: Full system e sob cash theke jabe asbe (Always strictly Main Cash 1001)
         return Account::where('account_code', '1001')->first() 
             ?? Account::where('category', 'Cash in Hand')->first() 
             ?? Account::where('type', 'asset')->first();

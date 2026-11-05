@@ -371,13 +371,21 @@ class AccountsController extends Controller
         $totalFilteredExpense = (clone $query)->sum('amount');
         $vouchers = $query->orderBy('voucher_date', 'desc')->orderBy('id', 'desc')->paginate(20)->withQueryString();
 
-        // Dropdown data
+        // Dropdown data: User rule: Full system e sob cash theke jabe asbe (Paid From strictly Main Cash 1001)
         $expenseAccounts = Account::where('type', 'expense')->where('status', 'active')->orderBy('name')->get();
         $liquidAccounts = Account::where('type', 'asset')
-            ->whereIn('category', ['Cash in Hand', 'Bank Account', 'Mobile Banking'])
+            ->where('category', 'Cash in Hand')
             ->where('status', 'active')
-            ->orderBy('name')
+            ->where(function ($q) {
+                $q->where('account_code', '1001')
+                  ->orWhere('name', 'like', '%প্রধান ক্যাশ%')
+                  ->orWhere('name', 'like', '%Cash in Hand%');
+            })
+            ->take(1)
             ->get();
+        if ($liquidAccounts->isEmpty()) {
+            $liquidAccounts = Account::where('type', 'asset')->where('category', 'Cash in Hand')->take(1)->get();
+        }
         $suppliers = Supplier::orderBy('name')->get();
         $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
         $nextVoucherNo = AccountVoucher::generateVoucherNo('expense');
