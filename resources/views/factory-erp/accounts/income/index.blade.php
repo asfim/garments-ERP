@@ -16,8 +16,8 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <button onclick="openIncomeModal()" 
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2">
+            <button type="button" onclick="openIncomeModal()" 
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
                 <span>+ New Income Voucher (নতুন আয়)</span>
             </button>
@@ -149,6 +149,23 @@
                         $isDelivery = ($v->source_module === 'App\Models\Delivery' || str_contains($v->reference_no ?? '', 'DEL-'));
                         $incomeHeadName = $isDelivery ? 'Product Sales Revenue' : ($v->creditAccount?->name ?? 'Product Sales Revenue');
                         $partyName = $v->party_name ?: ($v->customer?->company_name ?: 'General Customer');
+                        $voucherJson = json_encode([
+                            'voucher_no' => $v->voucher_no,
+                            'voucher_date' => $v->voucher_date->format('d M, Y'),
+                            'income_head' => $incomeHeadName,
+                            'income_code' => $v->creditAccount?->code ?? '4001',
+                            'deposit_to' => $v->debitAccount?->name ?? 'Cash/Bank',
+                            'deposit_code' => $v->debitAccount?->code ?? '1050',
+                            'party_name' => $partyName,
+                            'amount' => number_format($v->amount, 2),
+                            'payment_method' => $v->payment_method_label,
+                            'reference_no' => $v->reference_no ?: 'N/A',
+                            'notes' => $v->notes ?: 'N/A',
+                            'is_delivery' => $isDelivery,
+                            'print_url' => route('factory.accounts.income.print', $v->id),
+                            'attachment_url' => $v->attachment ? asset('storage/' . $v->attachment) : null,
+                            'created_by' => $v->createdBy?->name ?? 'System Admin',
+                        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
                     @endphp
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-3.5 px-4 font-mono font-bold text-amber-400">
@@ -184,24 +201,9 @@
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 <button type="button" 
-                                        onclick="showVoucherDetails({{ json_encode([
-                                            'voucher_no' => $v->voucher_no,
-                                            'voucher_date' => $v->voucher_date->format('d M, Y'),
-                                            'income_head' => $incomeHeadName,
-                                            'income_code' => $v->creditAccount?->code ?? '4001',
-                                            'deposit_to' => $v->debitAccount?->name ?? 'Cash/Bank',
-                                            'deposit_code' => $v->debitAccount?->code ?? '1050',
-                                            'party_name' => $partyName,
-                                            'amount' => number_format($v->amount, 2),
-                                            'payment_method' => $v->payment_method_label,
-                                            'reference_no' => $v->reference_no ?: 'N/A',
-                                            'notes' => $v->notes ?: 'N/A',
-                                            'is_delivery' => $isDelivery,
-                                            'print_url' => route('factory.accounts.income.print', $v->id),
-                                            'attachment_url' => $v->attachment ? asset('storage/' . $v->attachment) : null,
-                                            'created_by' => $v->createdBy?->name ?? 'System Admin',
-                                        ]) }})"
-                                        class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-semibold flex items-center gap-1 transition-all" title="View Full Details">
+                                        onclick="showVoucherDetails(this)"
+                                        data-voucher="{{ $voucherJson }}"
+                                        class="px-2 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer" title="View Full Details">
                                     <i class="fa-solid fa-circle-info"></i>
                                     <span>Details</span>
                                 </button>
@@ -251,9 +253,9 @@
 </div>
 
 <!-- MODAL: ADD NEW INCOME VOUCHER -->
-<div id="incomeModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
-        <button onclick="closeIncomeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="incomeModal" onclick="if(event.target === this) closeIncomeModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button type="button" onclick="closeIncomeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -385,9 +387,9 @@
 </div>
 
 <!-- MODAL: VOUCHER DETAILS -->
-<div id="voucherDetailsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
-        <button onclick="closeVoucherDetailsModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="voucherDetailsModal" onclick="if(event.target === this) closeVoucherDetailsModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button type="button" onclick="closeVoucherDetailsModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -472,61 +474,82 @@
 <script>
 function openIncomeModal() {
     const m = document.getElementById('incomeModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 function closeIncomeModal() {
     const m = document.getElementById('incomeModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
 function autoFillPayer() {
     const sel = document.getElementById('incomeCustomerSelect');
+    if (!sel) return;
     const opt = sel.options[sel.selectedIndex];
-    const name = opt.getAttribute('data-name');
+    const name = opt ? opt.getAttribute('data-name') : '';
     if (name) {
         document.getElementById('incomePartyName').value = name;
     }
 }
-function showVoucherDetails(data) {
-    document.getElementById('detVoucherNo').textContent = data.voucher_no;
-    document.getElementById('detVoucherDate').textContent = 'Voucher Date: ' + data.voucher_date;
-    document.getElementById('detIncomeHead').textContent = data.income_head;
-    document.getElementById('detDepositTo').textContent = data.deposit_to;
-    document.getElementById('detPartyName').textContent = data.party_name;
-    document.getElementById('detAmount').textContent = data.amount;
-    document.getElementById('detPaymentMethod').textContent = data.payment_method;
-    document.getElementById('detRefNo').textContent = data.reference_no;
-    document.getElementById('detNotes').textContent = data.notes;
-    document.getElementById('detCreatedBy').textContent = data.created_by;
-    document.getElementById('detPrintBtn').href = data.print_url;
+function showVoucherDetails(arg) {
+    let data = arg;
+    if (arg instanceof HTMLElement) {
+        try {
+            data = JSON.parse(arg.getAttribute('data-voucher'));
+        } catch(e) {
+            console.error('Failed to parse voucher data:', e);
+            return;
+        }
+    }
+
+    if (!data) return;
+
+    document.getElementById('detVoucherNo').textContent = data.voucher_no || '';
+    document.getElementById('detVoucherDate').textContent = 'Voucher Date: ' + (data.voucher_date || '');
+    document.getElementById('detIncomeHead').textContent = data.income_head || '';
+    document.getElementById('detDepositTo').textContent = data.deposit_to || '';
+    document.getElementById('detPartyName').textContent = data.party_name || '';
+    document.getElementById('detAmount').textContent = data.amount || '0.00';
+    document.getElementById('detPaymentMethod').textContent = data.payment_method || '';
+    document.getElementById('detRefNo').textContent = data.reference_no || 'N/A';
+    document.getElementById('detNotes').textContent = data.notes || 'N/A';
+    document.getElementById('detCreatedBy').textContent = data.created_by || 'System';
+    document.getElementById('detPrintBtn').href = data.print_url || '#';
 
     const badge = document.getElementById('detDeliveryBadge');
-    if (data.is_delivery) {
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
+    if (badge) {
+        if (data.is_delivery) {
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
     }
 
     const attContainer = document.getElementById('detAttachmentContainer');
     const attLink = document.getElementById('detAttachmentLink');
-    if (data.attachment_url) {
-        attContainer.classList.remove('hidden');
-        attLink.href = data.attachment_url;
-    } else {
-        attContainer.classList.add('hidden');
+    if (attContainer && attLink) {
+        if (data.attachment_url) {
+            attContainer.classList.remove('hidden');
+            attLink.href = data.attachment_url;
+        } else {
+            attContainer.classList.add('hidden');
+        }
     }
 
     const m = document.getElementById('voucherDetailsModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 
 function closeVoucherDetailsModal() {
     const m = document.getElementById('voucherDetailsModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeIncomeModal();
+        closeVoucherDetailsModal();
+    }
+});
 </script>
 @endsection
 

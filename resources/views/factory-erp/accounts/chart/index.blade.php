@@ -21,8 +21,8 @@
                 <i class="fa-solid fa-sliders"></i>
                 <span>System Mappings (ম্যাপিং সেটিংস)</span>
             </a>
-            <button onclick="openAddAccountModal()" 
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2">
+            <button type="button" onclick="openAddAccountModal()" 
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
                 <span>+ Add Account / Bank (নতুন খাত)</span>
             </button>
@@ -262,9 +262,9 @@
 </div>
 
 <!-- MODAL: ADD NEW ACCOUNT -->
-<div id="addAccountModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
-        <button onclick="closeAddAccountModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="addAccountModal" onclick="if(event.target === this) closeAddAccountModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button type="button" onclick="closeAddAccountModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -375,9 +375,9 @@
 </div>
 
 <!-- MODAL: EDIT ACCOUNT -->
-<div id="editAccountModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
-        <button onclick="closeEditAccountModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="editAccountModal" onclick="if(event.target === this) closeEditAccountModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button type="button" onclick="closeEditAccountModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -475,17 +475,15 @@
 <script>
 function openAddAccountModal() {
     const m = document.getElementById('addAccountModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 function closeAddAccountModal() {
     const m = document.getElementById('addAccountModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
 function openEditAccountModal(acc) {
     document.getElementById('editAccountForm').action = '/factory/accounts/chart/' + acc.id;
-    document.getElementById('editAccountCodeBadge').innerText = 'Code: #' + acc.account_code + ' (' + acc.type.toUpperCase() + ')';
+    document.getElementById('editAccountCodeBadge').innerText = 'Code: #' + acc.account_code + ' (' + (acc.type || '').toUpperCase() + ')';
     document.getElementById('editName').value = acc.name || '';
     document.getElementById('editCategory').value = acc.category || '';
     document.getElementById('editStatus').value = acc.status || 'active';
@@ -496,14 +494,20 @@ function openEditAccountModal(acc) {
     document.getElementById('editDescription').value = acc.description || '';
 
     const m = document.getElementById('editAccountModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 function closeEditAccountModal() {
     const m = document.getElementById('editAccountModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAddAccountModal();
+        closeEditAccountModal();
+    }
+});
 </script>
 @endsection
 

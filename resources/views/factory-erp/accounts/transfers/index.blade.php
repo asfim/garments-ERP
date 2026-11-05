@@ -16,8 +16,8 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <button onclick="openTransferModal()" 
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
+            <button type="button" onclick="openTransferModal()" 
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
                 <span>+ New Fund Transfer (নতুন স্থানান্তর)</span>
             </button>
@@ -176,9 +176,9 @@
 </div>
 
 <!-- MODAL: ADD NEW TRANSFER -->
-<div id="transferModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6 relative">
-        <button onclick="closeTransferModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="transferModal" onclick="if(event.target === this) closeTransferModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6 relative">
+        <button type="button" onclick="closeTransferModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -285,14 +285,19 @@
 <script>
 function openTransferModal() {
     const m = document.getElementById('transferModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 function closeTransferModal() {
     const m = document.getElementById('transferModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeTransferModal();
+    }
+});
 </script>
 @endsection
 

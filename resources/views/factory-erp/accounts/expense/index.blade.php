@@ -16,8 +16,8 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <button onclick="openExpenseModal()" 
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2">
+            <button type="button" onclick="openExpenseModal()" 
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
                 <span>+ New Expense Voucher (নতুন খরচ)</span>
             </button>
@@ -238,9 +238,9 @@
 </div>
 
 <!-- MODAL: ADD NEW EXPENSE VOUCHER -->
-<div id="expenseModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
-        <button onclick="closeExpenseModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+<div id="expenseModal" onclick="if(event.target === this) closeExpenseModal()" class="fixed inset-0 z-[9999] bg-slate-950/85 hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
+    <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative">
+        <button type="button" onclick="closeExpenseModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -391,31 +391,38 @@
 <script>
 function openExpenseModal() {
     const m = document.getElementById('expenseModal');
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    if (m) m.classList.remove('hidden');
 }
 function closeExpenseModal() {
     const m = document.getElementById('expenseModal');
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    if (m) m.classList.add('hidden');
 }
 function autoFillPayee(source) {
     if (source === 'supplier') {
         const sel = document.getElementById('expenseSupplierSelect');
+        if (!sel) return;
         const opt = sel.options[sel.selectedIndex];
-        const name = opt.getAttribute('data-name');
+        const name = opt ? opt.getAttribute('data-name') : '';
         if (name) {
             document.getElementById('expensePartyName').value = name;
         }
     } else if (source === 'employee') {
         const sel = document.getElementById('expenseEmployeeSelect');
+        if (!sel) return;
         const opt = sel.options[sel.selectedIndex];
-        const name = opt.getAttribute('data-name');
+        const name = opt ? opt.getAttribute('data-name') : '';
         if (name) {
             document.getElementById('expensePartyName').value = name;
         }
     }
 }
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeExpenseModal();
+    }
+});
 </script>
 @endsection
 
