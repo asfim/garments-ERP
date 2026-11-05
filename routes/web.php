@@ -169,6 +169,8 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::get('/income', [AccountsController::class, 'incomeIndex'])->name('income.index');
         Route::post('/income', [AccountsController::class, 'incomeStore'])->name('income.store');
         Route::post('/income-heads', [AccountsController::class, 'incomeHeadStore'])->name('income-heads.store');
+        Route::put('/income-heads/{account}', [AccountsController::class, 'incomeHeadUpdate'])->name('income-heads.update');
+        Route::delete('/income-heads/{account}', [AccountsController::class, 'incomeHeadDestroy'])->name('income-heads.destroy');
         Route::get('/income/{voucher}/print', [AccountsController::class, 'incomePrint'])->name('income.print');
 
         // Expense Management

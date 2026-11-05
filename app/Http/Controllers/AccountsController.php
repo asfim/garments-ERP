@@ -142,13 +142,21 @@ class AccountsController extends Controller
         $totalFilteredIncome = (clone $query)->sum('amount');
         $vouchers = $query->orderBy('voucher_date', 'desc')->orderBy('id', 'desc')->paginate(20)->withQueryString();
 
-        // Dropdown data: User rule: Deposit To strictly Cash in Hand
+        // Dropdown data: User rule: Deposit To strictly only one Cash Account (Cash in Hand / প্রধান ক্যাশ)
         $incomeAccounts = Account::where('type', 'income')->where('status', 'active')->orderBy('name')->get();
         $liquidAccounts = Account::where('type', 'asset')
             ->where('category', 'Cash in Hand')
             ->where('status', 'active')
-            ->orderBy('id', 'asc')
+            ->where(function ($q) {
+                $q->where('account_code', '1001')
+                  ->orWhere('name', 'like', '%প্রধান ক্যাশ%')
+                  ->orWhere('name', 'like', '%Cash in Hand%');
+            })
+            ->take(1)
             ->get();
+        if ($liquidAccounts->isEmpty()) {
+            $liquidAccounts = Account::where('type', 'asset')->where('category', 'Cash in Hand')->take(1)->get();
+        }
         $customers = Customer::orderBy('company_name')->get();
         $nextVoucherNo = AccountVoucher::generateVoucherNo('income');
 
@@ -252,6 +260,82 @@ class AccountsController extends Controller
         }
 
         return redirect()->back()->with('success', "New Income Head '{$account->name}' ({$account->account_code}) added successfully!");
+    }
+
+    public function incomeHeadUpdate(Request $request, Account $account)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|in:Operating Income,Service Income,Other Income',
+            'account_code' => 'nullable|string|max:20|unique:accounts,account_code,' . $account->id,
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $updateData = [
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+        ];
+
+        if (!empty($validated['account_code'])) {
+            $updateData['account_code'] = trim($validated['account_code']);
+        }
+
+        $account->update($updateData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Income Head '{$account->name}' updated successfully!",
+                'account' => [
+                    'id' => $account->id,
+                    'account_code' => $account->account_code,
+                    'name' => $account->name,
+                    'category' => $account->category,
+                    'description' => $account->description,
+                ]
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Income Head '{$account->name}' updated successfully!");
+    }
+
+    public function incomeHeadDestroy(Request $request, Account $account)
+    {
+        if ($account->is_system) {
+            $msg = "সিস্টেম নির্ধারিত প্রধান আয় অ্যাকাউন্ট মুছে ফেলা যাবে না।";
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $hasVouchers = AccountVoucher::where('credit_account_id', $account->id)
+            ->orWhere('debit_account_id', $account->id)
+            ->exists();
+        $hasTxns = $account->transactions()->exists();
+
+        if ($hasVouchers || $hasTxns) {
+            $msg = "এই আয়ের খাতের অধীনে ইতিমধ্যে ভাউচার বা লেনদেন রয়েছে, তাই এটি মুছে ফেলা যাবে না।";
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $name = $account->name;
+        $id = $account->id;
+        $account->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Income Head '{$name}' deleted successfully!",
+                'id' => $id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Income Head '{$name}' deleted successfully!");
     }
 
     // ==========================================

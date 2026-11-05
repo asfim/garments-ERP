@@ -490,17 +490,18 @@
         </button>
 
         <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-                <i class="fa-solid fa-folder-plus text-lg"></i>
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center" id="incomeHeadModalIconWrap">
+                <i class="fa-solid fa-folder-plus text-lg" id="incomeHeadModalIcon"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Add New Income Head (নতুন আয়ের খাত)</h3>
-                <p class="text-xs text-slate-400">ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি করুন (এটি পণ্যের তালিকা থেকে সম্পূর্ণ স্বাধীন)</p>
+                <h3 class="text-base font-extrabold text-white" id="incomeHeadModalTitle">Add New Income Head (নতুন আয়ের খাত)</h3>
+                <p class="text-xs text-slate-400" id="incomeHeadModalSubtitle">ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি ও পরিচালনা করুন (এটি পণ্যের তালিকা থেকে স্বাধীন)</p>
             </div>
         </div>
 
         <form id="incomeHeadForm" onsubmit="submitIncomeHeadForm(event)" action="{{ route('factory.accounts.income-heads.store') }}" method="POST" class="space-y-4 text-xs">
             @csrf
+            <input type="hidden" name="head_id" id="edit_head_id" value="">
 
             <!-- Income Head Name -->
             <div>
@@ -540,14 +541,18 @@
             <div id="incomeHeadModalAlert" class="hidden p-2.5 rounded-xl text-xs font-semibold"></div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" id="cancelEditIncomeHeadBtn" onclick="resetIncomeHeadForm()"
+                        class="hidden px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold border border-amber-500/30 transition-all cursor-pointer">
+                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Cancel Edit (বাতিল)
+                </button>
                 <button type="button" onclick="closeIncomeHeadModal()" 
                         class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all cursor-pointer">
-                    Cancel
+                    Close
                 </button>
                 <button type="submit" id="saveIncomeHeadBtn"
                         class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-check"></i>
-                    <span>Save Income Head</span>
+                    <i class="fa-solid fa-check" id="saveIncomeHeadIcon"></i>
+                    <span id="saveIncomeHeadText">Save Income Head</span>
                 </button>
             </div>
         </form>
@@ -556,16 +561,47 @@
         <div class="mt-6 pt-5 border-t border-slate-800">
             <h4 class="text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
                 <span>বর্তমান আয়ের খাতসমূহ (Active Income Heads):</span>
-                <span class="text-cyan-400 font-mono text-[11px]">{{ $incomeAccounts->count() }} Heads</span>
+                <span class="text-cyan-400 font-mono text-[11px]" id="incomeHeadsCountBadge">{{ $incomeAccounts->count() }} Heads</span>
             </h4>
-            <div class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]" id="existingIncomeHeadsList">
+            <div class="max-h-52 overflow-y-auto space-y-2 pr-1 text-[11px]" id="existingIncomeHeadsList">
                 @foreach($incomeAccounts as $acc)
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300">
-                    <div class="flex items-center gap-2">
-                        <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">{{ $acc->account_code }}</span>
-                        <span class="font-semibold text-white">{{ $acc->name }}</span>
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300 hover:border-slate-700 transition-all" id="income-head-row-{{ $acc->id }}">
+                    <div class="flex items-center gap-2 min-w-0 pr-2">
+                        <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20" id="head-code-label-{{ $acc->id }}">{{ $acc->account_code }}</span>
+                        <div class="truncate">
+                            <span class="font-semibold text-white block truncate" id="head-name-label-{{ $acc->id }}">{{ $acc->name }}</span>
+                            <span class="text-[9px] text-slate-400" id="head-cat-label-{{ $acc->id }}">{{ $acc->category }}</span>
+                        </div>
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">{{ $acc->category }}</span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <!-- Edit Button -->
+                        <button type="button" 
+                                data-id="{{ $acc->id }}"
+                                data-name="{{ $acc->name }}"
+                                data-category="{{ $acc->category }}"
+                                data-code="{{ $acc->account_code }}"
+                                data-description="{{ $acc->description ?? '' }}"
+                                onclick="editIncomeHeadFromBtn(this)"
+                                title="Edit this income head"
+                                class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer">
+                            <i class="fa-solid fa-pen-to-square text-[9px]"></i>
+                            <span>Edit</span>
+                        </button>
+                        <!-- Delete Button -->
+                        @if(!$acc->is_system)
+                        <button type="button" 
+                                data-id="{{ $acc->id }}"
+                                data-name="{{ $acc->name }}"
+                                onclick="deleteIncomeHeadFromBtn(this)"
+                                title="Delete this income head"
+                                class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer">
+                            <i class="fa-solid fa-trash-can text-[9px]"></i>
+                            <span>Delete</span>
+                        </button>
+                        @else
+                        <span class="text-[9px] text-slate-500 italic px-1.5 py-0.5 rounded bg-slate-800/60 border border-slate-700/50">System</span>
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -592,6 +628,68 @@ function openIncomeHeadModal() {
 function closeIncomeHeadModal() {
     const m = document.getElementById('incomeHeadModal');
     if (m) m.classList.add('hidden');
+    resetIncomeHeadForm();
+}
+
+function editIncomeHeadFromBtn(btn) {
+    if (!btn) return;
+    const data = {
+        id: btn.getAttribute('data-id'),
+        name: btn.getAttribute('data-name'),
+        category: btn.getAttribute('data-category'),
+        account_code: btn.getAttribute('data-code'),
+        description: btn.getAttribute('data-description') || ''
+    };
+    editIncomeHead(data);
+}
+
+function deleteIncomeHeadFromBtn(btn) {
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    deleteIncomeHead(id, name);
+}
+
+function editIncomeHead(data) {
+    document.getElementById('edit_head_id').value = data.id;
+    document.getElementById('new_head_name').value = data.name;
+    document.getElementById('new_head_category').value = data.category;
+    document.getElementById('new_head_code').value = data.account_code || '';
+    document.getElementById('new_head_description').value = data.description || '';
+
+    // Update modal UI for edit mode
+    document.getElementById('incomeHeadModalTitle').textContent = 'Edit Income Head (খাত সম্পাদনা)';
+    document.getElementById('incomeHeadModalSubtitle').textContent = 'আয়ের খাতের নাম, ক্যাটাগরি ও বিবরণ পরিবর্তন করুন';
+    document.getElementById('saveIncomeHeadText').textContent = 'Update Income Head';
+    document.getElementById('saveIncomeHeadIcon').className = 'fa-solid fa-arrows-rotate';
+    document.getElementById('cancelEditIncomeHeadBtn').classList.remove('hidden');
+
+    const alertBox = document.getElementById('incomeHeadModalAlert');
+    alertBox.className = 'hidden';
+
+    // Highlight row
+    document.querySelectorAll('#existingIncomeHeadsList > div').forEach(el => el.classList.remove('ring-2', 'ring-cyan-400'));
+    const row = document.getElementById('income-head-row-' + data.id);
+    if (row) row.classList.add('ring-2', 'ring-cyan-400');
+
+    // Smooth scroll modal to top
+    const container = document.getElementById('incomeHeadModal').firstElementChild;
+    if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetIncomeHeadForm() {
+    document.getElementById('incomeHeadForm').reset();
+    document.getElementById('edit_head_id').value = '';
+    document.getElementById('incomeHeadModalTitle').textContent = 'Add New Income Head (নতুন আয়ের খাত)';
+    document.getElementById('incomeHeadModalSubtitle').textContent = 'ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি ও পরিচালনা করুন (এটি পণ্যের তালিকা থেকে স্বাধীন)';
+    document.getElementById('saveIncomeHeadText').textContent = 'Save Income Head';
+    document.getElementById('saveIncomeHeadIcon').className = 'fa-solid fa-check';
+    document.getElementById('cancelEditIncomeHeadBtn').classList.add('hidden');
+
+    const alertBox = document.getElementById('incomeHeadModalAlert');
+    alertBox.className = 'hidden';
+
+    document.querySelectorAll('#existingIncomeHeadsList > div').forEach(el => el.classList.remove('ring-2', 'ring-cyan-400'));
 }
 
 function submitIncomeHeadForm(e) {
@@ -600,12 +698,19 @@ function submitIncomeHeadForm(e) {
     const formData = new FormData(form);
     const saveBtn = document.getElementById('saveIncomeHeadBtn');
     const alertBox = document.getElementById('incomeHeadModalAlert');
+    const editId = document.getElementById('edit_head_id').value;
 
     saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
     alertBox.className = 'hidden';
 
-    fetch(form.action, {
+    let url = form.action;
+    if (editId) {
+        url = '{{ url("/factory/accounts/income-heads") }}/' + editId;
+        formData.append('_method', 'PUT');
+    }
+
+    fetch(url, {
         method: 'POST',
         body: formData,
         headers: {
@@ -616,59 +721,186 @@ function submitIncomeHeadForm(e) {
     .then(async res => {
         const data = await res.json();
         saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Income Head';
+        saveBtn.innerHTML = editId ? '<i class="fa-solid fa-arrows-rotate"></i> <span>Update Income Head</span>' : '<i class="fa-solid fa-check"></i> <span>Save Income Head</span>';
 
         if (res.ok && data.success && data.account) {
-            // 1. Append to Income Voucher dropdown & select it
-            const voucherSelect = document.getElementById('incomeAccountSelect');
-            if (voucherSelect) {
-                const opt = document.createElement('option');
-                opt.value = data.account.id;
-                opt.textContent = data.account.name + ' (' + data.account.category + ')';
-                opt.selected = true;
-                voucherSelect.appendChild(opt);
-                voucherSelect.value = data.account.id;
+            const acc = data.account;
+
+            if (editId) {
+                // 1. Update Existing Row in List
+                const nameLabel = document.getElementById('head-name-label-' + acc.id);
+                const catLabel = document.getElementById('head-cat-label-' + acc.id);
+                const codeLabel = document.getElementById('head-code-label-' + acc.id);
+                if (nameLabel) nameLabel.textContent = acc.name;
+                if (catLabel) catLabel.textContent = acc.category;
+                if (codeLabel) codeLabel.textContent = acc.account_code || 'N/A';
+
+                // 2. Update Income Voucher dropdown
+                const voucherSelect = document.getElementById('incomeAccountSelect');
+                if (voucherSelect) {
+                    const opt = voucherSelect.querySelector('option[value="' + acc.id + '"]');
+                    if (opt) opt.textContent = acc.name + ' (' + acc.category + ')';
+                }
+
+                // 3. Update filter dropdown
+                const filterSelect = document.querySelector('select[name="income_account_id"]');
+                if (filterSelect) {
+                    const fOpt = filterSelect.querySelector('option[value="' + acc.id + '"]');
+                    if (fOpt) fOpt.textContent = acc.name;
+                }
+
+                alertBox.textContent = 'আয়ের খাত "' + acc.name + '" সফলভাবে আপডেট করা হয়েছে!';
+                alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
+                resetIncomeHeadForm();
+            } else {
+                // 1. Append to Income Voucher dropdown & select it
+                const voucherSelect = document.getElementById('incomeAccountSelect');
+                if (voucherSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = acc.id;
+                    opt.textContent = acc.name + ' (' + acc.category + ')';
+                    opt.selected = true;
+                    voucherSelect.appendChild(opt);
+                    voucherSelect.value = acc.id;
+                }
+
+                // 2. Append to filter dropdown
+                const filterSelect = document.querySelector('select[name="income_account_id"]');
+                if (filterSelect) {
+                    const fOpt = document.createElement('option');
+                    fOpt.value = acc.id;
+                    fOpt.textContent = acc.name;
+                    filterSelect.appendChild(fOpt);
+                }
+
+                // 3. Append to existing heads list
+                const list = document.getElementById('existingIncomeHeadsList');
+                if (list) {
+                    const item = document.createElement('div');
+                    item.id = 'income-head-row-' + acc.id;
+                    item.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300 hover:border-slate-700 transition-all';
+                    
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 min-w-0 pr-2">
+                            <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20" id="head-code-label-${acc.id}">${acc.account_code || 'N/A'}</span>
+                            <div class="truncate">
+                                <span class="font-semibold text-white block truncate" id="head-name-label-${acc.id}">${acc.name}</span>
+                                <span class="text-[9px] text-slate-400" id="head-cat-label-${acc.id}">${acc.category}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" 
+                                    data-id="${acc.id}"
+                                    data-name="${acc.name}"
+                                    data-category="${acc.category}"
+                                    data-code="${acc.account_code || ''}"
+                                    data-description="${acc.description || ''}"
+                                    onclick="editIncomeHeadFromBtn(this)"
+                                    title="Edit this income head"
+                                    class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square text-[9px]"></i>
+                                <span>Edit</span>
+                            </button>
+                            <button type="button" 
+                                    data-id="${acc.id}"
+                                    data-name="${acc.name}"
+                                    onclick="deleteIncomeHeadFromBtn(this)"
+                                    title="Delete this income head"
+                                    class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer">
+                                <i class="fa-solid fa-trash-can text-[9px]"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    `;
+                    list.insertBefore(item, list.firstChild);
+                }
+
+                // Update count badge
+                const countBadge = document.getElementById('incomeHeadsCountBadge');
+                if (countBadge) {
+                    const current = parseInt(countBadge.textContent) || 0;
+                    countBadge.textContent = (current + 1) + ' Heads';
+                }
+
+                form.reset();
+                alertBox.textContent = 'নতুন আয়ের খাত "' + acc.name + '" তৈরি ও নির্বাচিত হয়েছে!';
+                alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
             }
-
-            // 2. Append to filter dropdown
-            const filterSelect = document.querySelector('select[name="income_account_id"]');
-            if (filterSelect) {
-                const fOpt = document.createElement('option');
-                fOpt.value = data.account.id;
-                fOpt.textContent = data.account.name;
-                filterSelect.appendChild(fOpt);
-            }
-
-            // 3. Append to existing heads list
-            const list = document.getElementById('existingIncomeHeadsList');
-            if (list) {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-300';
-                item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="font-mono text-cyan-400 font-bold text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">${data.account.account_code || 'N/A'}</span>
-                        <span class="font-semibold text-white">${data.account.name}</span>
-                    </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">${data.account.category}</span>
-                `;
-                list.insertBefore(item, list.firstChild);
-            }
-
-            // Reset form and close
-            form.reset();
-            closeIncomeHeadModal();
-
-            // Brief toast message
-            alert('নতুন আয়ের খাত "' + data.account.name + '" সফলভাবে তৈরি হয়েছে এবং সিলেক্ট করা হয়েছে!');
         } else {
-            alertBox.textContent = data.message || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Error creating income head.');
+            alertBox.textContent = data.message || (data.errors ? Object.values(data.errors).flat().join(', ') : 'Error saving income head.');
             alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
         }
     })
     .catch(err => {
         saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Income Head';
+        saveBtn.innerHTML = editId ? '<i class="fa-solid fa-arrows-rotate"></i> <span>Update Income Head</span>' : '<i class="fa-solid fa-check"></i> <span>Save Income Head</span>';
         alertBox.textContent = 'Failed to save income head. Please check your network or input values.';
+        alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
+    });
+}
+
+function deleteIncomeHead(id, name) {
+    if (!confirm('আপনি কি নিশ্চিত যে আয়ের খাত "' + name + '" মুছে ফেলতে চান?')) {
+        return;
+    }
+
+    const alertBox = document.getElementById('incomeHeadModalAlert');
+    alertBox.className = 'hidden';
+
+    const csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
+    const formData = new FormData();
+    formData.append('_token', csrf);
+    formData.append('_method', 'DELETE');
+
+    fetch('{{ url("/factory/accounts/income-heads") }}/' + id, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (res.ok && data.success) {
+            // Remove from list
+            const row = document.getElementById('income-head-row-' + id);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.95)';
+                setTimeout(() => row.remove(), 250);
+            }
+
+            // Remove from Income Voucher dropdown
+            const voucherSelect = document.getElementById('incomeAccountSelect');
+            if (voucherSelect) {
+                const opt = voucherSelect.querySelector('option[value="' + id + '"]');
+                if (opt) opt.remove();
+            }
+
+            // Remove from filter dropdown
+            const filterSelect = document.querySelector('select[name="income_account_id"]');
+            if (filterSelect) {
+                const fOpt = filterSelect.querySelector('option[value="' + id + '"]');
+                if (fOpt) fOpt.remove();
+            }
+
+            // Decrement badge count
+            const countBadge = document.getElementById('incomeHeadsCountBadge');
+            if (countBadge) {
+                const current = parseInt(countBadge.textContent) || 0;
+                countBadge.textContent = Math.max(0, current - 1) + ' Heads';
+            }
+
+            alertBox.textContent = data.message || 'আয়ের খাতটি সফলভাবে মুছে ফেলা হয়েছে!';
+            alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
+        } else {
+            alertBox.textContent = data.message || 'খাতটি মুছে ফেলা সম্ভব হয়নি।';
+            alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
+        }
+    })
+    .catch(err => {
+        alertBox.textContent = 'Server error occurred while deleting income head.';
         alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
     });
 }
