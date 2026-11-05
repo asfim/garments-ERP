@@ -176,6 +176,9 @@ Route::prefix('factory')->name('factory.')->group(function () {
         // Expense Management
         Route::get('/expense', [AccountsController::class, 'expenseIndex'])->name('expense.index');
         Route::post('/expense', [AccountsController::class, 'expenseStore'])->name('expense.store');
+        Route::post('/expense-heads', [AccountsController::class, 'expenseHeadStore'])->name('expense-heads.store');
+        Route::put('/expense-heads/{account}', [AccountsController::class, 'expenseHeadUpdate'])->name('expense-heads.update');
+        Route::delete('/expense-heads/{account}', [AccountsController::class, 'expenseHeadDestroy'])->name('expense-heads.destroy');
         Route::get('/expense/{voucher}/print', [AccountsController::class, 'expensePrint'])->name('expense.print');
 
         // Fund Transfers (Contra Vouchers)

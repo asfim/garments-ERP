@@ -144,19 +144,9 @@ class AccountsController extends Controller
 
         // Dropdown data: User rule: Deposit To strictly only one Cash Account (Cash in Hand / প্রধান ক্যাশ)
         $incomeAccounts = Account::where('type', 'income')->where('status', 'active')->orderBy('name')->get();
-        $liquidAccounts = Account::where('type', 'asset')
-            ->where('category', 'Cash in Hand')
-            ->where('status', 'active')
-            ->where(function ($q) {
-                $q->where('account_code', '1001')
-                  ->orWhere('name', 'like', '%প্রধান ক্যাশ%')
-                  ->orWhere('name', 'like', '%Cash in Hand%');
-            })
-            ->take(1)
-            ->get();
-        if ($liquidAccounts->isEmpty()) {
-            $liquidAccounts = Account::where('type', 'asset')->where('category', 'Cash in Hand')->take(1)->get();
-        }
+        $primaryCash = Account::where('account_code', '1001')->first()
+            ?? Account::where('type', 'asset')->where('category', 'Cash in Hand')->first();
+        $liquidAccounts = $primaryCash ? collect([$primaryCash]) : collect();
         $customers = Customer::orderBy('company_name')->get();
         $nextVoucherNo = AccountVoucher::generateVoucherNo('income');
 
@@ -190,6 +180,13 @@ class AccountsController extends Controller
         if (!empty($validated['customer_id']) && empty($validated['party_name'])) {
             $c = Customer::find($validated['customer_id']);
             $validated['party_name'] = $c ? $c->company_name : null;
+        }
+
+        // Strictly enforce Cash in Hand (1001) as Deposit Account
+        $cashAcc = Account::where('account_code', '1001')->first()
+            ?? Account::where('type', 'asset')->where('category', 'Cash in Hand')->first();
+        if ($cashAcc) {
+            $validated['deposit_account_id'] = $cashAcc->id;
         }
 
         $voucher = $service->recordIncome($validated, $attachmentPath);
@@ -373,19 +370,9 @@ class AccountsController extends Controller
 
         // Dropdown data: User rule: Full system e sob cash theke jabe asbe (Paid From strictly Main Cash 1001)
         $expenseAccounts = Account::where('type', 'expense')->where('status', 'active')->orderBy('name')->get();
-        $liquidAccounts = Account::where('type', 'asset')
-            ->where('category', 'Cash in Hand')
-            ->where('status', 'active')
-            ->where(function ($q) {
-                $q->where('account_code', '1001')
-                  ->orWhere('name', 'like', '%প্রধান ক্যাশ%')
-                  ->orWhere('name', 'like', '%Cash in Hand%');
-            })
-            ->take(1)
-            ->get();
-        if ($liquidAccounts->isEmpty()) {
-            $liquidAccounts = Account::where('type', 'asset')->where('category', 'Cash in Hand')->take(1)->get();
-        }
+        $primaryCash = Account::where('account_code', '1001')->first()
+            ?? Account::where('type', 'asset')->where('category', 'Cash in Hand')->first();
+        $liquidAccounts = $primaryCash ? collect([$primaryCash]) : collect();
         $suppliers = Supplier::orderBy('name')->get();
         $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
         $nextVoucherNo = AccountVoucher::generateVoucherNo('expense');
@@ -426,6 +413,13 @@ class AccountsController extends Controller
             $validated['party_name'] = $e ? ($e->name . " ({$e->employee_code})") : null;
         }
 
+        // Strictly enforce Cash in Hand (1001) as Paid From Account
+        $cashAcc = Account::where('account_code', '1001')->first()
+            ?? Account::where('type', 'asset')->where('category', 'Cash in Hand')->first();
+        if ($cashAcc) {
+            $validated['paid_from_account_id'] = $cashAcc->id;
+        }
+
         $voucher = $service->recordExpense($validated, $attachmentPath);
 
         return redirect()->route('factory.accounts.expense.index')
@@ -438,6 +432,138 @@ class AccountsController extends Controller
         $company = $this->getCompany();
 
         return view('factory-erp.accounts.vouchers.print-expense', compact('voucher', 'company'));
+    }
+
+    public function expenseHeadStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'account_code' => 'nullable|string|max:20|unique:accounts,account_code',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $code = !empty($validated['account_code']) ? trim($validated['account_code']) : null;
+        if (!$code) {
+            $existingCodes = Account::where('type', 'expense')->pluck('account_code')->toArray();
+            for ($i = 5012; $i <= 5098; $i++) {
+                if (!in_array((string)$i, $existingCodes)) {
+                    $code = (string)$i;
+                    break;
+                }
+            }
+            if (!$code) {
+                for ($i = 5201; $i <= 5999; $i++) {
+                    if (!in_array((string)$i, $existingCodes)) {
+                        $code = (string)$i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $account = Account::create([
+            'account_code' => $code,
+            'name' => $validated['name'],
+            'type' => 'expense',
+            'category' => $validated['category'],
+            'opening_balance' => 0.00,
+            'current_balance' => 0.00,
+            'status' => 'active',
+            'is_system' => false,
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Expense Head '{$account->name}' created successfully!",
+                'account' => [
+                    'id' => $account->id,
+                    'account_code' => $account->account_code,
+                    'name' => $account->name,
+                    'category' => $account->category,
+                ]
+            ]);
+        }
+
+        return redirect()->back()->with('success', "New Expense Head '{$account->name}' ({$account->account_code}) added successfully!");
+    }
+
+    public function expenseHeadUpdate(Request $request, Account $account)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'account_code' => 'nullable|string|max:20|unique:accounts,account_code,' . $account->id,
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $updateData = [
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+        ];
+
+        if (!empty($validated['account_code'])) {
+            $updateData['account_code'] = trim($validated['account_code']);
+        }
+
+        $account->update($updateData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Expense Head '{$account->name}' updated successfully!",
+                'account' => [
+                    'id' => $account->id,
+                    'account_code' => $account->account_code,
+                    'name' => $account->name,
+                    'category' => $account->category,
+                    'description' => $account->description,
+                ]
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Expense Head '{$account->name}' updated successfully!");
+    }
+
+    public function expenseHeadDestroy(Request $request, Account $account)
+    {
+        if ($account->is_system) {
+            $msg = "সিস্টেম নির্ধারিত প্রধান খরচের অ্যাকাউন্ট মুছে ফেলা যাবে না।";
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $hasVouchers = AccountVoucher::where('credit_account_id', $account->id)
+            ->orWhere('debit_account_id', $account->id)
+            ->exists();
+        $hasTxns = $account->transactions()->exists();
+
+        if ($hasVouchers || $hasTxns) {
+            $msg = "এই খরচের খাতের অধীনে ইতিমধ্যে ভাউচার বা লেনদেন রয়েছে, তাই এটি মুছে ফেলা যাবে না।";
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $name = $account->name;
+        $id = $account->id;
+        $account->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Expense Head '{$name}' deleted successfully!",
+                'id' => $id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Expense Head '{$name}' deleted successfully!");
     }
 
     // ==========================================
