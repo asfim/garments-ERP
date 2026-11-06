@@ -61,7 +61,7 @@
                 <select name="employee_id" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 text-xs min-w-[200px]">
                     @foreach($employees as $e)
                     <option value="{{ $e->id }}" {{ $selectedEmployee?->id == $e->id ? 'selected' : '' }}>
-                        {{ $e->first_name }} {{ $e->last_name }} ({{ $e->employee_id }} - {{ $e->designation?->name }})
+                        {{ $e->name }} ({{ $e->employee_code }} - {{ $e->designation?->name ?? 'Staff' }})
                     </option>
                     @endforeach
                 </select>
@@ -93,10 +93,10 @@
         <div>
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-user-gear text-purple-400"></i>
-                {{ $selectedEmployee->first_name }} {{ $selectedEmployee->last_name }}
+                {{ $selectedEmployee->name }}
             </h3>
             <div class="text-xs text-slate-400 mt-1 space-x-3">
-                <span>ID: <strong class="text-purple-300 font-mono">{{ $selectedEmployee->employee_id }}</strong></span>
+                <span>Code: <strong class="text-purple-300 font-mono">{{ $selectedEmployee->employee_code }}</strong></span>
                 <span>Designation: <strong class="text-slate-200">{{ $selectedEmployee->designation?->name ?? 'Staff' }}</strong></span>
                 <span>Department: <strong class="text-slate-200">{{ $selectedEmployee->department?->name ?? 'General' }}</strong></span>
             </div>

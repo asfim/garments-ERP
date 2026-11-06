@@ -149,7 +149,7 @@
 </a>
 --}}
 
-<!-- ACC 5. Chart of Accounts -->
+{{-- ACC 5. Chart of Accounts [Commented out as per user request]
 @php $isChart = request()->routeIs('factory.accounts.chart.*'); @endphp
 <a href="{{ route('factory.accounts.chart.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isChart ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/25 border border-indigo-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -158,6 +158,7 @@
     </span>
     <span>Chart of Accounts</span>
 </a>
+--}}
 
 <!-- ACC 6. General Ledger (খতিয়ান ও সহকারী) -->
 @php $isLedger = request()->routeIs('factory.accounts.ledger.*') || request()->routeIs('factory.accounts.ledgers.*'); @endphp

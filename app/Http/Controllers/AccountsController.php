@@ -824,8 +824,8 @@ class AccountsController extends Controller
     {
         $accounts = Account::where('status', 'active')->orderBy('account_code')->get();
         $customers = Customer::orderBy('company_name')->get();
-        $suppliers = Supplier::orderBy('company_name')->get();
-        $employees = HrEmployee::where('status', 'active')->orderBy('first_name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
+        $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
         $nextVoucherNo = AccountVoucher::generateVoucherNo('journal');
 
         return view('factory-erp.accounts.journals.create', compact('accounts', 'customers', 'suppliers', 'employees', 'nextVoucherNo'));
@@ -1008,7 +1008,7 @@ class AccountsController extends Controller
 
     public function supplierLedgerIndex(Request $request, FinancialReportingService $reportingService)
     {
-        $suppliers = Supplier::orderBy('company_name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
         $selectedSupplierId = $request->get('supplier_id', $suppliers->first()?->id);
         $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));
@@ -1025,7 +1025,10 @@ class AccountsController extends Controller
 
     public function employeeLedgerIndex(Request $request, FinancialReportingService $reportingService)
     {
-        $employees = HrEmployee::orderBy('first_name')->get();
+        $employees = HrEmployee::where('status', 'active')->orderBy('name')->get();
+        if ($employees->isEmpty()) {
+            $employees = HrEmployee::orderBy('name')->get();
+        }
         $selectedEmployeeId = $request->get('employee_id', $employees->first()?->id);
         $fromDate = $request->get('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->get('to_date', Carbon::now()->format('Y-m-d'));

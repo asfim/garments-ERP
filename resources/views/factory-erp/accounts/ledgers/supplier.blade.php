@@ -61,7 +61,7 @@
                 <select name="supplier_id" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 text-xs min-w-[200px]">
                     @foreach($suppliers as $s)
                     <option value="{{ $s->id }}" {{ $selectedSupplier?->id == $s->id ? 'selected' : '' }}>
-                        {{ $s->company_name }} ({{ $s->phone }})
+                        {{ $s->name }} ({{ $s->phone }})
                     </option>
                     @endforeach
                 </select>
@@ -93,7 +93,7 @@
         <div>
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-truck text-orange-400"></i>
-                {{ $selectedSupplier->company_name }}
+                {{ $selectedSupplier->name }}
             </h3>
             <div class="text-xs text-slate-400 mt-1 space-x-3">
                 <span>Phone: <strong class="text-slate-200">{{ $selectedSupplier->phone ?: 'N/A' }}</strong></span>
