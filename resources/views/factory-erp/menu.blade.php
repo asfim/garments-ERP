@@ -167,7 +167,7 @@
     <span class="w-6 h-6 rounded-lg {{ $isLedger ? 'bg-white/20 text-white' : 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20' }} flex items-center justify-center">
         <i class="fa-solid fa-receipt text-[11px]"></i>
     </span>
-    <span>General Ledger (খতিয়ান)</span>
+    <span>General Ledger</span>
 </a>
 
 <!-- ACC 7. Financial Reports -->

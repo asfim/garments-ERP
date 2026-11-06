@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-address-book text-pink-400"></i>
-                Customer Sub-Ledger (গ্রাহক সহকারী খতিয়ান)
+                Customer Sub-Ledger
             </h2>
             <p class="text-xs text-slate-400">Detailed double-entry transactions, deliveries, and payment receipts by customer</p>
         </div>
@@ -34,22 +34,22 @@
         <a href="{{ route('factory.accounts.ledger.index') }}" 
            class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
             <i class="fa-solid fa-receipt text-sm"></i>
-            <span>1. General Ledger (সাধারণ খতিয়ান)</span>
+            <span>1. General Ledger</span>
         </a>
         <a href="{{ route('factory.accounts.ledgers.customer') }}" 
            class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/25">
             <i class="fa-solid fa-user text-sm"></i>
-            <span>2. Customer Ledger (গ্রাহক খতিয়ান)</span>
+            <span>2. Customer Ledger</span>
         </a>
         <a href="{{ route('factory.accounts.ledgers.supplier') }}" 
            class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
             <i class="fa-solid fa-truck text-sm"></i>
-            <span>3. Supplier Ledger (সরবরাহকারী খতিয়ান)</span>
+            <span>3. Supplier Ledger</span>
         </a>
         <a href="{{ route('factory.accounts.ledgers.employee') }}" 
            class="px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
             <i class="fa-solid fa-user-tie text-sm"></i>
-            <span>4. Employee Advance Ledger (কর্মচারী অগ্রিম)</span>
+            <span>4. Employee Advance Ledger</span>
         </a>
     </div>
 
