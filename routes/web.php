@@ -190,10 +190,10 @@ Route::prefix('factory')->name('factory.')->group(function () {
         Route::post('/vouchers/{voucher}/reverse', [AccountsController::class, 'voucherReverse'])->name('vouchers.reverse');
         Route::delete('/vouchers/{voucher}', [AccountsController::class, 'voucherDestroy'])->name('vouchers.destroy');
 
-        // Multi-line Journal Vouchers
-        Route::get('/journals', [AccountsController::class, 'journalsIndex'])->name('journals.index');
-        Route::get('/journals/create', [AccountsController::class, 'journalsCreate'])->name('journals.create');
-        Route::post('/journals', [AccountsController::class, 'journalsStore'])->name('journals.store');
+        // Multi-line Journal Vouchers (Commented out as per user request)
+        // Route::get('/journals', [AccountsController::class, 'journalsIndex'])->name('journals.index');
+        // Route::get('/journals/create', [AccountsController::class, 'journalsCreate'])->name('journals.create');
+        // Route::post('/journals', [AccountsController::class, 'journalsStore'])->name('journals.store');
 
         // Chart of Accounts
         Route::get('/chart', [AccountsController::class, 'chartIndex'])->name('chart.index');

@@ -138,7 +138,7 @@
     <span>Expense (ব্যয়)</span>
 </a>
 
-<!-- ACC 4. Journal Vouchers (জাবেদা) -->
+{{-- ACC 4. Journal Vouchers (জাবেদা) [Commented out as per user request]
 @php $isJournal = request()->routeIs('factory.accounts.journals.*'); @endphp
 <a href="{{ route('factory.accounts.journals.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isJournal ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -147,6 +147,7 @@
     </span>
     <span>Journal Voucher (জাবেদা)</span>
 </a>
+--}}
 
 <!-- ACC 5. Chart of Accounts -->
 @php $isChart = request()->routeIs('factory.accounts.chart.*'); @endphp
