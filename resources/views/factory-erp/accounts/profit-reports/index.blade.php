@@ -6,18 +6,18 @@
 <div class="space-y-6">
 
     <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div id="reportPageHeader" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-chart-column text-cyan-400"></i>
-                Profitability Reports (মুনাফা ও লাভজনকতা প্রতিবেদন)
+                Profitability Reports
             </h2>
             <p class="text-xs text-slate-400">Audited Product-wise and Delivery-wise Gross Margins powered by exact FIFO cost layer allocations</p>
         </div>
 
         <div class="flex items-center gap-2.5">
             <button onclick="window.print()" 
-                    class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
+                    class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-print"></i>
                 <span>Print Report</span>
             </button>
@@ -29,27 +29,11 @@
         </div>
     </div>
 
-    <!-- MAIN FINANCIAL STATEMENTS NAV -->
-    <div class="glass-panel p-2 rounded-2xl border border-slate-800/80 flex flex-wrap gap-2 text-xs">
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'profit_loss']) }}" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-line"></i> P&L Statement
-        </a>
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'trial_balance']) }}" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-scale-balanced"></i> Trial Balance
-        </a>
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'balance_sheet']) }}" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-landmark"></i> Balance Sheet
-        </a>
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'day_book']) }}" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-book"></i> Day Book
-        </a>
-        <a href="{{ route('factory.accounts.profitability.index') }}" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 text-white font-bold shadow-lg shadow-cyan-500/25 flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-column"></i> Profitability Reports
-        </a>
-        <a href="{{ route('factory.accounts.inventory-valuation.index') }}" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium flex items-center gap-1.5">
-            <i class="fa-solid fa-boxes-stacked"></i> FIFO Inventory Valuation
-        </a>
-    </div>
+    <!-- UNIFIED REPORT NAVIGATION TABS -->
+    @include('factory-erp.accounts.reports.tabs-nav')
+
+    <!-- REPORT CONTENT CONTAINER (AJAX SWAPPED) -->
+    <div id="reportTabContent" class="space-y-6">
 
     <!-- REPORT TABS -->
     <div class="glass-panel p-2 rounded-2xl border border-slate-800/80 flex flex-wrap gap-2">
@@ -309,7 +293,10 @@
         </div>
     </div>
     @endif
+    </div> <!-- /#reportTabContent -->
 
 </div>
+
+@include('factory-erp.accounts.reports.ajax-script')
 @endsection
 

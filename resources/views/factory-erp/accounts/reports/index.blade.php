@@ -6,18 +6,18 @@
 <div class="space-y-6">
 
     <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div id="reportPageHeader" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-file-invoice-dollar text-teal-400"></i>
-                Financial Statements & Reports (আর্থিক প্রতিবেদনসমূহ)
+                Financial Statements & Reports
             </h2>
-            <p class="text-xs text-slate-400">Audited Profit & Loss (Income Statement), Trial Balance, and Daily Cash Book</p>
+            <p class="text-xs text-slate-400">Audited Profit & Loss (Income Statement), Trial Balance, Day Book, and Balance Sheet</p>
         </div>
 
         <div class="flex items-center gap-2.5">
             <button onclick="window.print()" 
-                    class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
+                    class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-print"></i>
                 <span>Print Report</span>
             </button>
@@ -29,44 +29,11 @@
         </div>
     </div>
 
-    <!-- REPORT NAVIGATION TABS -->
-    <div class="glass-panel p-2 rounded-2xl border border-slate-800/80 flex flex-wrap gap-2">
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'profit_loss']) }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 {{ $tab === 'profit_loss' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-            <i class="fa-solid fa-chart-line text-sm"></i>
-            <span>1. Profit & Loss Statement (লাভ-ক্ষতি বিবরণী)</span>
-        </a>
+    <!-- UNIFIED REPORT NAVIGATION TABS -->
+    @include('factory-erp.accounts.reports.tabs-nav')
 
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'trial_balance']) }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 {{ $tab === 'trial_balance' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-            <i class="fa-solid fa-scale-balanced text-sm"></i>
-            <span>2. Trial Balance (রেওয়ামিল)</span>
-        </a>
-
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'day_book']) }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 {{ $tab === 'day_book' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-            <i class="fa-solid fa-book text-sm"></i>
-            <span>3. Day Book / Cash Book (দৈনিক ক্যাশ বুক)</span>
-        </a>
-
-        <a href="{{ route('factory.accounts.reports.index', ['tab' => 'balance_sheet']) }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 {{ $tab === 'balance_sheet' ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-            <i class="fa-solid fa-landmark text-sm"></i>
-            <span>4. Balance Sheet (উদ্বৃত্তপত্র / স্থিতিপত্র)</span>
-        </a>
-
-        <a href="{{ route('factory.accounts.profitability.index') }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <i class="fa-solid fa-chart-column text-sm"></i>
-            <span>5. Profitability Reports (মুনাফা প্রতিবেদন)</span>
-        </a>
-
-        <a href="{{ route('factory.accounts.inventory-valuation.index') }}" 
-           class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <i class="fa-solid fa-boxes-stacked text-sm"></i>
-            <span>6. FIFO Inventory Valuation (ইনভেন্টরি মূল্যায়ন)</span>
-        </a>
-    </div>
+    <!-- REPORT CONTENT CONTAINER (AJAX SWAPPED) -->
+    <div id="reportTabContent" class="space-y-6">
 
     <!-- ========================================== -->
     <!-- TAB 1: PROFIT & LOSS STATEMENT -->
@@ -534,7 +501,10 @@
         </div>
     </div>
     @endif
+    </div> <!-- /#reportTabContent -->
 
 </div>
+
+@include('factory-erp.accounts.reports.ajax-script')
 @endsection
 
