@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>
-                Income & Revenue Management (আয় ব্যবস্থাপনা)
+                Income & Revenue Management
             </h2>
             <p class="text-xs text-slate-400">Record factory sales, sample charges, scrap sales, and other cash/bank inflows</p>
         </div>
@@ -56,7 +56,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="glass-panel p-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/20 to-slate-900/40 flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">Total Filtered Income (মোট সংগৃহীত আয়)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">Total Filtered Income</span>
                 <h3 class="text-2xl font-black text-white font-mono mt-1">৳ {{ number_format($totalFilteredIncome, 2) }}</h3>
             </div>
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -111,7 +111,7 @@
 
             <!-- Income Head -->
             <div>
-                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Income Head (খাত)</label>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Income Head</label>
                 <select name="income_account_id" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500 text-xs">
                     <option value="">All Income Heads</option>
                     @foreach($incomeAccounts as $acc)
@@ -152,7 +152,7 @@
                         <th class="py-3.5 px-4 text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/60">
+                <tbody class="divide-y divide-slate-800/60" id="incomeTableBody">
                     @forelse($vouchers as $v)
                     @php
                         $isDelivery = ($v->source_module === 'App\Models\Delivery' || str_contains($v->reference_no ?? '', 'DEL-'));
@@ -241,7 +241,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr id="incomeEmptyRow">
                         <td colspan="7" class="py-12 text-center text-slate-500">
                             <i class="fa-solid fa-arrow-trend-up text-3xl mb-2 opacity-50 block"></i>
                             No income records found matching your filters.
@@ -252,11 +252,29 @@
             </table>
         </div>
 
-        @if($vouchers->hasPages())
-        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
-            {{ $vouchers->links() }}
+        <!-- LOAD MORE & PAGINATION INFO -->
+        <div id="incomeLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="incomeCurrentCount" class="text-emerald-400 font-bold">{{ $vouchers->count() }}</span> of <span id="incomeTotalCount" class="text-white font-bold">{{ $vouchers->total() }}</span> records
+            </div>
+
+            @if($vouchers->hasMorePages())
+            <button type="button" 
+                    id="incomeLoadMoreBtn"
+                    data-next-page="{{ $vouchers->currentPage() + 1 }}"
+                    data-total-pages="{{ $vouchers->lastPage() }}"
+                    onclick="loadMoreIncome()"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-spinner fa-spin hidden" id="incomeLoadSpinner"></i>
+                <i class="fa-solid fa-circle-down" id="incomeLoadIcon"></i>
+                <span id="incomeLoadText">Load More Records</span>
+            </button>
+            @else
+            <div id="incomeAllLoaded" class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400"></i> All records loaded
+            </div>
+            @endif
         </div>
-        @endif
     </div>
 
 </div>
