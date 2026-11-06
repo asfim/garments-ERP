@@ -19,12 +19,12 @@
             <button type="button" onclick="openExpenseHeadModal()" 
                     class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-folder-plus text-rose-400"></i>
-                <span>+ Add Expense Head (নতুন খাত)</span>
+                <span>+ Add Expense Head</span>
             </button>
             <button type="button" onclick="openExpenseModal()" 
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
-                <span>+ New Expense Voucher (নতুন খরচ)</span>
+                <span>+ New Expense Voucher</span>
             </button>
             <a href="{{ route('factory.accounts.dashboard') }}" 
                 class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
@@ -275,7 +275,7 @@
                         <label class="text-slate-300 font-bold">Expense Head (খরচের খাত) <span class="text-rose-400">*</span></label>
                         <button type="button" onclick="openExpenseHeadModal()" 
                                 class="text-[10px] text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1 cursor-pointer">
-                            <i class="fa-solid fa-plus-circle"></i> + Add Head (নতুন খাত)
+                            <i class="fa-solid fa-plus-circle"></i> + Add Head
                         </button>
                     </div>
                     <select name="expense_account_id" id="expenseAccountSelect" required
@@ -289,20 +289,20 @@
 
                 <!-- Paid From Account (User rule: strictly Cash in Hand) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Paid From (পরিশোধের অ্যাকাউন্ট) <span class="text-rose-400">*</span></label>
-                    <div class="relative">
-                        <select name="paid_from_account_id" required
-                                class="w-full bg-slate-950/80 border border-emerald-500/50 rounded-xl px-3 py-2.5 text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500">
-                            @foreach($liquidAccounts as $acc)
-                            <option value="{{ $acc->id }}" selected>
-                                💵 {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
-                            </option>
-                            @endforeach
-                        </select>
-                        <span class="absolute right-3 top-2.5 text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider pointer-events-none">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-slate-300 font-bold">Paid From (পরিশোধের অ্যাকাউন্ট) <span class="text-rose-400">*</span></label>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">
                             <i class="fa-solid fa-lock text-[9px] mr-1"></i> Cash Only
                         </span>
                     </div>
+                    <select name="paid_from_account_id" required
+                            class="w-full bg-slate-950/80 border border-emerald-500/50 rounded-xl px-3.5 py-2.5 text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500">
+                        @foreach($liquidAccounts as $acc)
+                        <option value="{{ $acc->id }}" selected>
+                            💵 {{ $acc->name }} [Bal: ৳ {{ number_format($acc->current_balance, 2) }}]
+                        </option>
+                        @endforeach
+                    </select>
                     <p class="text-[10px] text-emerald-400 mt-1 font-semibold flex items-center gap-1">
                         <i class="fa-solid fa-check-circle text-[9px]"></i> সমস্ত খরচ শুধুমাত্র প্রধান ক্যাশ (Cash in Hand) থেকে পরিশোধ হবে।
                     </p>
