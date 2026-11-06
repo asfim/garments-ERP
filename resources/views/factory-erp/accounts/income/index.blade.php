@@ -291,7 +291,7 @@
                 <i class="fa-solid fa-sack-dollar text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Create New Income Voucher (নতুন আয় যুক্ত করুন)</h3>
+                <h3 class="text-base font-extrabold text-white">Create New Income Voucher</h3>
                 <p class="text-xs text-slate-400">Record incoming money and automatically debit bank/cash and credit income head</p>
             </div>
         </div>
@@ -310,7 +310,7 @@
                 <!-- Income Category / Head (Independent Income Accounts - No Products) -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-slate-300 font-bold">Income Head (আয়ের খাত) <span class="text-rose-400">*</span></label>
+                        <label class="block text-slate-300 font-bold">Income Head <span class="text-rose-400">*</span></label>
                         <button type="button" onclick="openIncomeHeadModal()" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 hover:underline cursor-pointer">
                             <i class="fa-solid fa-plus text-[10px]"></i> + Add Head
                         </button>
@@ -329,7 +329,7 @@
                 <!-- Deposit To Account (User rule: strictly Cash in Hand) -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="text-slate-300 font-bold">Deposit To (জমা হবে যে অ্যাকাউন্টে) <span class="text-rose-400">*</span></label>
+                        <label class="text-slate-300 font-bold">Deposit To <span class="text-rose-400">*</span></label>
                         <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">
                             <i class="fa-solid fa-lock text-[9px] mr-1"></i> Cash Only
                         </span>
@@ -343,23 +343,23 @@
                         @endforeach
                     </select>
                     <p class="text-[10px] text-emerald-400 mt-1 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-check-circle text-[9px]"></i> সমস্ত আয় শুধুমাত্র প্রধান ক্যাশ ইন হ্যান্ডে (ক্যাশ অনলি) জমা হবে।
+                        <i class="fa-solid fa-check-circle text-[9px]"></i> All income deposits are received into Cash in Hand.
                     </p>
                 </div>
 
                 <!-- Amount -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Income Amount (পরিমাণ ৳) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Income Amount (৳) <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-slate-400 font-bold">৳</span>
                         <input type="number" step="0.01" min="0.01" name="amount" id="incomeAmountInput" placeholder="0.00" required
-                               class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2.5 text-slate-200 font-mono font-bold text-sm focus:outline-none focus:border-emerald-500">
+                                class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2.5 text-slate-200 font-mono font-bold text-sm focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
 
                 <!-- Customer (Optional) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Customer (গ্রাহক - যদি থাকে)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Customer (Optional)</label>
                     <select name="customer_id" id="incomeCustomerSelect" onchange="autoFillPayer()"
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                         <option value="">Direct / General (No Customer)</option>
@@ -371,7 +371,7 @@
 
                 <!-- Received From (Party Name) -->
                 <div class="sm:col-span-2">
-                    <label class="block text-slate-300 font-bold mb-1">Received From (প্রদানকারী ব্যক্তির নাম/কোম্পানি)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Received From (Payer / Company)</label>
                     <input type="text" name="party_name" id="incomePartyName" placeholder="e.g. Md. Hasan / Turkish Cafe & Resto"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
@@ -380,14 +380,10 @@
                 <input type="hidden" name="payment_method" value="cash">
                 <!--
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Payment Method (পরিশোধ মাধ্যম) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Payment Method <span class="text-rose-400">*</span></label>
                     <select name="payment_method">
-                        <option value="cash" selected>Cash (নগদ টাকা)</option>
+                        <option value="cash" selected>Cash</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-bold mb-1">Reference No / Cheque No / TrxID</label>
-                    <input type="text" name="reference_no" placeholder="e.g. CHQ-981245 or TRX-87234">
                 </div>
                 -->
             </div>
@@ -395,12 +391,12 @@
             <!-- Notes & Attachment -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Receipt Slip / Attachment (রসিদের ছবি বা ফাইল)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Receipt Slip / Attachment</label>
                     <input type="file" name="attachment" accept="image/*,.pdf"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-400 text-xs focus:outline-none file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-emerald-600 file:text-white">
                 </div>
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Notes / Description (বিবরণ)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Notes / Description</label>
                     <input type="text" name="notes" id="incomeNotesInput" placeholder="e.g. Jumbo straw sales / Delivery collection"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
@@ -505,7 +501,7 @@
     </div>
 </div>
 
-<!-- MODAL: ADD NEW INCOME HEAD (ম্যানুয়ালি নতুন আয়ের খাত যুক্ত করুন) -->
+<!-- MODAL: ADD NEW INCOME HEAD -->
 <div id="incomeHeadModal" onclick="if(event.target === this) closeIncomeHeadModal()" class="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
     <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative my-8">
         <button type="button" onclick="closeIncomeHeadModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
@@ -517,8 +513,8 @@
                 <i class="fa-solid fa-folder-plus text-lg" id="incomeHeadModalIcon"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white" id="incomeHeadModalTitle">Add New Income Head (নতুন আয়ের খাত)</h3>
-                <p class="text-xs text-slate-400" id="incomeHeadModalSubtitle">ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি ও পরিচালনা করুন (এটি পণ্যের তালিকা থেকে স্বাধীন)</p>
+                <h3 class="text-base font-extrabold text-white" id="incomeHeadModalTitle">Add New Income Head</h3>
+                <p class="text-xs text-slate-400" id="incomeHeadModalSubtitle">Create and manage custom income heads independently</p>
             </div>
         </div>
 
@@ -528,27 +524,27 @@
 
             <!-- Income Head Name -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Income Head Name (আয়ের খাতের নাম) <span class="text-rose-400">*</span></label>
-                <input type="text" name="name" id="new_head_name" placeholder="e.g. ক্যাশ ডিসকাউন্ট আয় / স্পেশাল সার্ভিস ফি / কার্গো চার্জ" required
+                <label class="block text-slate-300 font-bold mb-1.5">Income Head Name <span class="text-rose-400">*</span></label>
+                <input type="text" name="name" id="new_head_name" placeholder="e.g. Cash Discount Income / Special Service Fee / Freight Charge" required
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-400">
             </div>
 
             <!-- Category -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Category (আয়ের শ্রেণি/ক্যাটাগরি) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1.5">Category <span class="text-rose-400">*</span></label>
                 <select name="category" id="new_head_category" required
                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-400">
-                    <option value="Operating Income">Operating Income (পরিচালন আয়)</option>
-                    <option value="Service Income">Service Income (সেবা আয়)</option>
-                    <option value="Other Income" selected>Other Income (অন্যান্য বিবিধ আয়)</option>
+                    <option value="Operating Income">Operating Income</option>
+                    <option value="Service Income">Service Income</option>
+                    <option value="Other Income" selected>Other Income</option>
                 </select>
             </div>
 
             <!-- Account Code (Optional / Auto-generated) -->
             <div>
                 <label class="block text-slate-300 font-bold mb-1.5">
-                    Account Code (অ্যাকাউন্ট কোড) 
-                    <span class="text-slate-400 text-[10px] font-normal">(ফাঁকা রাখলে স্বয়ংক্রিয় তৈরি হবে)</span>
+                    Account Code 
+                    <span class="text-slate-400 text-[10px] font-normal">(Leave blank for auto-generation)</span>
                 </label>
                 <input type="text" name="account_code" id="new_head_code" placeholder="Auto e.g. 4005"
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 font-mono focus:outline-none focus:border-cyan-400">
@@ -556,8 +552,8 @@
 
             <!-- Description -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Description (বিবরণ / নোট)</label>
-                <textarea name="description" id="new_head_description" rows="2" placeholder="খাত সম্পর্কিত সংক্ষিপ্ত তথ্য..."
+                <label class="block text-slate-300 font-bold mb-1.5">Description / Notes</label>
+                <textarea name="description" id="new_head_description" rows="2" placeholder="Brief notes about this income head..."
                           class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-cyan-400"></textarea>
             </div>
 
@@ -566,7 +562,7 @@
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button type="button" id="cancelEditIncomeHeadBtn" onclick="resetIncomeHeadForm()"
                         class="hidden px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold border border-amber-500/30 transition-all cursor-pointer">
-                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Cancel Edit (বাতিল)
+                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Cancel Edit
                 </button>
                 <button type="button" onclick="closeIncomeHeadModal()" 
                         class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all cursor-pointer">
@@ -583,7 +579,7 @@
         <!-- Currently Registered Income Heads List -->
         <div class="mt-6 pt-5 border-t border-slate-800">
             <h4 class="text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
-                <span>বর্তমান আয়ের খাতসমূহ (Active Income Heads):</span>
+                <span>Active Income Heads:</span>
                 <span class="text-cyan-400 font-mono text-[11px]" id="incomeHeadsCountBadge">{{ $incomeAccounts->count() }} Heads</span>
             </h4>
             <div class="max-h-52 overflow-y-auto space-y-2 pr-1 text-[11px]" id="existingIncomeHeadsList">
@@ -681,8 +677,8 @@ function editIncomeHead(data) {
     document.getElementById('new_head_description').value = data.description || '';
 
     // Update modal UI for edit mode
-    document.getElementById('incomeHeadModalTitle').textContent = 'Edit Income Head (খাত সম্পাদনা)';
-    document.getElementById('incomeHeadModalSubtitle').textContent = 'আয়ের খাতের নাম, ক্যাটাগরি ও বিবরণ পরিবর্তন করুন';
+    document.getElementById('incomeHeadModalTitle').textContent = 'Edit Income Head';
+    document.getElementById('incomeHeadModalSubtitle').textContent = 'Update income head details';
     document.getElementById('saveIncomeHeadText').textContent = 'Update Income Head';
     document.getElementById('saveIncomeHeadIcon').className = 'fa-solid fa-arrows-rotate';
     document.getElementById('cancelEditIncomeHeadBtn').classList.remove('hidden');
@@ -703,8 +699,8 @@ function editIncomeHead(data) {
 function resetIncomeHeadForm() {
     document.getElementById('incomeHeadForm').reset();
     document.getElementById('edit_head_id').value = '';
-    document.getElementById('incomeHeadModalTitle').textContent = 'Add New Income Head (নতুন আয়ের খাত)';
-    document.getElementById('incomeHeadModalSubtitle').textContent = 'ম্যানুয়ালি নিজস্ব আয়ের খাত তৈরি ও পরিচালনা করুন (এটি পণ্যের তালিকা থেকে স্বাধীন)';
+    document.getElementById('incomeHeadModalTitle').textContent = 'Add New Income Head';
+    document.getElementById('incomeHeadModalSubtitle').textContent = 'Create and manage custom income heads independently';
     document.getElementById('saveIncomeHeadText').textContent = 'Save Income Head';
     document.getElementById('saveIncomeHeadIcon').className = 'fa-solid fa-check';
     document.getElementById('cancelEditIncomeHeadBtn').classList.add('hidden');
@@ -772,7 +768,7 @@ function submitIncomeHeadForm(e) {
                     if (fOpt) fOpt.textContent = acc.name;
                 }
 
-                alertBox.textContent = 'আয়ের খাত "' + acc.name + '" সফলভাবে আপডেট করা হয়েছে!';
+                alertBox.textContent = 'Income head "' + acc.name + '" updated successfully!';
                 alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
                 resetIncomeHeadForm();
             } else {
@@ -846,7 +842,7 @@ function submitIncomeHeadForm(e) {
                 }
 
                 form.reset();
-                alertBox.textContent = 'নতুন আয়ের খাত "' + acc.name + '" তৈরি ও নির্বাচিত হয়েছে!';
+                alertBox.textContent = 'Income head "' + acc.name + '" created and selected!';
                 alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
             }
         } else {
@@ -863,7 +859,7 @@ function submitIncomeHeadForm(e) {
 }
 
 function deleteIncomeHead(id, name) {
-    if (!confirm('আপনি কি নিশ্চিত যে আয়ের খাত "' + name + '" মুছে ফেলতে চান?')) {
+    if (!confirm('Are you sure you want to delete income head "' + name + '"?')) {
         return;
     }
 
@@ -915,10 +911,10 @@ function deleteIncomeHead(id, name) {
                 countBadge.textContent = Math.max(0, current - 1) + ' Heads';
             }
 
-            alertBox.textContent = data.message || 'আয়ের খাতটি সফলভাবে মুছে ফেলা হয়েছে!';
+            alertBox.textContent = data.message || 'Income head deleted successfully!';
             alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
         } else {
-            alertBox.textContent = data.message || 'খাতটি মুছে ফেলা সম্ভব হয়নি।';
+            alertBox.textContent = data.message || 'Could not delete income head.';
             alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
         }
     })
@@ -990,6 +986,87 @@ function showVoucherDetails(arg) {
 function closeVoucherDetailsModal() {
     const m = document.getElementById('voucherDetailsModal');
     if (m) m.classList.add('hidden');
+}
+
+// 4. AJAX Load More Income Records
+let currentIncomePage = parseInt(document.getElementById('incomeLoadMoreBtn')?.getAttribute('data-next-page') || '2');
+let totalIncomePages = parseInt(document.getElementById('incomeLoadMoreBtn')?.getAttribute('data-total-pages') || '1');
+let isLoadingIncome = false;
+
+function loadMoreIncome() {
+    const btn = document.getElementById('incomeLoadMoreBtn');
+    if (!btn || isLoadingIncome || currentIncomePage > totalIncomePages) return;
+    isLoadingIncome = true;
+
+    const spinner = document.getElementById('incomeLoadSpinner');
+    const icon = document.getElementById('incomeLoadIcon');
+    const text = document.getElementById('incomeLoadText');
+
+    if (spinner) spinner.classList.remove('hidden');
+    if (icon) icon.classList.add('hidden');
+    if (text) text.textContent = 'Loading...';
+    btn.disabled = true;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', currentIncomePage);
+
+    fetch(url.toString(), {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.text();
+    })
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newRows = doc.querySelectorAll('#incomeTableBody tr');
+        const tbody = document.getElementById('incomeTableBody');
+
+        if (tbody && newRows.length > 0) {
+            newRows.forEach(row => {
+                if (!row.id || row.id !== 'incomeEmptyRow') {
+                    tbody.appendChild(row);
+                }
+            });
+
+            const currentCountEl = document.getElementById('incomeCurrentCount');
+            if (currentCountEl) {
+                currentCountEl.textContent = tbody.querySelectorAll('tr:not(#incomeEmptyRow)').length;
+            }
+        }
+
+        currentIncomePage++;
+        if (currentIncomePage > totalIncomePages) {
+            btn.remove();
+            const container = document.getElementById('incomeLoadMoreContainer');
+            if (container && !document.getElementById('incomeAllLoaded')) {
+                const finishedDiv = document.createElement('div');
+                finishedDiv.id = 'incomeAllLoaded';
+                finishedDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+                finishedDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All records loaded';
+                container.appendChild(finishedDiv);
+            }
+        } else {
+            btn.setAttribute('data-next-page', currentIncomePage);
+            btn.disabled = false;
+            if (spinner) spinner.classList.add('hidden');
+            if (icon) icon.classList.remove('hidden');
+            if (text) text.textContent = 'Load More Records';
+        }
+    })
+    .catch(err => {
+        console.error('Failed to load income:', err);
+        if (text) text.textContent = 'Failed to load. Click to retry';
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        btn.disabled = false;
+    })
+    .finally(() => {
+        isLoadingIncome = false;
+    });
 }
 
 // Close modals on Escape key

@@ -74,7 +74,7 @@
 
             <div class="glass-panel p-4 rounded-2xl border {{ $profitLossData['net_profit'] >= 0 ? 'border-amber-500/40 bg-amber-950/20' : 'border-rose-500/40 bg-rose-950/20' }}">
                 <span class="text-[11px] font-bold uppercase tracking-wider {{ $profitLossData['net_profit'] >= 0 ? 'text-amber-400' : 'text-rose-400' }} block">
-                    Net {{ $profitLossData['net_profit'] >= 0 ? 'Profit (নিট লাভ)' : 'Loss (নিট ক্ষতি)' }}
+                    Net {{ $profitLossData['net_profit'] >= 0 ? 'Profit' : 'Loss' }}
                 </span>
                 <h3 class="text-2xl font-black {{ $profitLossData['net_profit'] >= 0 ? 'text-amber-300' : 'text-rose-400' }} font-mono mt-1">
                     {{ $profitLossData['net_profit'] >= 0 ? '৳ ' . number_format($profitLossData['net_profit'], 2) : '- ৳ ' . number_format(abs($profitLossData['net_profit']), 2) }}
@@ -92,7 +92,7 @@
                 <div class="p-3.5 bg-emerald-950/40 border-b border-emerald-500/30 flex items-center justify-between">
                     <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-arrow-trend-up"></i>
-                        A. Revenues & Incomes (আয়সমূহ)
+                        A. Revenues & Incomes
                     </h4>
                     <span class="font-mono font-bold text-xs text-white">৳ {{ number_format($profitLossData['total_income'], 2) }}</span>
                 </div>
@@ -132,7 +132,7 @@
                 <div class="p-3.5 bg-rose-950/40 border-b border-rose-500/30 flex items-center justify-between">
                     <h4 class="text-xs font-bold text-rose-300 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-arrow-trend-down"></i>
-                        B. Operating Expenses (খরচসমূহ)
+                        B. Operating Expenses
                     </h4>
                     <span class="font-mono font-bold text-xs text-white">৳ {{ number_format($profitLossData['total_expense'], 2) }}</span>
                 </div>
@@ -208,7 +208,7 @@
                 <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
                     <tr>
                         <th class="py-3 px-4">Code</th>
-                        <th class="py-3 px-4">Account Title (হিসাবের বিবরণ)</th>
+                        <th class="py-3 px-4">Account Title</th>
                         <th class="py-3 px-4">Type</th>
                         <th class="py-3 px-4 text-right">Debit (Dr) ৳</th>
                         <th class="py-3 px-4 text-right">Credit (Cr) ৳</th>
@@ -270,7 +270,7 @@
         <div class="glass-panel p-3.5 rounded-2xl border border-slate-800/80 flex items-center justify-between">
             <form method="GET" action="{{ route('factory.accounts.reports.index') }}" class="flex items-center gap-3 text-xs">
                 <input type="hidden" name="tab" value="day_book">
-                <span class="text-slate-400 font-medium">Select Date (তারিখ):</span>
+                <span class="text-slate-400 font-medium">Select Date:</span>
                 <input type="date" name="date" value="{{ $dayBookDate }}" 
                        class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 text-xs">
                 <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold transition-all">
@@ -286,11 +286,11 @@
         <!-- Day Summary Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="glass-panel p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">Today's Inflow (মোট নগদ/ব্যাংক জমা)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 block">Today's Inflow</span>
                 <h3 class="text-2xl font-black text-emerald-400 font-mono mt-1">+ ৳ {{ number_format($dayBookData['total_income'], 2) }}</h3>
             </div>
             <div class="glass-panel p-4 rounded-2xl border border-rose-500/30 bg-rose-950/20">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400 block">Today's Outflow (মোট খরচ/পরিশোধ)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400 block">Today's Outflow</span>
                 <h3 class="text-2xl font-black text-rose-400 font-mono mt-1">- ৳ {{ number_format($dayBookData['total_expense'], 2) }}</h3>
             </div>
             <div class="glass-panel p-4 rounded-2xl border border-cyan-500/30 bg-cyan-950/20">
@@ -311,13 +311,13 @@
                         <th class="py-3 px-4">Type</th>
                         <th class="py-3 px-4">Particulars / Party</th>
                         <th class="py-3 px-4">Payment Method & Ref</th>
-                        <th class="py-3 px-4 text-right">Inflow (জমা ৳)</th>
-                        <th class="py-3 px-4 text-right">Outflow (খরচ ৳)</th>
+                        <th class="py-3 px-4 text-right">Inflow (৳)</th>
+                        <th class="py-3 px-4 text-right">Outflow (৳)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/60 font-mono">
                     @forelse($dayBookData['vouchers'] as $v)
-                    <tr class="hover:bg-slate-800/40">
+                    <tr class="daybook-entry-row hover:bg-slate-800/40 {{ $loop->index >= 20 ? 'hidden' : '' }}" data-index="{{ $loop->index }}">
                         <td class="py-2.5 px-4 font-bold text-amber-400">
                             {{ $v->voucher_no }}
                         </td>
@@ -352,12 +352,35 @@
                     @endforelse
                 </tbody>
             </table>
+
+            <!-- Day Book Load More Container -->
+            @if(!empty($dayBookData['vouchers']) && count($dayBookData['vouchers']) > 0)
+            <div id="dayBookLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-400 font-mono">
+                    Showing <span id="dayBookShowingCount" class="text-amber-400 font-bold">{{ min(20, count($dayBookData['vouchers'])) }}</span> of <span id="dayBookTotalCount" class="text-white font-bold">{{ count($dayBookData['vouchers']) }}</span> entries
+                </div>
+
+                @if(count($dayBookData['vouchers']) > 20)
+                <button type="button" 
+                        id="dayBookLoadMoreBtn"
+                        onclick="loadMoreDayBookRows()"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white text-xs font-bold shadow-lg shadow-amber-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                    <i class="fa-solid fa-circle-down"></i>
+                    <span>Load More Entries</span>
+                </button>
+                @else
+                <div class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                    <i class="fa-solid fa-check text-emerald-400"></i> All entries loaded
+                </div>
+                @endif
+            </div>
+            @endif
         </div>
     </div>
     @endif
 
     <!-- ========================================== -->
-    <!-- TAB 4: BALANCE SHEET (উদ্বৃত্তপত্র / স্থিতিপত্র) -->
+    <!-- TAB 4: BALANCE SHEET -->
     <!-- ========================================== -->
     @if($tab === 'balance_sheet' && $balanceSheetData)
     <div class="space-y-6">
@@ -365,7 +388,7 @@
         <div class="glass-panel p-3.5 rounded-2xl border border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
             <form method="GET" action="{{ route('factory.accounts.reports.index') }}" class="flex items-center gap-3 text-xs">
                 <input type="hidden" name="tab" value="balance_sheet">
-                <span class="text-slate-400 font-medium">As of Date (তারিখ পর্যন্ত):</span>
+                <span class="text-slate-400 font-medium">As of Date:</span>
                 <input type="date" name="as_of_date" value="{{ $asOfDate }}" 
                        class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200 text-xs">
                 <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold transition-all">
@@ -395,7 +418,7 @@
             <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                        <i class="fa-solid fa-vault"></i> Assets (সম্পদসমূহ)
+                        <i class="fa-solid fa-vault"></i> Assets
                     </h3>
                     <span class="font-mono text-cyan-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_assets'], 2) }}</span>
                 </div>
@@ -431,7 +454,7 @@
                 <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                            <i class="fa-solid fa-file-invoice"></i> Liabilities (দায়সমূহ)
+                            <i class="fa-solid fa-file-invoice"></i> Liabilities
                         </h3>
                         <span class="font-mono text-rose-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_liabilities'], 2) }}</span>
                     </div>
@@ -461,7 +484,7 @@
                 <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                            <i class="fa-solid fa-scale-balanced"></i> Equity & Retained Earnings (মালিকানাস্বত্ব)
+                            <i class="fa-solid fa-scale-balanced"></i> Equity & Retained Earnings
                         </h3>
                         <span class="font-mono text-emerald-400 font-black text-sm">৳ {{ number_format($balanceSheetData['total_equity'] + $balanceSheetData['period_earnings'], 2) }}</span>
                     </div>
@@ -506,5 +529,36 @@
 </div>
 
 @include('factory-erp.accounts.reports.ajax-script')
+
+@if($tab === 'day_book' && $dayBookData && !empty($dayBookData['vouchers']))
+<script>
+let dayBookPageSize = 20;
+let currentDayBookVisible = Math.min(20, {{ count($dayBookData['vouchers']) }});
+const totalDayBookEntries = {{ count($dayBookData['vouchers']) }};
+
+function loadMoreDayBookRows() {
+    const hiddenRows = document.querySelectorAll('.daybook-entry-row.hidden');
+    let toShow = Math.min(dayBookPageSize, hiddenRows.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.remove('hidden');
+    }
+    currentDayBookVisible += toShow;
+    const countEl = document.getElementById('dayBookShowingCount');
+    if (countEl) countEl.textContent = currentDayBookVisible;
+
+    if (currentDayBookVisible >= totalDayBookEntries || hiddenRows.length <= toShow) {
+        const btn = document.getElementById('dayBookLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('dayBookLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All entries loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+</script>
+@endif
 @endsection
 

@@ -178,7 +178,7 @@
                     </tr>
 
                     @forelse($ledgerData['entries'] as $entry)
-                    <tr class="hover:bg-slate-800/40 transition-colors">
+                    <tr class="ledger-entry-row hover:bg-slate-800/40 transition-colors {{ $loop->index >= 20 ? 'hidden' : '' }}" data-index="{{ $loop->index }}">
                         <td class="py-3 px-4 text-slate-300">
                             {{ date('d M, Y', strtotime($entry['date'])) }}
                         </td>
@@ -242,9 +242,63 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- LEDGER LOAD MORE CONTAINER -->
+        @if(!empty($ledgerData['entries']) && count($ledgerData['entries']) > 0)
+        <div id="ledgerLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="ledgerShowingCount" class="text-purple-400 font-bold">{{ min(20, count($ledgerData['entries'])) }}</span> of <span id="ledgerTotalCount" class="text-white font-bold">{{ count($ledgerData['entries']) }}</span> entries
+            </div>
+
+            @if(count($ledgerData['entries']) > 20)
+            <button type="button" 
+                    id="ledgerLoadMoreBtn"
+                    onclick="loadMoreLedgerRows()"
+                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-circle-down"></i>
+                <span>Load More Entries</span>
+            </button>
+            @else
+            <div class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400"></i> All entries loaded
+            </div>
+            @endif
+        </div>
+        @endif
     </div>
     @endif
 
 </div>
+
+@if($ledgerData && !empty($ledgerData['entries']))
+<script>
+let ledgerPageSize = 20;
+let currentLedgerVisible = Math.min(20, {{ count($ledgerData['entries']) }});
+const totalLedgerEntries = {{ count($ledgerData['entries']) }};
+
+function loadMoreLedgerRows() {
+    const hiddenRows = document.querySelectorAll('.ledger-entry-row.hidden');
+    let toShow = Math.min(ledgerPageSize, hiddenRows.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.remove('hidden');
+    }
+    currentLedgerVisible += toShow;
+    const countEl = document.getElementById('ledgerShowingCount');
+    if (countEl) countEl.textContent = currentLedgerVisible;
+
+    if (currentLedgerVisible >= totalLedgerEntries || hiddenRows.length <= toShow) {
+        const btn = document.getElementById('ledgerLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('ledgerLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All entries loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+</script>
+@endif
 @endsection
 

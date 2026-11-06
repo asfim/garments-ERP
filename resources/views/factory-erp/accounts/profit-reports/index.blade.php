@@ -126,7 +126,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800/60 font-mono">
                     @forelse($productData['rows'] as $row)
-                    <tr class="hover:bg-slate-800/40">
+                    <tr class="product-profit-row hover:bg-slate-800/40 {{ $loop->index >= 20 ? 'hidden' : '' }}" data-index="{{ $loop->index }}">
                         <td class="py-3 px-4 font-sans font-bold text-white">
                             {{ $row['product_name'] }}
                             <span class="block text-[10px] text-slate-400 font-mono font-normal">Catalog Cost: ৳ {{ number_format($row['production_price'], 2) }} / {{ $row['unit_name'] }}</span>
@@ -172,6 +172,29 @@
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Product Profit Load More -->
+            @if(!empty($productData['rows']) && count($productData['rows']) > 0)
+            <div id="productProfitLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-400 font-mono">
+                    Showing <span id="productProfitShowingCount" class="text-cyan-400 font-bold">{{ min(20, count($productData['rows'])) }}</span> of <span id="productProfitTotalCount" class="text-white font-bold">{{ count($productData['rows']) }}</span> products
+                </div>
+
+                @if(count($productData['rows']) > 20)
+                <button type="button" 
+                        id="productProfitLoadMoreBtn"
+                        onclick="loadMoreProductProfitRows()"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                    <i class="fa-solid fa-circle-down"></i>
+                    <span>Load More Products</span>
+                </button>
+                @else
+                <div class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                    <i class="fa-solid fa-check text-emerald-400"></i> All products loaded
+                </div>
+                @endif
+            </div>
+            @endif
         </div>
     </div>
     @endif
@@ -212,7 +235,7 @@
         <!-- Deliveries Table with Item Accordion -->
         <div class="space-y-4">
             @forelse($deliveryData['rows'] as $del)
-            <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-3" x-data="{ open: false }">
+            <div class="delivery-card-item glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-3 {{ $loop->index >= 20 ? 'hidden' : '' }}" x-data="{ open: false }">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm">
@@ -290,6 +313,29 @@
                 No delivery records found matching the filter criteria.
             </div>
             @endforelse
+
+            <!-- Delivery Profit Load More -->
+            @if(!empty($deliveryData['rows']) && count($deliveryData['rows']) > 0)
+            <div id="deliveryProfitLoadMoreContainer" class="p-4 rounded-2xl border border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-400 font-mono">
+                    Showing <span id="deliveryProfitShowingCount" class="text-cyan-400 font-bold">{{ min(20, count($deliveryData['rows'])) }}</span> of <span id="deliveryProfitTotalCount" class="text-white font-bold">{{ count($deliveryData['rows']) }}</span> deliveries
+                </div>
+
+                @if(count($deliveryData['rows']) > 20)
+                <button type="button" 
+                        id="deliveryProfitLoadMoreBtn"
+                        onclick="loadMoreDeliveryProfitCards()"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                    <i class="fa-solid fa-circle-down"></i>
+                    <span>Load More Deliveries</span>
+                </button>
+                @else
+                <div class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                    <i class="fa-solid fa-check text-emerald-400"></i> All deliveries loaded
+                </div>
+                @endif
+            </div>
+            @endif
         </div>
     </div>
     @endif
@@ -298,5 +344,63 @@
 </div>
 
 @include('factory-erp.accounts.reports.ajax-script')
+
+<script>
+// Product Profit Progressive Reveal
+let prodPageSize = 20;
+let currentProdVisible = Math.min(20, {{ !empty($productData['rows']) ? count($productData['rows']) : 0 }});
+const totalProdRows = {{ !empty($productData['rows']) ? count($productData['rows']) : 0 }};
+
+function loadMoreProductProfitRows() {
+    const hiddenRows = document.querySelectorAll('.product-profit-row.hidden');
+    let toShow = Math.min(prodPageSize, hiddenRows.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.remove('hidden');
+    }
+    currentProdVisible += toShow;
+    const countEl = document.getElementById('productProfitShowingCount');
+    if (countEl) countEl.textContent = currentProdVisible;
+
+    if (currentProdVisible >= totalProdRows || hiddenRows.length <= toShow) {
+        const btn = document.getElementById('productProfitLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('productProfitLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All products loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+
+// Delivery Profit Progressive Reveal
+let delPageSize = 20;
+let currentDelVisible = Math.min(20, {{ !empty($deliveryData['rows']) ? count($deliveryData['rows']) : 0 }});
+const totalDelRows = {{ !empty($deliveryData['rows']) ? count($deliveryData['rows']) : 0 }};
+
+function loadMoreDeliveryProfitCards() {
+    const hiddenCards = document.querySelectorAll('.delivery-card-item.hidden');
+    let toShow = Math.min(delPageSize, hiddenCards.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenCards[i].classList.remove('hidden');
+    }
+    currentDelVisible += toShow;
+    const countEl = document.getElementById('deliveryProfitShowingCount');
+    if (countEl) countEl.textContent = currentDelVisible;
+
+    if (currentDelVisible >= totalDelRows || hiddenCards.length <= toShow) {
+        const btn = document.getElementById('deliveryProfitLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('deliveryProfitLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All deliveries loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+</script>
 @endsection
 

@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-money-bill-wave text-rose-400"></i>
-                Expense Management (ব্যয় ও খরচ ব্যবস্থাপনা)
+                Expense Management
             </h2>
             <p class="text-xs text-slate-400">Track raw materials purchase, rent, utilities, maintenance, wages, and operating expenses</p>
         </div>
@@ -52,7 +52,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="glass-panel p-4 rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/20 to-slate-900/40 flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400 block">Total Filtered Expense (মোট খরচ)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400 block">Total Filtered Expense</span>
                 <h3 class="text-2xl font-black text-white font-mono mt-1">৳ {{ number_format($totalFilteredExpense, 2) }}</h3>
             </div>
             <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
@@ -107,7 +107,7 @@
 
             <!-- Expense Head -->
             <div>
-                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Expense Head (খাত)</label>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Expense Head</label>
                 <select name="expense_account_id" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-rose-500 text-xs">
                     <option value="">All Expense Heads</option>
                     @foreach($expenseAccounts as $acc)
@@ -141,13 +141,13 @@
                     <tr>
                         <th class="py-3.5 px-4">Voucher No</th>
                         <th class="py-3.5 px-4">Date</th>
-                        <th class="py-3.5 px-4">Expense Head (খরচের খাত)</th>
-                        <th class="py-3.5 px-4">Paid To / Payee (প্রাপক/গ্রহীতা)</th>
+                        <th class="py-3.5 px-4">Expense Head</th>
+                        <th class="py-3.5 px-4">Paid To / Payee</th>
                         <th class="py-3.5 px-4 text-right">Amount (৳)</th>
                         <th class="py-3.5 px-4 text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/60">
+                <tbody class="divide-y divide-slate-800/60" id="expenseTableBody">
                     @forelse($vouchers as $v)
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="py-3.5 px-4 font-mono font-bold text-amber-400">
@@ -180,7 +180,7 @@
                                         data-date="{{ $v->voucher_date->format('d M, Y') }}"
                                         data-head="{{ $v->debitAccount?->name ?? 'Expense' }}"
                                         data-category="{{ $v->debitAccount?->category ?? 'Operating Expense' }}"
-                                        data-paid-from="{{ $v->creditAccount?->name ?? 'Cash in Hand (প্রধান ক্যাশ)' }}"
+                                        data-paid-from="{{ $v->creditAccount?->name ?? 'Cash in Hand' }}"
                                         data-payee="{{ $v->party_name ?: ($v->supplier?->name ?: ($v->employee?->name ?: 'General Payee')) }}"
                                         data-supplier="{{ $v->supplier?->name ?? '' }}"
                                         data-employee="{{ $v->employee ? $v->employee->name . ' (' . $v->employee->employee_code . ')' : '' }}"
@@ -221,7 +221,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr id="expenseEmptyRow">
                         <td colspan="6" class="py-12 text-center text-slate-500">
                             <i class="fa-solid fa-receipt text-3xl mb-2 opacity-50 block"></i>
                             No expense records found matching your filters.
@@ -232,11 +232,29 @@
             </table>
         </div>
 
-        @if($vouchers->hasPages())
-        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
-            {{ $vouchers->links() }}
+        <!-- LOAD MORE & PAGINATION INFO -->
+        <div id="expenseLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="expenseCurrentCount" class="text-rose-400 font-bold">{{ $vouchers->count() }}</span> of <span id="expenseTotalCount" class="text-white font-bold">{{ $vouchers->total() }}</span> records
+            </div>
+
+            @if($vouchers->hasMorePages())
+            <button type="button" 
+                    id="expenseLoadMoreBtn"
+                    data-next-page="{{ $vouchers->currentPage() + 1 }}"
+                    data-total-pages="{{ $vouchers->lastPage() }}"
+                    onclick="loadMoreExpense()"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-bold shadow-lg shadow-rose-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-spinner fa-spin hidden" id="expenseLoadSpinner"></i>
+                <i class="fa-solid fa-circle-down" id="expenseLoadIcon"></i>
+                <span id="expenseLoadText">Load More Records</span>
+            </button>
+            @else
+            <div id="expenseAllLoaded" class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-rose-400"></i> All records loaded
+            </div>
+            @endif
         </div>
-        @endif
     </div>
 
 </div>
@@ -253,7 +271,7 @@
                 <i class="fa-solid fa-receipt text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Create Debit Voucher / Expense (নতুন খরচ যুক্ত করুন)</h3>
+                <h3 class="text-base font-extrabold text-white">Create Debit Voucher / Expense</h3>
                 <p class="text-xs text-slate-400">Record payments for supplies, factory operations, maintenance, or overhead</p>
             </div>
         </div>
@@ -272,7 +290,7 @@
                 <!-- Expense Head / Category -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="text-slate-300 font-bold">Expense Head (খরচের খাত) <span class="text-rose-400">*</span></label>
+                        <label class="text-slate-300 font-bold">Expense Head <span class="text-rose-400">*</span></label>
                         <button type="button" onclick="openExpenseHeadModal()" 
                                 class="text-[10px] text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1 cursor-pointer">
                             <i class="fa-solid fa-plus-circle"></i> + Add Head
@@ -290,7 +308,7 @@
                 <!-- Paid From Account (User rule: strictly Cash in Hand) -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="text-slate-300 font-bold">Paid From (পরিশোধের অ্যাকাউন্ট) <span class="text-rose-400">*</span></label>
+                        <label class="text-slate-300 font-bold">Paid From <span class="text-rose-400">*</span></label>
                         <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">
                             <i class="fa-solid fa-lock text-[9px] mr-1"></i> Cash Only
                         </span>
@@ -304,13 +322,13 @@
                         @endforeach
                     </select>
                     <p class="text-[10px] text-emerald-400 mt-1 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-check-circle text-[9px]"></i> সমস্ত খরচ শুধুমাত্র প্রধান ক্যাশ (Cash in Hand) থেকে পরিশোধ হবে।
+                        <i class="fa-solid fa-check-circle text-[9px]"></i> All expenses are paid strictly from Cash in Hand.
                     </p>
                 </div>
 
                 <!-- Amount -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Expense Amount (পরিমাণ ৳) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Expense Amount (৳) <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-slate-400 font-bold">৳</span>
                         <input type="number" step="0.01" min="0.01" name="amount" placeholder="0.00" required
@@ -320,7 +338,7 @@
 
                 <!-- Supplier (Optional) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Supplier (সাপ্লায়ার - যদি প্রযোজ্য হয়)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Supplier (Optional)</label>
                     <select name="supplier_id" id="expenseSupplierSelect" onchange="autoFillPayee('supplier')"
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
                         <option value="">None / Direct Expense</option>
@@ -332,7 +350,7 @@
 
                 <!-- Employee (Optional) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Employee (কর্মচারী - যদি প্রযোজ্য হয়)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Employee (Optional)</label>
                     <select name="employee_id" id="expenseEmployeeSelect" onchange="autoFillPayee('employee')"
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
                         <option value="">None / Non-employee</option>
@@ -344,22 +362,22 @@
 
                 <!-- Paid To (Payee Name) -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Paid To / Payee Name (গ্রহীতার নাম/প্রতিষ্ঠান)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Paid To / Payee Name</label>
                     <input type="text" name="party_name" id="expensePartyName" placeholder="e.g. DESCO / Titas Gas / Khan Fabrics"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
                 </div>
 
                 <!-- Payment Method -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Payment Method (পরিশোধ মাধ্যম) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Payment Method <span class="text-rose-400">*</span></label>
                     <select name="payment_method" required
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
-                        <option value="cash">Cash (নগদ টাকা)</option>
-                        <option value="bank">Bank Transfer (ব্যাংক ট্রান্সফার)</option>
-                        <option value="cheque">Cheque (চেক)</option>
-                        <option value="bkash">bKash (বিকাশ)</option>
-                        <option value="nagad">Nagad (নগদ)</option>
-                        <option value="rocket">Rocket (রকেট)</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank Transfer</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="bkash">bKash</option>
+                        <option value="nagad">Nagad</option>
+                        <option value="rocket">Rocket</option>
                         <option value="other">Other Method</option>
                     </select>
                 </div>
@@ -386,7 +404,7 @@
 
             <!-- Notes -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1">Expense Purpose / Description (খরচের কারণ ও বিবরণ)</label>
+                <label class="block text-slate-300 font-bold mb-1">Expense Purpose / Description</label>
                 <input type="text" name="notes" placeholder="e.g. October 2026 factory electricity bill payment"
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
             </div>
@@ -405,7 +423,7 @@
     </div>
 </div>
 
-<!-- MODAL: EXPENSE VOUCHER DETAILS POPUP (খরচের বিস্তারিত বিবরণ) -->
+<!-- MODAL: EXPENSE VOUCHER DETAILS POPUP -->
 <div id="expenseDetailsModal" onclick="if(event.target === this) closeExpenseDetailsModal()" class="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
     <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative my-8">
         <button type="button" onclick="closeExpenseDetailsModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
@@ -429,7 +447,7 @@
             <!-- Amount & Date Banner -->
             <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
                 <div>
-                    <span class="text-slate-400 block text-[11px]">Expense Amount (খরচের পরিমাণ):</span>
+                    <span class="text-slate-400 block text-[11px]">Expense Amount:</span>
                     <span class="text-rose-400 font-mono font-black text-xl" id="detExpAmount">৳ 0.00</span>
                 </div>
                 <div class="text-right">
@@ -441,27 +459,27 @@
             <!-- Expense Head & Category -->
             <div class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
                 <div>
-                    <span class="text-slate-400 block text-[11px]">Expense Head (খরচের খাত):</span>
+                    <span class="text-slate-400 block text-[11px]">Expense Head:</span>
                     <span class="text-slate-200 font-bold block mt-0.5" id="detExpHead">--</span>
                 </div>
                 <div>
-                    <span class="text-slate-400 block text-[11px]">Category (শ্রেণি):</span>
+                    <span class="text-slate-400 block text-[11px]">Category:</span>
                     <span class="text-slate-300 font-semibold block mt-0.5" id="detExpCategory">--</span>
                 </div>
             </div>
 
             <!-- Paid From Account -->
             <div class="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
-                <span class="text-slate-400 block text-[11px]">Paid From (পরিশোধের অ্যাকাউন্ট):</span>
+                <span class="text-slate-400 block text-[11px]">Paid From:</span>
                 <span class="text-emerald-400 font-bold flex items-center gap-1.5 mt-0.5">
                     <i class="fa-solid fa-money-bill-wave text-xs"></i>
-                    <span id="detExpPaidFrom">Cash in Hand (প্রধান ক্যাশ)</span>
+                    <span id="detExpPaidFrom">Cash in Hand</span>
                 </span>
             </div>
 
             <!-- Payee / Paid To -->
             <div class="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
-                <span class="text-slate-400 block text-[11px]">Paid To / Payee (গ্রহীতার নাম/প্রতিষ্ঠান):</span>
+                <span class="text-slate-400 block text-[11px]">Paid To / Payee:</span>
                 <span class="text-white font-bold block mt-0.5 text-sm" id="detExpPayee">--</span>
                 <div id="detExpLinkedEntityWrap" class="hidden mt-1.5 pt-1.5 border-t border-slate-800/60 text-[11px] text-slate-400">
                     <span id="detExpLinkedEntity"></span>
@@ -482,7 +500,7 @@
 
             <!-- Notes / Narration -->
             <div class="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80">
-                <span class="text-slate-400 block text-[11px]">Description / Purpose (খরচের বিবরণ):</span>
+                <span class="text-slate-400 block text-[11px]">Description / Purpose:</span>
                 <p class="text-slate-300 mt-1 leading-relaxed italic" id="detExpNotes">No notes recorded.</p>
             </div>
 
@@ -491,7 +509,7 @@
                 <span class="text-slate-400 block text-[11px] mb-1.5">Attached Bill / Voucher:</span>
                 <a id="detExpAttachmentLink" href="#" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-all">
                     <i class="fa-solid fa-paperclip"></i>
-                    <span>View Attachment (ডকুমেন্ট দেখুন)</span>
+                    <span>View Attachment</span>
                 </a>
             </div>
 
@@ -510,7 +528,7 @@
     </div>
 </div>
 
-<!-- MODAL: ADD / EDIT EXPENSE HEAD (ম্যানুয়ালি নতুন খরচের খাত যুক্ত ও সম্পাদনা করুন) -->
+<!-- MODAL: ADD / EDIT EXPENSE HEAD -->
 <div id="expenseHeadModal" onclick="if(event.target === this) closeExpenseHeadModal()" class="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto transform-gpu">
     <div onclick="event.stopPropagation()" class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative my-8">
         <button type="button" onclick="closeExpenseHeadModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg cursor-pointer">
@@ -522,8 +540,8 @@
                 <i class="fa-solid fa-folder-plus text-lg" id="expenseHeadModalIcon"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white" id="expenseHeadModalTitle">Add New Expense Head (নতুন খরচের খাত)</h3>
-                <p class="text-xs text-slate-400" id="expenseHeadModalSubtitle">ম্যানুয়ালি নিজস্ব খরচের খাত তৈরি ও পরিচালনা করুন</p>
+                <h3 class="text-base font-extrabold text-white" id="expenseHeadModalTitle">Add New Expense Head</h3>
+                <p class="text-xs text-slate-400" id="expenseHeadModalSubtitle">Create and manage custom expense heads</p>
             </div>
         </div>
 
@@ -533,30 +551,30 @@
 
             <!-- Expense Head Name -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Expense Head Name (খরচের খাতের নাম) <span class="text-rose-400">*</span></label>
-                <input type="text" name="name" id="new_expense_head_name" placeholder="e.g. ফ্যাক্টরি বিদ্যুৎ বিল / অফিস আপ্যায়ন / পরিবহন খরচ" required
+                <label class="block text-slate-300 font-bold mb-1.5">Expense Head Name <span class="text-rose-400">*</span></label>
+                <input type="text" name="name" id="new_expense_head_name" placeholder="e.g. Factory Electricity Bill / Office Refreshment / Transport" required
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
             </div>
 
             <!-- Category -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Category (খরচের শ্রেণি/ক্যাটাগরি) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1.5">Category <span class="text-rose-400">*</span></label>
                 <select name="category" id="new_expense_head_category" required
                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
-                    <option value="Direct Expense">Direct Expense (প্রত্যক্ষ উৎপাদন ব্যয়)</option>
-                    <option value="Factory Overhead">Factory Overhead (কারখানা উপরিব্যয়)</option>
-                    <option value="Administrative Expense" selected>Administrative Expense (প্রশাসনিক ব্যয়)</option>
-                    <option value="Selling & Distribution">Selling & Distribution (বিক্রয় ও বিপণন)</option>
-                    <option value="Financial Expense">Financial Expense (আর্থিক ব্যয়)</option>
-                    <option value="Other Expense">Other Expense (অন্যান্য বিবিধ ব্যয়)</option>
+                    <option value="Direct Expense">Direct Expense</option>
+                    <option value="Factory Overhead">Factory Overhead</option>
+                    <option value="Administrative Expense" selected>Administrative Expense</option>
+                    <option value="Selling & Distribution">Selling & Distribution</option>
+                    <option value="Financial Expense">Financial Expense</option>
+                    <option value="Other Expense">Other Expense</option>
                 </select>
             </div>
 
             <!-- Account Code (Optional / Auto-generated) -->
             <div>
                 <label class="block text-slate-300 font-bold mb-1.5">
-                    Account Code (অ্যাকাউন্ট কোড) 
-                    <span class="text-slate-400 text-[10px] font-normal">(ফাঁকা রাখলে স্বয়ংক্রিয় 5xxx কোড তৈরি হবে)</span>
+                    Account Code 
+                    <span class="text-slate-400 text-[10px] font-normal">(Leave blank for auto-generation)</span>
                 </label>
                 <input type="text" name="account_code" id="new_expense_head_code" placeholder="Auto e.g. 5015"
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 font-mono focus:outline-none focus:border-rose-500">
@@ -564,8 +582,8 @@
 
             <!-- Description -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Description (বিবরণ / নোট)</label>
-                <textarea name="description" id="new_expense_head_description" rows="2" placeholder="খরচের খাত সম্পর্কিত তথ্য..."
+                <label class="block text-slate-300 font-bold mb-1.5">Description / Notes</label>
+                <textarea name="description" id="new_expense_head_description" rows="2" placeholder="Brief notes about this expense head..."
                           class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-rose-500"></textarea>
             </div>
 
@@ -574,7 +592,7 @@
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button type="button" id="cancelEditExpenseHeadBtn" onclick="resetExpenseHeadForm()"
                         class="hidden px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold border border-amber-500/30 transition-all cursor-pointer">
-                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Cancel Edit (বাতিল)
+                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Cancel Edit
                 </button>
                 <button type="button" onclick="closeExpenseHeadModal()" 
                         class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all cursor-pointer">
@@ -591,7 +609,7 @@
         <!-- Currently Registered Expense Heads List -->
         <div class="mt-6 pt-5 border-t border-slate-800">
             <h4 class="text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
-                <span>বর্তমান খরচের খাতসমূহ (Active Expense Heads):</span>
+                <span>Active Expense Heads:</span>
                 <span class="text-rose-400 font-mono text-[11px]" id="expenseHeadsCountBadge">{{ $expenseAccounts->count() }} Heads</span>
             </h4>
             <div class="max-h-52 overflow-y-auto space-y-2 pr-1 text-[11px]" id="existingExpenseHeadsList">
@@ -658,7 +676,7 @@ function openExpenseDetails(btn) {
     const date = btn.getAttribute('data-date') || 'N/A';
     const head = btn.getAttribute('data-head') || 'N/A';
     const cat = btn.getAttribute('data-category') || 'N/A';
-    const paidFrom = btn.getAttribute('data-paid-from') || 'Cash in Hand (প্রধান ক্যাশ)';
+    const paidFrom = btn.getAttribute('data-paid-from') || 'Cash in Hand';
     const payee = btn.getAttribute('data-payee') || 'General Payee';
     const supplier = btn.getAttribute('data-supplier') || '';
     const employee = btn.getAttribute('data-employee') || '';
@@ -757,8 +775,8 @@ function editExpenseHead(data) {
     document.getElementById('new_expense_head_description').value = data.description || '';
 
     // Update modal UI for edit mode
-    document.getElementById('expenseHeadModalTitle').textContent = 'Edit Expense Head (খাত সম্পাদনা)';
-    document.getElementById('expenseHeadModalSubtitle').textContent = 'খরচের খাতের নাম, ক্যাটাগরি ও বিবরণ পরিবর্তন করুন';
+    document.getElementById('expenseHeadModalTitle').textContent = 'Edit Expense Head';
+    document.getElementById('expenseHeadModalSubtitle').textContent = 'Update expense head details';
     document.getElementById('saveExpenseHeadText').textContent = 'Update Expense Head';
     document.getElementById('saveExpenseHeadIcon').className = 'fa-solid fa-arrows-rotate';
     document.getElementById('cancelEditExpenseHeadBtn').classList.remove('hidden');
@@ -779,8 +797,8 @@ function editExpenseHead(data) {
 function resetExpenseHeadForm() {
     document.getElementById('expenseHeadForm').reset();
     document.getElementById('edit_expense_head_id').value = '';
-    document.getElementById('expenseHeadModalTitle').textContent = 'Add New Expense Head (নতুন খরচের খাত)';
-    document.getElementById('expenseHeadModalSubtitle').textContent = 'ম্যানুয়ালি নিজস্ব খরচের খাত তৈরি ও পরিচালনা করুন';
+    document.getElementById('expenseHeadModalTitle').textContent = 'Add New Expense Head';
+    document.getElementById('expenseHeadModalSubtitle').textContent = 'Create and manage custom expense heads';
     document.getElementById('saveExpenseHeadText').textContent = 'Save Expense Head';
     document.getElementById('saveExpenseHeadIcon').className = 'fa-solid fa-check';
     document.getElementById('cancelEditExpenseHeadBtn').classList.add('hidden');
@@ -848,7 +866,7 @@ function submitExpenseHeadForm(e) {
                     if (fOpt) fOpt.textContent = acc.name;
                 }
 
-                alertBox.textContent = 'খরচের খাত "' + acc.name + '" সফলভাবে আপডেট করা হয়েছে!';
+                alertBox.textContent = 'Expense head "' + acc.name + '" updated successfully!';
                 alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
                 resetExpenseHeadForm();
             } else {
@@ -922,7 +940,7 @@ function submitExpenseHeadForm(e) {
                 }
 
                 form.reset();
-                alertBox.textContent = 'নতুন খরচের খাত "' + acc.name + '" তৈরি ও নির্বাচিত হয়েছে!';
+                alertBox.textContent = 'Expense head "' + acc.name + '" created and selected!';
                 alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
             }
         } else {
@@ -939,7 +957,7 @@ function submitExpenseHeadForm(e) {
 }
 
 function deleteExpenseHead(id, name) {
-    if (!confirm('আপনি কি নিশ্চিত যে খরচের খাত "' + name + '" মুছে ফেলতে চান?')) {
+    if (!confirm('Are you sure you want to delete expense head "' + name + '"?')) {
         return;
     }
 
@@ -991,16 +1009,97 @@ function deleteExpenseHead(id, name) {
                 countBadge.textContent = Math.max(0, current - 1) + ' Heads';
             }
 
-            alertBox.textContent = data.message || 'খরচের খাতটি সফলভাবে মুছে ফেলা হয়েছে!';
+            alertBox.textContent = data.message || 'Expense head deleted successfully!';
             alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 block';
         } else {
-            alertBox.textContent = data.message || 'খাতটি মুছে ফেলা সম্ভব হয়নি।';
+            alertBox.textContent = data.message || 'Could not delete expense head.';
             alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
         }
     })
     .catch(err => {
-        alertBox.textContent = 'খরচের খাত মুছে ফেলতে সমস্যা হয়েছে।';
+        alertBox.textContent = 'Server error occurred while deleting expense head.';
         alertBox.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40 block';
+    });
+}
+
+// 4. AJAX Load More Expense Records
+let currentExpensePage = parseInt(document.getElementById('expenseLoadMoreBtn')?.getAttribute('data-next-page') || '2');
+let totalExpensePages = parseInt(document.getElementById('expenseLoadMoreBtn')?.getAttribute('data-total-pages') || '1');
+let isLoadingExpense = false;
+
+function loadMoreExpense() {
+    const btn = document.getElementById('expenseLoadMoreBtn');
+    if (!btn || isLoadingExpense || currentExpensePage > totalExpensePages) return;
+    isLoadingExpense = true;
+
+    const spinner = document.getElementById('expenseLoadSpinner');
+    const icon = document.getElementById('expenseLoadIcon');
+    const text = document.getElementById('expenseLoadText');
+
+    if (spinner) spinner.classList.remove('hidden');
+    if (icon) icon.classList.add('hidden');
+    if (text) text.textContent = 'Loading...';
+    btn.disabled = true;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', currentExpensePage);
+
+    fetch(url.toString(), {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.text();
+    })
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newRows = doc.querySelectorAll('#expenseTableBody tr');
+        const tbody = document.getElementById('expenseTableBody');
+
+        if (tbody && newRows.length > 0) {
+            newRows.forEach(row => {
+                if (!row.id || row.id !== 'expenseEmptyRow') {
+                    tbody.appendChild(row);
+                }
+            });
+
+            const currentCountEl = document.getElementById('expenseCurrentCount');
+            if (currentCountEl) {
+                currentCountEl.textContent = tbody.querySelectorAll('tr:not(#expenseEmptyRow)').length;
+            }
+        }
+
+        currentExpensePage++;
+        if (currentExpensePage > totalExpensePages) {
+            btn.remove();
+            const container = document.getElementById('expenseLoadMoreContainer');
+            if (container && !document.getElementById('expenseAllLoaded')) {
+                const finishedDiv = document.createElement('div');
+                finishedDiv.id = 'expenseAllLoaded';
+                finishedDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+                finishedDiv.innerHTML = '<i class="fa-solid fa-check text-rose-400"></i> All records loaded';
+                container.appendChild(finishedDiv);
+            }
+        } else {
+            btn.setAttribute('data-next-page', currentExpensePage);
+            btn.disabled = false;
+            if (spinner) spinner.classList.add('hidden');
+            if (icon) icon.classList.remove('hidden');
+            if (text) text.textContent = 'Load More Records';
+        }
+    })
+    .catch(err => {
+        console.error('Failed to load expense records:', err);
+        if (text) text.textContent = 'Failed to load. Click to retry';
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        btn.disabled = false;
+    })
+    .finally(() => {
+        isLoadingExpense = false;
     });
 }
 

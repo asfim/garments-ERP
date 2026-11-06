@@ -129,7 +129,7 @@
             </thead>
             <tbody class="divide-y divide-slate-800/60 font-mono">
                 @forelse($ledgerData['rows'] as $r)
-                <tr class="hover:bg-slate-800/30">
+                <tr class="employee-entry-row hover:bg-slate-800/30 {{ $loop->index >= 20 ? 'hidden' : '' }}" data-index="{{ $loop->index }}">
                     <td class="py-2.5 px-4 text-slate-300">
                         {{ date('d M, Y', strtotime($r['date'])) }}
                     </td>
@@ -161,9 +161,63 @@
                 @endforelse
             </tbody>
         </table>
+
+        <!-- EMPLOYEE LEDGER LOAD MORE CONTAINER -->
+        @if(!empty($ledgerData['rows']) && count($ledgerData['rows']) > 0)
+        <div id="employeeLedgerLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="employeeLedgerShowingCount" class="text-purple-400 font-bold">{{ min(20, count($ledgerData['rows'])) }}</span> of <span id="employeeLedgerTotalCount" class="text-white font-bold">{{ count($ledgerData['rows']) }}</span> entries
+            </div>
+
+            @if(count($ledgerData['rows']) > 20)
+            <button type="button" 
+                    id="employeeLedgerLoadMoreBtn"
+                    onclick="loadMoreEmployeeLedgerRows()"
+                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-circle-down"></i>
+                <span>Load More Entries</span>
+            </button>
+            @else
+            <div class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400"></i> All entries loaded
+            </div>
+            @endif
+        </div>
+        @endif
     </div>
     @endif
 
 </div>
+
+@if($ledgerData && !empty($ledgerData['rows']))
+<script>
+let employeeLedgerPageSize = 20;
+let currentEmployeeVisible = Math.min(20, {{ count($ledgerData['rows']) }});
+const totalEmployeeEntries = {{ count($ledgerData['rows']) }};
+
+function loadMoreEmployeeLedgerRows() {
+    const hiddenRows = document.querySelectorAll('.employee-entry-row.hidden');
+    let toShow = Math.min(employeeLedgerPageSize, hiddenRows.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.remove('hidden');
+    }
+    currentEmployeeVisible += toShow;
+    const countEl = document.getElementById('employeeLedgerShowingCount');
+    if (countEl) countEl.textContent = currentEmployeeVisible;
+
+    if (currentEmployeeVisible >= totalEmployeeEntries || hiddenRows.length <= toShow) {
+        const btn = document.getElementById('employeeLedgerLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('employeeLedgerLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All entries loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+</script>
+@endif
 @endsection
 

@@ -85,7 +85,7 @@
     <!-- Valuation Breakdown Accordion / Cards -->
     <div class="space-y-4">
         @forelse($valuationData['products'] as $prod)
-        <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-3">
+        <div class="valuation-product-card glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-3 {{ $loop->index >= 20 ? 'hidden' : '' }}">
             <!-- Product Header Row -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                 <div class="flex items-center gap-3">
@@ -186,11 +186,57 @@
             No products found.
         </div>
         @endforelse
+
+        <!-- Inventory Valuation Load More -->
+        @if(!empty($valuationData['products']) && count($valuationData['products']) > 20)
+        <div id="valuationLoadMoreContainer" class="p-4 rounded-2xl border border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="valuationShowingCount" class="text-emerald-400 font-bold">{{ min(20, count($valuationData['products'])) }}</span> of <span id="valuationTotalCount" class="text-white font-bold">{{ count($valuationData['products']) }}</span> products
+            </div>
+
+            <button type="button" 
+                    id="valuationLoadMoreBtn"
+                    onclick="loadMoreValuationCards()"
+                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-circle-down"></i>
+                <span>Load More Products</span>
+            </button>
+        </div>
+        @endif
     </div>
     </div> <!-- /#reportTabContent -->
 
 </div>
 
 @include('factory-erp.accounts.reports.ajax-script')
+
+<script>
+let valPageSize = 20;
+let currentValVisible = Math.min(20, {{ !empty($valuationData['products']) ? count($valuationData['products']) : 0 }});
+const totalValProducts = {{ !empty($valuationData['products']) ? count($valuationData['products']) : 0 }};
+
+function loadMoreValuationCards() {
+    const hiddenCards = document.querySelectorAll('.valuation-product-card.hidden');
+    let toShow = Math.min(valPageSize, hiddenCards.length);
+    for (let i = 0; i < toShow; i++) {
+        hiddenCards[i].classList.remove('hidden');
+    }
+    currentValVisible += toShow;
+    const countEl = document.getElementById('valuationShowingCount');
+    if (countEl) countEl.textContent = currentValVisible;
+
+    if (currentValVisible >= totalValProducts || hiddenCards.length <= toShow) {
+        const btn = document.getElementById('valuationLoadMoreBtn');
+        if (btn) btn.remove();
+        const container = document.getElementById('valuationLoadMoreContainer');
+        if (container) {
+            const doneDiv = document.createElement('div');
+            doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+            doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All products loaded';
+            container.appendChild(doneDiv);
+        }
+    }
+}
+</script>
 @endsection
 
