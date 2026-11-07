@@ -20,6 +20,11 @@ class HrEmployee extends Model
         'gross_salary' => 'decimal:2',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function department()
     {
         return $this->belongsTo(HrDepartment::class, 'department_id');

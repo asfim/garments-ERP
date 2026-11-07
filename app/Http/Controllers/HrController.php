@@ -18,6 +18,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class HrController extends Controller
 {
@@ -142,10 +148,12 @@ class HrController extends Controller
     {
         $departments = HrDepartment::with('designations')->orderBy('name')->get();
         $designations = HrDesignation::orderBy('title')->get();
+        $roles = Role::orderBy('name')->get();
+        $modules = RolePermissionSeeder::$modules;
         $lastId = HrEmployee::max('id') ?? 0;
         $nextEmployeeCode = 'TBG-EMP-' . str_pad($lastId + 1, 3, '0', STR_PAD_LEFT);
 
-        return view('factory-erp.hr.employees.create', compact('departments', 'designations', 'nextEmployeeCode'));
+        return view('factory-erp.hr.employees.create', compact('departments', 'designations', 'roles', 'modules', 'nextEmployeeCode'));
     }
 
     public function employeesStore(Request $request)
@@ -154,6 +162,7 @@ class HrController extends Controller
             'employee_code' => 'nullable|string|max:50|unique:hr_employees,employee_code',
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
+            'password' => 'nullable|string|min:4',
             'phone' => 'required|string|max:50',
             'emergency_phone' => 'nullable|string|max:50',
             'nid' => 'nullable|string|max:50',
@@ -176,9 +185,12 @@ class HrController extends Controller
             'account_number' => 'nullable|string|max:100',
             'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'enable_permissions' => 'nullable|boolean',
+            'role_name' => 'nullable|string',
+            'new_role_name' => 'nullable|string|max:100',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string|exists:permissions,name',
         ]);
-
-        $validated['payment_method'] = $validated['payment_method'] ?? ($employee->payment_method ?? 'Cash');
 
         if (empty($validated['employee_code'])) {
             $lastId = HrEmployee::max('id') ?? 0;
@@ -198,9 +210,67 @@ class HrController extends Controller
             $validated['photo'] = $path;
         }
 
+        // 1. Employee Account & Email Auto-Generation
+        $email = trim($validated['email'] ?? '');
+        if (empty($email)) {
+            $nameSlug = Str::slug($validated['name'], '.');
+            if (empty($nameSlug)) {
+                $nameSlug = 'worker';
+            }
+            $cleanCode = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $validated['employee_code']));
+            $email = $nameSlug . '.' . $cleanCode . '@turkeybangla.com';
+        }
+
+        // Ensure unique email
+        $baseEmail = $email;
+        $counter = 1;
+        while (User::where('email', $email)->exists()) {
+            $parts = explode('@', $baseEmail);
+            $email = $parts[0] . $counter . '@' . ($parts[1] ?? 'turkeybangla.com');
+            $counter++;
+        }
+        $validated['email'] = $email;
+
+        // 2. Password with Eye button
+        $rawPassword = $request->input('password');
+        if (empty($rawPassword)) {
+            $rawPassword = 'password';
+        }
+
+        // 3. Role & Permission Handling
+        $roleName = 'Employee';
+        if ($request->filled('new_role_name')) {
+            $newRole = Role::firstOrCreate(['name' => trim($request->new_role_name), 'guard_name' => 'web']);
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $newRole->syncPermissions($request->permissions);
+            }
+            $roleName = $newRole->name;
+        } elseif ($request->filled('role_name')) {
+            $roleName = $request->role_name;
+        }
+
+        $userRole = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $email,
+            'role' => ($roleName === 'Employee') ? 'employee' : 'admin',
+            'password' => Hash::make($rawPassword)
+        ]);
+        $user->assignRole($userRole);
+
+        if ($request->has('permissions') && is_array($request->permissions)) {
+            $user->syncPermissions($request->permissions);
+        }
+
+        $validated['user_id'] = $user->id;
+
+        // Strip non-model attributes
+        unset($validated['password'], $validated['enable_permissions'], $validated['role_name'], $validated['new_role_name'], $validated['permissions']);
+
         HrEmployee::create($validated);
 
-        return redirect()->route('factory.hr.employees.index')->with('success', 'Employee ' . $validated['name'] . ' registered successfully!');
+        return redirect()->route('factory.hr.employees.index')->with('success', 'Employee ' . $validated['name'] . ' registered successfully with login email: ' . $email . '!');
     }
 
     public function employeesShow(Request $request, $id)
@@ -289,11 +359,13 @@ class HrController extends Controller
 
     public function employeesEdit($id)
     {
-        $employee = HrEmployee::findOrFail($id);
+        $employee = HrEmployee::with('user')->findOrFail($id);
         $departments = HrDepartment::with('designations')->orderBy('name')->get();
         $designations = HrDesignation::orderBy('title')->get();
+        $roles = Role::orderBy('name')->get();
+        $modules = RolePermissionSeeder::$modules;
 
-        return view('factory-erp.hr.employees.edit', compact('employee', 'departments', 'designations'));
+        return view('factory-erp.hr.employees.edit', compact('employee', 'departments', 'designations', 'roles', 'modules'));
     }
 
     public function employeesUpdate(Request $request, $id)
@@ -304,6 +376,7 @@ class HrController extends Controller
             'employee_code' => 'required|string|max:50|unique:hr_employees,employee_code,' . $id,
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
+            'password' => 'nullable|string|min:4',
             'phone' => 'required|string|max:50',
             'emergency_phone' => 'nullable|string|max:50',
             'nid' => 'nullable|string|max:50',
@@ -326,9 +399,14 @@ class HrController extends Controller
             'account_number' => 'nullable|string|max:100',
             'device_user_id' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'enable_permissions' => 'nullable|boolean',
+            'role_name' => 'nullable|string',
+            'new_role_name' => 'nullable|string|max:100',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string|exists:permissions,name',
         ]);
 
-        $validated['payment_method'] = $validated['payment_method'] ?? ($employee->payment_method ?? 'Cash');
+        $validated['payment_method'] = $validated['payment_method'] ?? 'Cash';
 
         $basic = floatval($validated['basic_salary'] ?? 0);
         $house = floatval($validated['house_rent'] ?? 0);
@@ -343,6 +421,62 @@ class HrController extends Controller
             $path = $request->file('photo')->store('employees', 'public');
             $validated['photo'] = $path;
         }
+
+        // Manage User Account & Login
+        $email = trim($validated['email'] ?? '');
+        if (empty($email)) {
+            $nameSlug = Str::slug($validated['name'], '.');
+            $cleanCode = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $validated['employee_code']));
+            $email = ($nameSlug ?: 'emp') . '.' . $cleanCode . '@turkeybangla.com';
+            $validated['email'] = $email;
+        }
+
+        $user = $employee->user;
+        if (!$user && $employee->user_id) {
+            $user = User::find($employee->user_id);
+        }
+
+        // Determine Role
+        $roleName = $request->input('role_name', 'Employee');
+        if ($request->filled('new_role_name')) {
+            $newRole = Role::firstOrCreate(['name' => trim($request->new_role_name), 'guard_name' => 'web']);
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $newRole->syncPermissions($request->permissions);
+            }
+            $roleName = $newRole->name;
+        }
+
+        $userRole = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+
+        if ($user) {
+            $user->name = $validated['name'];
+            $user->email = $email;
+            $user->role = ($roleName === 'Employee') ? 'employee' : 'admin';
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+            $user->save();
+            $user->syncRoles([$userRole]);
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $user->syncPermissions($request->permissions);
+            }
+        } else {
+            // Create user account if not exists
+            $rawPass = $request->filled('password') ? $request->password : 'password';
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $email,
+                'role' => ($roleName === 'Employee') ? 'employee' : 'admin',
+                'password' => Hash::make($rawPass)
+            ]);
+            $user->assignRole($userRole);
+            if ($request->has('permissions') && is_array($request->permissions)) {
+                $user->syncPermissions($request->permissions);
+            }
+            $validated['user_id'] = $user->id;
+        }
+
+        unset($validated['password'], $validated['enable_permissions'], $validated['role_name'], $validated['new_role_name'], $validated['permissions']);
 
         $employee->update($validated);
 

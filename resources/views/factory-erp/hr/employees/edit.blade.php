@@ -121,16 +121,159 @@
             </div>
         </div>
 
-        <!-- 2. Personal & Contact Information -->
+        <!-- 2. Employee Login Credentials & Access (লগইন ইমেইল, পাসওয়ার্ড ও পারমিশন) -->
+        <div class="glass-panel rounded-2xl border-2 border-emerald-500/50 p-6 shadow-2xl space-y-5 bg-[#061226]/90 relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-700/80 relative z-10">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-base shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-key"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                            <span>Employee Portal Login & Permissions (লগইন ইমেইল, পাসওয়ার্ড ও পারমিশন)</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                LOGIN ACCESS
+                            </span>
+                        </h3>
+                        <p class="text-[11px] text-slate-300 mt-0.5">
+                            কর্মচারীর লগইন ইমেইল ও পাসওয়ার্ড পরিবর্তন করতে পারেন।
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Permission Toggle Button -->
+                <button type="button" id="permissionToggleBtn" onclick="togglePermissionPanel()"
+                        class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-xs"></i>
+                    <span id="permissionBtnLabel">Permission (পারমিশন পরিবর্তন)</span>
+                </button>
+                <input type="hidden" name="enable_permissions" id="enablePermissionsInput" value="0">
+            </div>
+
+            <!-- Login Email & Password Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
+                
+                <!-- Email Address -->
+                <div class="p-4 rounded-xl bg-[#040a18] border border-cyan-500/30 space-y-2">
+                    <label class="block text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Login Email (লগইন ইমেইল) *</span>
+                    </label>
+                    <input type="email" name="email" id="editEmailInput" value="{{ old('email', $employee->email) }}" placeholder="name.code@turkeybangla.com"
+                           class="w-full bg-[#0a122e] border border-cyan-500/50 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono font-bold">
+                    <span class="text-[10px] text-slate-400 block">কর্মী এই ইমেইল দিয়ে সিস্টেমে লগইন করবে।</span>
+                </div>
+
+                <!-- Login Password with Eye Button -->
+                <div class="p-4 rounded-xl bg-[#040a18] border border-emerald-500/30 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>Change Password (নতুন পাসওয়ার্ড)</span>
+                        </label>
+                        <button type="button" onclick="generateRandomEditPassword()"
+                                class="text-[10px] text-emerald-400 hover:text-emerald-300 font-mono font-bold underline flex items-center gap-1">
+                            <i class="fa-solid fa-dice"></i>
+                            <span>Generate Random</span>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="password" name="password" id="editPasswordInput" placeholder="Leave empty to keep current password"
+                               class="w-full bg-[#0a122e] border border-emerald-500/50 rounded-xl pl-3.5 pr-11 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-400 font-mono font-bold">
+                        
+                        <button type="button" onclick="toggleEditPassword()" title="পাসওয়ার্ড দেখতে বা লুকাতে ক্লিক করুন"
+                                class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 transition-colors text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-eye text-emerald-400" id="editPasswordEyeIcon"></i>
+                        </button>
+                    </div>
+                    <span class="text-[10px] text-slate-400 block">পাসওয়ার্ড পরিবর্তন করতে না চাইলে খালি রাখুন।</span>
+                </div>
+
+            </div>
+
+            <!-- Collapsible Role & Permission Config Panel -->
+            <div id="permissionConfigPanel" class="hidden space-y-5 pt-3 border-t border-slate-700/80 relative z-10">
+                
+                @php
+                    $userRoleName = $employee->user ? ($employee->user->roles->pluck('name')->first() ?? 'Employee') : 'Employee';
+                    $userPerms = $employee->user ? $employee->user->getAllPermissions()->pluck('name')->toArray() : [];
+                @endphp
+
+                <div class="flex items-center gap-2 text-xs font-bold text-purple-300 uppercase tracking-wider">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Admin Menu Access & Custom Role Configuration</span>
+                </div>
+
+                <!-- Role Assignment / Create New Role -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-[#040a18] border border-purple-500/40">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Select Existing Role (বিদ্যমান রোল)</label>
+                        <select name="role_name" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-400 font-bold">
+                            @foreach($roles as $r)
+                                <option value="{{ $r->name }}" {{ $userRoleName === $r->name ? 'selected' : '' }}>
+                                    {{ $r->name }} ({{ $r->permissions->count() }} permissions)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-purple-300 mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>Or Create New Role (অথবা নতুন রোল লিখুন)</span>
+                        </label>
+                        <input type="text" name="new_role_name" placeholder="e.g. Line Supervisor"
+                               class="w-full bg-[#0a122e] border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-400 font-bold">
+                    </div>
+                </div>
+
+                <!-- Module-by-Module Permission Matrix -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Allowed Admin Menus & Operations (ভিউ, যোগ, এডিট, ডিলিট)</span>
+                        </span>
+                        <button type="button" onclick="toggleAllEditPermissions()" class="text-xs text-purple-400 hover:underline font-bold">
+                            Toggle Select All
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
+                        @foreach($modules as $mKey => $mData)
+                        <div class="p-3.5 rounded-xl bg-[#040a18] border border-slate-800 space-y-2 hover:border-slate-700 transition-colors">
+                            <div class="font-bold text-xs text-white pb-1 border-b border-slate-800 flex items-center justify-between">
+                                <span>{{ $mData['label'] }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                @foreach($mData['permissions'] as $pName)
+                                <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+                                    <input type="checkbox" name="permissions[]" value="{{ $pName }}" {{ in_array($pName, $userPerms) ? 'checked' : '' }} class="edit-perm-cb rounded bg-[#0a122e] border-slate-700 text-purple-500 focus:ring-0">
+                                    <span class="capitalize">{{ str_replace('_', ' ', explode('_', $pName, 2)[0]) }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 3. Personal & Contact Information -->
         <div class="glass-panel rounded-2xl border border-slate-700/60 p-6 shadow-xl">
             <h3 class="text-sm font-extrabold text-white flex items-center gap-2 pb-3 mb-5 border-b border-slate-700/60">
                 <span class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-phone"></i>
                 </span>
-                <span>Contact & Personal Details (যোগাযোগ ও ব্যক্তিগত তথ্য)</span>
+                <span>3. Contact & Personal Details (যোগাযোগ ও ব্যক্তিগত তথ্য)</span>
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- Phone -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Phone Number (মোবাইল নম্বর) *</label>
@@ -145,13 +288,6 @@
                            class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
                 </div>
 
-                <!-- Email Address -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
-                    <input type="email" name="email" value="{{ old('email', $employee->email) }}" placeholder="name@domain.com"
-                           class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-                </div>
-
                 <!-- NID -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">National ID (NID নম্বর)</label>
@@ -163,6 +299,24 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Gender (লিঙ্গ) *</label>
                     <select name="gender" required class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+                        <option value="Male" {{ old('gender', $employee->gender) === 'Male' ? 'selected' : '' }}>Male (পুরুষ)</option>
+                        <option value="Female" {{ old('gender', $employee->gender) === 'Female' ? 'selected' : '' }}>Female (মহিলা)</option>
+                        <option value="Other" {{ old('gender', $employee->gender) === 'Other' ? 'selected' : '' }}>Other (অন্যান্য)</option>
+                    </select>
+                </div>
+
+                <!-- Blood Group -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Blood Group (রক্তের গ্রুপ)</label>
+                    <select name="blood_group" class="w-full bg-[#0a122e] border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+                        <option value="">Select Blood Group</option>
+                        @foreach(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $bg)
+                            <option value="{{ $bg }}" {{ old('blood_group', $employee->blood_group) === $bg ? 'selected' : '' }}>{{ $bg }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
                         <option value="Male" {{ old('gender', $employee->gender) === 'Male' ? 'selected' : '' }}>Male (পুরুষ)</option>
                         <option value="Female" {{ old('gender', $employee->gender) === 'Female' ? 'selected' : '' }}>Female (মহিলা)</option>
                         <option value="Other" {{ old('gender', $employee->gender) === 'Other' ? 'selected' : '' }}>Other (অন্যান্য)</option>
@@ -527,6 +681,61 @@
         const conv = parseFloat(document.getElementById(prefix + 'Conv').value) || 0;
         const total = basic + house + med + conv;
         document.getElementById(prefix + 'Gross').value = total.toFixed(2);
+    }
+
+    function toggleEditPassword() {
+        const pwd = document.getElementById('editPasswordInput');
+        const icon = document.getElementById('editPasswordEyeIcon');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    function generateRandomEditPassword() {
+        const chars = 'abcdefghjkmnpqrstuvwxyz23456789@#$';
+        let pass = 'TBG@';
+        for (let i = 0; i < 4; i++) {
+            pass += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const pwd = document.getElementById('editPasswordInput');
+        pwd.value = pass;
+        pwd.type = 'text';
+        const icon = document.getElementById('editPasswordEyeIcon');
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+
+    function togglePermissionPanel() {
+        const panel = document.getElementById('permissionConfigPanel');
+        const btn = document.getElementById('permissionToggleBtn');
+        const label = document.getElementById('permissionBtnLabel');
+        const input = document.getElementById('enablePermissionsInput');
+
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            btn.className = "px-4 py-2.5 rounded-xl bg-purple-600 text-white border border-purple-400 font-bold text-xs shadow-lg transition-all flex items-center gap-2";
+            label.innerText = "Permissions Open (পারমিশন পরিবর্তন)";
+            input.value = "1";
+        } else {
+            panel.classList.add('hidden');
+            btn.className = "px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2";
+            label.innerText = "Permission (পারমিশন পরিবর্তন)";
+            input.value = "0";
+        }
+    }
+
+    function toggleAllEditPermissions() {
+        const checkboxes = document.querySelectorAll('.edit-perm-cb');
+        const anyUnchecked = Array.from(checkboxes).some(cb => !cb.checked);
+        checkboxes.forEach(cb => cb.checked = anyUnchecked);
     }
 
     // Initialize on load

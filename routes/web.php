@@ -1,12 +1,33 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmployeePortalController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\FactoryErpController;
 use App\Http\Controllers\HrController;
 use App\Http\Controllers\AccountsController;
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// 1. Landing / Home Page
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// 2. Main ERP Dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// 3. Authentication Routes (Admin & Worker)
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// 4. Dedicated Employee Self-Service Portal
+Route::prefix('employee')->name('employee.')->group(function () {
+    Route::get('/dashboard', [EmployeePortalController::class, 'dashboard'])->name('dashboard');
+    Route::post('/advance-request', [EmployeePortalController::class, 'requestAdvance'])->name('advance.request');
+    Route::post('/leave-request', [EmployeePortalController::class, 'requestLeave'])->name('leave.request');
+});
+
 Route::match(['GET', 'POST'], '/iclock/cdata', [HrController::class, 'devicesAdmsPush'])->name('iclock.cdata');
 
 // ==========================================
@@ -14,6 +35,12 @@ Route::match(['GET', 'POST'], '/iclock/cdata', [HrController::class, 'devicesAdm
 // ==========================================
 Route::prefix('factory')->name('factory.')->group(function () {
     
+    // Roles & Permissions Management
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+
     // 1. Settings (Company info for PDF/Invoices)
     Route::get('/settings', [FactoryErpController::class, 'settingsIndex'])->name('settings.index');
     Route::post('/settings', [FactoryErpController::class, 'settingsUpdate'])->name('settings.update');

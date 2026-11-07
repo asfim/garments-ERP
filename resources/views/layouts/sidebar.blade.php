@@ -17,15 +17,39 @@
         <!-- Navigation Menu Container -->
         <nav class="space-y-1">
             
-            <!-- Dashboard (Always Present) -->
+            <!-- Home & ERP Dashboard Links -->
             @php
-                $isDash = request()->routeIs('dashboard') || request()->is('/');
+                $isHome = request()->routeIs('home');
+                $isDash = request()->routeIs('dashboard');
             @endphp
-            <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-xs {{ $isDash ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent' }}">
-                <span class="w-6 h-6 rounded-lg {{ $isDash ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-cyan-400' }} flex items-center justify-center">
-                    <i class="fa-solid fa-house text-[11px]"></i>
+            <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-xs {{ $isHome ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent' }}">
+                <span class="w-6 h-6 rounded-lg {{ $isHome ? 'bg-white/20 text-white' : 'bg-cyan-500/10 text-cyan-400' }} flex items-center justify-center">
+                    <i class="fa-solid fa-earth-americas text-[11px]"></i>
                 </span>
-                <span>Dashboard</span>
+                <span>Home Page (ওয়েবসাইট)</span>
+            </a>
+
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-xs {{ $isDash ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent' }}">
+                <span class="w-6 h-6 rounded-lg {{ $isDash ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-cyan-400' }} flex items-center justify-center">
+                    <i class="fa-solid fa-chart-line text-[11px]"></i>
+                </span>
+                <span>ERP Dashboard</span>
+            </a>
+
+            <!-- Dedicated Roles & Permissions Primary Menu -->
+            @php
+                $isRolesMenu = request()->routeIs('factory.roles.*');
+            @endphp
+            <a href="{{ route('factory.roles.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition-all text-xs {{ $isRolesMenu ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold shadow-lg shadow-purple-500/25 border border-purple-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium border border-transparent group' }}">
+                <div class="flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-lg {{ $isRolesMenu ? 'bg-white/20 text-white' : 'bg-purple-500/20 text-purple-400 group-hover:bg-purple-500/30' }} flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-[11px]"></i>
+                    </span>
+                    <span class="{{ $isRolesMenu ? 'text-white font-bold' : 'text-purple-300 font-semibold group-hover:text-white' }}">Roles & Permissions</span>
+                </div>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    RBAC
+                </span>
             </a>
 
             <!-- PACKAGE ERP MENUS (Component) -->

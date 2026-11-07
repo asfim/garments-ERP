@@ -50,23 +50,49 @@
             </div>
         </div>
 
-        <!-- Right Controls: User Profile -->
+        <!-- Right Controls: User Profile & Authentication -->
         <div class="flex items-center gap-3">
-            <!-- User Profile -->
-            <div class="flex items-center gap-2.5 pl-1">
-                <div class="relative">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face" 
-                         alt="User Avatar" class="w-9 h-9 rounded-xl object-cover ring-2 ring-cyan-500/40 shadow-md">
-                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#0a1128]"></span>
-                </div>
-                <div class="hidden lg:block text-left">
-                    <div class="text-xs font-bold text-white flex items-center gap-1">
-                        Kazi Jahidur Rahman
+            @auth
+                <!-- User Profile Info -->
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="relative">
+                        @php
+                            $empPhoto = auth()->user()->employee?->photo;
+                        @endphp
+                        @if($empPhoto && file_exists(public_path('storage/' . $empPhoto)))
+                            <img src="{{ asset('storage/' . $empPhoto) }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-xl object-cover ring-2 ring-cyan-500/40 shadow-md">
+                        @else
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-cyan-500/40 shadow-md">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#0a1128]"></span>
                     </div>
-                    <div class="text-[10px] font-medium text-cyan-400 tracking-wider uppercase">Admin</div>
-                </div>
-            </div>
 
+                    <div class="hidden sm:block text-left">
+                        <div class="text-xs font-bold text-white flex items-center gap-1">
+                            {{ auth()->user()->name }}
+                        </div>
+                        <div class="text-[10px] font-bold text-cyan-400 tracking-wider uppercase font-mono">
+                            {{ auth()->user()->roles->pluck('name')->first() ?? (auth()->user()->isEmployee() ? 'Worker' : 'Admin') }}
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <form action="{{ route('logout') }}" method="POST" class="inline ml-1">
+                        @csrf
+                        <button type="submit" title="Logout (লগআউট)" class="p-2 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 transition-all text-xs">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </form>
+                </div>
+            @else
+                <a href="{{ route('login') }}" 
+                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i>
+                    <span>Sign In</span>
+                </a>
+            @endauth
         </div>
 
     </div>

@@ -1,8 +1,37 @@
+@php
+    $canAccess = function($permission) {
+        if (!auth()->check()) {
+            return true;
+        }
+        $u = auth()->user();
+        if ($u->isAdmin() || $u->hasRole('Super Admin') || $u->hasRole('Admin')) {
+            return true;
+        }
+        return $u->can($permission);
+    };
+@endphp
+
+<!-- EMPLOYEE SELF-SERVICE PORTAL (If logged-in user is an employee) -->
+@if(auth()->check() && auth()->user()->isEmployee())
+@php $isMyPortal = request()->routeIs('employee.*'); @endphp
+<div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-400/90">
+    Worker Portal
+</div>
+<a href="{{ route('employee.dashboard') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isMyPortal ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg shadow-emerald-500/25 border border-emerald-400/40' : 'text-emerald-300 hover:text-white hover:bg-emerald-500/15 font-bold border border-emerald-500/30 group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isMyPortal ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400' }} flex items-center justify-center">
+        <i class="fa-solid fa-id-badge text-[11px]"></i>
+    </span>
+    <span>My Employee Portal</span>
+</a>
+@endif
+
 <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400/80">
     Factory Modules
 </div>
 
 <!-- 1. Product list -->
+@if($canAccess('view_products'))
 @php $isProd = request()->routeIs('factory.products.*'); @endphp
 <a href="{{ route('factory.products.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isProd ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -11,8 +40,10 @@
     </span>
     <span>Product List</span>
 </a>
+@endif
 
 <!-- 2. Unit Management -->
+@if($canAccess('view_units'))
 @php $isUnit = request()->routeIs('factory.units.*'); @endphp
 <a href="{{ route('factory.units.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isUnit ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -21,8 +52,10 @@
     </span>
     <span>Units</span>
 </a>
+@endif
 
 <!-- 3. Customer -->
+@if($canAccess('view_customers'))
 @php $isCust = request()->routeIs('factory.customers.index') || request()->routeIs('factory.customers.details'); @endphp
 <a href="{{ route('factory.customers.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isCust ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -31,8 +64,10 @@
     </span>
     <span>Customer</span>
 </a>
+@endif
 
 <!-- 3.1 Due Payment -->
+@if($canAccess('view_due_payments'))
 @php $isDue = request()->routeIs('factory.customers.due.*'); @endphp
 <a href="{{ route('factory.customers.due.index') }}" 
    class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all {{ $isDue ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 text-white font-bold shadow-lg shadow-rose-500/25 border border-rose-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -46,8 +81,10 @@
         Due
     </span>
 </a>
+@endif
 
 <!-- 4. Supplier -->
+@if($canAccess('view_suppliers'))
 @php $isSupp = request()->routeIs('factory.suppliers.*'); @endphp
 <a href="{{ route('factory.suppliers.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isSupp ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -56,8 +93,10 @@
     </span>
     <span>Supplier</span>
 </a>
+@endif
 
 <!-- 4. Order & Invoicing -->
+@if($canAccess('view_orders'))
 @php $isOrd = request()->routeIs('factory.orders.*'); @endphp
 <a href="{{ route('factory.orders.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isOrd ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -66,8 +105,10 @@
     </span>
     <span>Order</span>
 </a>
+@endif
 
 <!-- 5. Production -->
+@if($canAccess('view_productions'))
 @php $isProdRun = request()->routeIs('factory.productions.*'); @endphp
 <a href="{{ route('factory.productions.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isProdRun ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -76,8 +117,10 @@
     </span>
     <span>Production</span>
 </a>
+@endif
 
 <!-- 6. Delivery -->
+@if($canAccess('view_deliveries'))
 @php $isDeliv = request()->routeIs('factory.deliveries.*'); @endphp
 <a href="{{ route('factory.deliveries.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDeliv ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -86,8 +129,10 @@
     </span>
     <span>Delivery</span>
 </a>
+@endif
 
 <!-- 7. Stock -->
+@if($canAccess('view_stocks'))
 @php $isStock = request()->routeIs('factory.stocks.*'); @endphp
 <a href="{{ route('factory.stocks.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isStock ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -96,8 +141,10 @@
     </span>
     <span>Stock</span>
 </a>
+@endif
 
 <!-- ACCOUNTS & FINANCE MANAGEMENT SECTION -->
+@if($canAccess('view_accounts'))
 <div class="pt-3 pb-1">
     <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-400/90 flex items-center justify-between border-t border-slate-800/80">
         <span class="flex items-center gap-1.5">
@@ -138,29 +185,7 @@
     <span>Expense</span>
 </a>
 
-{{-- ACC 4. Journal Vouchers [Commented out as per user request]
-@php $isJournal = request()->routeIs('factory.accounts.journals.*'); @endphp
-<a href="{{ route('factory.accounts.journals.index') }}" 
-   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isJournal ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-blue-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
-    <span class="w-6 h-6 rounded-lg {{ $isJournal ? 'bg-white/20 text-white' : 'bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20' }} flex items-center justify-center">
-        <i class="fa-solid fa-file-signature text-[11px]"></i>
-    </span>
-    <span>Journal Voucher</span>
-</a>
---}}
-
-{{-- ACC 5. Chart of Accounts [Commented out as per user request]
-@php $isChart = request()->routeIs('factory.accounts.chart.*'); @endphp
-<a href="{{ route('factory.accounts.chart.index') }}" 
-   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isChart ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/25 border border-indigo-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
-    <span class="w-6 h-6 rounded-lg {{ $isChart ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20' }} flex items-center justify-center">
-        <i class="fa-solid fa-book-bookmark text-[11px]"></i>
-    </span>
-    <span>Chart of Accounts</span>
-</a>
---}}
-
-<!-- ACC 6. General Ledger -->
+<!-- ACC 4. General Ledger -->
 @php $isLedger = request()->routeIs('factory.accounts.ledger.*') || request()->routeIs('factory.accounts.ledgers.*'); @endphp
 <a href="{{ route('factory.accounts.ledger.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isLedger ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-500/25 border border-purple-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -170,7 +195,7 @@
     <span>General Ledger</span>
 </a>
 
-<!-- ACC 7. Financial Reports -->
+<!-- ACC 5. Financial Reports -->
 @php $isReports = request()->routeIs('factory.accounts.reports.*') || request()->routeIs('factory.accounts.inventory-valuation.*') || request()->routeIs('factory.accounts.profitability.*'); @endphp
 <a href="{{ route('factory.accounts.reports.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isReports ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold shadow-lg shadow-teal-500/25 border border-teal-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -179,8 +204,10 @@
     </span>
     <span>Financial Reports</span>
 </a>
+@endif
 
 <!-- HR & PAYROLL MANAGEMENT SECTION -->
+@if($canAccess('view_employees') || $canAccess('view_attendance') || $canAccess('view_payroll'))
 <div class="pt-3 pb-1">
     <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400/90 flex items-center justify-between border-t border-slate-800/80">
         <span class="flex items-center gap-1.5">
@@ -202,6 +229,7 @@
 </a>
 
 <!-- HR 2. Employees -->
+@if($canAccess('view_employees'))
 @php $isEmp = request()->routeIs('factory.hr.employees.*'); @endphp
 <a href="{{ route('factory.hr.employees.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isEmp ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -210,8 +238,22 @@
     </span>
     <span>Employees</span>
 </a>
+@endif
+
+<!-- HR 2.1 Roles & Permissions (Dedicated Menu) -->
+@if($canAccess('view_roles') || $canAccess('manage_roles'))
+@php $isRolesHr = request()->routeIs('factory.roles.*'); @endphp
+<a href="{{ route('factory.roles.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isRolesHr ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-lg shadow-purple-500/25 border border-purple-400/40' : 'text-purple-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isRolesHr ? 'bg-white/20 text-white' : 'bg-purple-500/20 text-purple-400 group-hover:bg-purple-500/30' }} flex items-center justify-center">
+        <i class="fa-solid fa-shield-halved text-[11px]"></i>
+    </span>
+    <span>Roles & Permissions (রোল ও পারমিশন)</span>
+</a>
+@endif
 
 <!-- HR 3. Attendance -->
+@if($canAccess('view_attendance'))
 @php $isAtt = request()->routeIs('factory.hr.attendance.*'); @endphp
 <a href="{{ route('factory.hr.attendance.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isAtt ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -220,8 +262,10 @@
     </span>
     <span>Attendance</span>
 </a>
+@endif
 
 <!-- HR 3.1 Biometric Devices (ZKTeco) -->
+@if($canAccess('view_devices'))
 @php $isBio = request()->routeIs('factory.hr.devices.*'); @endphp
 <a href="{{ route('factory.hr.devices.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isBio ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -230,8 +274,10 @@
     </span>
     <span>Biometric Devices</span>
 </a>
+@endif
 
 <!-- HR 4. Leave Management -->
+@if($canAccess('view_leaves'))
 @php $isLeave = request()->routeIs('factory.hr.leaves.*'); @endphp
 <a href="{{ route('factory.hr.leaves.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isLeave ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -240,8 +286,10 @@
     </span>
     <span>Leaves</span>
 </a>
+@endif
 
 <!-- HR 4.1 Advance Salary & Loans -->
+@if($canAccess('view_advances'))
 @php $isAdv = request()->routeIs('factory.hr.advances.*'); @endphp
 <a href="{{ route('factory.hr.advances.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isAdv ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -250,8 +298,10 @@
     </span>
     <span>Advance Salary</span>
 </a>
+@endif
 
 <!-- HR 5. Payroll & Payslips -->
+@if($canAccess('view_payroll'))
 @php $isPay = request()->routeIs('factory.hr.payroll.*'); @endphp
 <a href="{{ route('factory.hr.payroll.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isPay ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold shadow-lg shadow-emerald-500/25 border border-emerald-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -260,8 +310,10 @@
     </span>
     <span>Payroll & Payslip</span>
 </a>
+@endif
 
 <!-- HR 6. Departments -->
+@if($canAccess('view_employees'))
 @php $isDept = request()->routeIs('factory.hr.departments.*'); @endphp
 <a href="{{ route('factory.hr.departments.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDept ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -270,8 +322,10 @@
     </span>
     <span>Departments</span>
 </a>
+@endif
 
 <!-- HR 7. Designations -->
+@if($canAccess('view_employees'))
 @php $isDes = request()->routeIs('factory.hr.designations.*'); @endphp
 <a href="{{ route('factory.hr.designations.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isDes ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -280,14 +334,31 @@
     </span>
     <span>Designations</span>
 </a>
+@endif
 
+@endif
+
+<!-- SYSTEM CONFIGURATION & PERMISSIONS -->
 <div class="pt-2 pb-1">
     <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-400/80 border-t border-slate-800/80">
-        Configuration
+        System & Access
     </div>
 </div>
 
-<!-- 8. Settings -->
+<!-- Roles & Permissions Management -->
+@if($canAccess('view_roles') || $canAccess('manage_roles'))
+@php $isRoles = request()->routeIs('factory.roles.*'); @endphp
+<a href="{{ route('factory.roles.index') }}" 
+   class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isRoles ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
+    <span class="w-6 h-6 rounded-lg {{ $isRoles ? 'bg-white/20 text-white' : 'bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20' }} flex items-center justify-center">
+        <i class="fa-solid fa-shield-halved text-[11px]"></i>
+    </span>
+    <span>Roles & Permissions</span>
+</a>
+@endif
+
+<!-- Settings -->
+@if($canAccess('manage_settings'))
 @php $isSet = request()->routeIs('factory.settings.*'); @endphp
 <a href="{{ route('factory.settings.index') }}" 
    class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all {{ $isSet ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-lg shadow-blue-500/25 border border-cyan-400/40' : 'text-slate-300 hover:text-white hover:bg-slate-800/50 font-medium border border-transparent group' }}">
@@ -296,3 +367,4 @@
     </span>
     <span>Settings</span>
 </a>
+@endif

@@ -7,11 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
     ];
 
@@ -45,5 +47,32 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Linked Employee profile (if user is an employee)
+     */
+    public function employee()
+    {
+        return $this->hasOne(HrEmployee::class, 'user_id');
+    }
+
+    /**
+     * Check if user is an employee
+     */
+    public function isEmployee(): bool
+    {
+        return $this->role === 'employee' || $this->hasRole('employee') || $this->hasRole('Employee');
+    }
+
+    /**
+     * Check if user is admin / super admin
+     */
+    public function isAdmin(): bool
+    {
+        if ($this->hasRole('Super Admin') || $this->hasRole('Admin') || $this->role === 'admin') {
+            return true;
+        }
+        return false;
     }
 }

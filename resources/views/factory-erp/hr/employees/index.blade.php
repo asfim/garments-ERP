@@ -16,6 +16,13 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Roles & Permissions Shortcut Button -->
+            <a href="{{ route('factory.roles.index') }}"
+               class="px-3.5 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 hover:text-white border border-purple-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-purple-400"></i>
+                <span>Roles & Permissions</span>
+            </a>
+
             <!-- Add Employee Button (Direct URL) -->
             <a href="{{ route('factory.hr.employees.create') }}"
                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2">
