@@ -3,6 +3,24 @@
 @section('title', 'Customers Management | Factory ERP')
 
 @section('content')
+<style>
+    .clients-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .clients-scrollbar::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 8px;
+    }
+    .clients-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(56, 189, 248, 0.25);
+        border-radius: 8px;
+    }
+    .clients-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(56, 189, 248, 0.5);
+    }
+</style>
+
 <div class="space-y-6">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -14,7 +32,14 @@
             <p class="text-xs text-slate-400">Company name, phone, address, and comprehensive order & payment histories</p>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Add New Customer Button (Opens Popup Modal) -->
+            <button type="button" onclick="openAddCustomerModal()" 
+                    class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-user-plus text-sm"></i>
+                <span>+ Add New Customer</span>
+            </button>
+
             <!-- Due Payment Button -->
             <a href="{{ route('factory.customers.due.index') }}" 
                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white font-bold text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2 border border-rose-400/30">
@@ -39,52 +64,22 @@
         <span>{{ session('error') }}</span>
     </div>
     @endif
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Left: Add New Customer -->
-        <div class="lg:col-span-4 glass-panel rounded-3xl p-5 border border-slate-700/60 h-fit">
-            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-user-plus text-cyan-400"></i>
-                Add New Customer
-            </h3>
-
-            <form action="{{ route('factory.customers.store') }}" method="POST" class="space-y-3.5">
-                @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Company / Showroom Name *</label>
-                    <input type="text" name="company_name" placeholder="e.g. Rahim Traders & Showroom" required
-                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
-                    <input type="text" name="phone" placeholder="e.g. +880 1823-112233" required
-                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Contact Person</label>
-                    <input type="text" name="contact_person" placeholder="e.g. Md. Rahim Ali"
-                           class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Full Address</label>
-                    <textarea name="address" rows="2.5" placeholder="Shop #, Market, Area, City"
-                              class="w-full bg-[#0a1228] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
-                </div>
-
-                <button type="submit" 
-                        class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i>
-                    <span>Save Customer</span>
-                </button>
-            </form>
+    @if($errors->any())
+    <div class="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs space-y-1">
+        <div class="font-bold flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Please correct the errors:</span>
         </div>
+        <ul class="list-disc list-inside text-[11px] space-y-0.5 pl-2">
+            @foreach($errors->all() as $err)
+            <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
 
-        <!-- Right: Customers Table with Live Search & Load More -->
-        <div class="lg:col-span-8 glass-panel rounded-3xl p-5 border border-slate-700/60">
+    <!-- Full-Width Registered Clients Table Panel -->
+    <div class="glass-panel rounded-3xl p-6 border border-slate-700/60 shadow-xl">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                 <div class="flex items-center gap-3 flex-wrap">
                     <div>
@@ -93,7 +88,7 @@
                             Registered Clients
                         </h3>
                         <span id="customerCountDisplay" class="text-[11px] text-cyan-300 font-mono">
-                            Showing <span id="visibleCount">{{ min(10, $customers->count()) }}</span> of <span id="totalCount">{{ $customers->count() }}</span> Customers
+                            Showing <span class="visibleCountDisplay font-bold">{{ min(10, $customers->count()) }}</span> of <span class="totalCountDisplay font-bold">{{ $customers->count() }}</span> Customers
                         </span>
                     </div>
 
@@ -117,16 +112,17 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                            <th class="pb-2.5">#</th>
-                            <th class="pb-2.5">Company Name</th>
-                            <th class="pb-2.5">Phone & Person</th>
-                            <th class="pb-2.5 text-right">Total Ordered</th>
-                            <th class="pb-2.5 text-right">Total Due</th>
-                            <th class="pb-2.5 text-right">Action</th>
+            <!-- Scrollable Table Container -->
+            <div class="overflow-x-auto overflow-y-auto max-h-[500px] rounded-2xl border border-slate-800/80 bg-slate-950/20 clients-scrollbar">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
+                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold uppercase tracking-wider text-[11px]">
+                            <th class="py-3 px-3">#</th>
+                            <th class="py-3 px-3">Company Name</th>
+                            <th class="py-3 px-3">Phone & Person</th>
+                            <th class="py-3 px-3 text-right">Total Ordered</th>
+                            <th class="py-3 px-3 text-right">Total Due</th>
+                            <th class="py-3 px-3 text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody id="customersTableBody" class="divide-y divide-slate-800/80">
@@ -145,27 +141,27 @@
                                 $c->address
                             ])));
                         @endphp
-                        <tr class="customer-row hover:bg-slate-800/40 transition-colors"
+                        <tr class="customer-row hover:bg-slate-800/40 transition-colors {{ $idx >= 10 ? 'hidden' : '' }}"
                             data-search="{{ $searchKeywords }}"
                             data-phone-digits="{{ $rawDigits }}"
                             data-phone-local="{{ $localBd }}"
                             data-phone-raw="{{ $c->phone }}">
-                            <td class="py-3 text-slate-400 font-mono">{{ $idx + 1 }}</td>
-                            <td class="py-3">
+                            <td class="py-3 px-3 text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                            <td class="py-3 px-3">
                                 <span class="font-bold text-white block">{{ $c->company_name }}</span>
                                 <span class="text-[10px] text-slate-400 truncate max-w-xs block">{{ $c->address }}</span>
                             </td>
-                            <td class="py-3">
+                            <td class="py-3 px-3">
                                 <span class="text-cyan-300 font-mono font-medium block">{{ $c->phone }}</span>
                                 <span class="text-[10px] text-slate-400 block">{{ $c->contact_person ?? 'Owner' }}</span>
                             </td>
-                            <td class="py-3 text-right font-mono font-bold text-white">
+                            <td class="py-3 px-3 text-right font-mono font-bold text-white">
                                 ৳ {{ number_format($c->total_ordered, 2) }}
                             </td>
-                            <td class="py-3 text-right font-mono font-bold {{ $c->total_due > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
+                            <td class="py-3 px-3 text-right font-mono font-bold {{ $c->total_due > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
                                 ৳ {{ number_format($c->total_due, 2) }}
                             </td>
-                            <td class="py-3 text-right">
+                            <td class="py-3 px-3 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('factory.customers.details', $c->id) }}" 
                                        title="View Full Ledger History"
@@ -195,7 +191,12 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="py-6 text-center text-slate-500">No customers registered yet.</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500">
+                                <i class="fa-solid fa-users text-3xl mb-2 opacity-50 block"></i>
+                                No customers registered yet. Click 
+                                <button type="button" onclick="openAddCustomerModal()" class="text-cyan-400 font-bold hover:underline cursor-pointer">"Add New Customer"</button> 
+                                to register your first client.
+                            </td>
                         </tr>
                         @endforelse
 
@@ -210,30 +211,96 @@
                 </table>
             </div>
 
-            <!-- Load More Button (+10) -->
-            <div id="loadMoreContainer" class="mt-4 pt-3 border-t border-slate-800/80 text-center {{ $customers->count() <= 10 ? 'hidden' : '' }}">
-                <button type="button" id="loadMoreBtn" onclick="loadMoreCustomers()"
-                        class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 hover:border-cyan-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-arrow-down-long text-[11px]"></i>
-                    <span>Load More Customers (+10)</span>
-                </button>
+            <!-- Load More Controls & Status Footer -->
+            <div id="loadMoreContainer" class="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-400 font-mono">
+                    Showing <span class="visibleCountDisplay text-cyan-400 font-bold">{{ min(10, $customers->count()) }}</span> of <span class="totalCountDisplay text-white font-bold">{{ $customers->count() }}</span> Customers
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            id="loadMoreBtn" 
+                            onclick="loadMoreCustomers()"
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all cursor-pointer {{ $customers->count() <= 10 ? 'hidden' : '' }}">
+                        <i class="fa-solid fa-circle-down"></i>
+                        <span>Load More Customers (+10)</span>
+                    </button>
+                    <div id="allLoadedMessage" class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5 {{ $customers->count() <= 10 ? '' : 'hidden' }}">
+                        <i class="fa-solid fa-check text-emerald-400"></i> All clients loaded
+                    </div>
+                </div>
             </div>
         </div>
 
-    </div>
-
 </div>
 
-<!-- EDIT CUSTOMER MODAL (GLASS POPUP) -->
-<div id="editCustomerModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-lg w-full relative shadow-2xl bg-[#0a1228]/95">
+<!-- 1. ADD NEW CUSTOMER MODAL (GLASS POPUP) -->
+<div id="addCustomerModal" onclick="if(event.target === this) closeAddCustomerModal()" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-lg w-full relative shadow-2xl bg-[#0a1228]/95">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-cyan-400"></i>
+                Add New Customer
+            </h3>
+            <button type="button" onclick="closeAddCustomerModal()" class="text-slate-400 hover:text-white p-1 text-base cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('factory.customers.store') }}" method="POST" class="space-y-3.5">
+            @csrf
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Company / Showroom Name *</label>
+                <input type="text" name="company_name" placeholder="e.g. Rahim Traders & Showroom" required
+                       class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Contact Person</label>
+                    <input type="text" name="contact_person" placeholder="e.g. Md. Rahim Ali"
+                           class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
+                    <input type="text" name="phone" placeholder="e.g. +880 1823-112233" required
+                           class="w-full bg-[#070d1e] text-xs text-cyan-300 font-mono rounded-xl px-3 py-2.5 border border-slate-700 focus:border-cyan-400 focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Factory / Office Address</label>
+                <textarea name="address" rows="2.5" placeholder="Shop #, Market, Area, City"
+                          class="w-full bg-[#070d1e] text-xs text-white rounded-xl px-3.5 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/80">
+                <button type="button" onclick="closeAddCustomerModal()" 
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save Customer</span>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- 2. EDIT CUSTOMER MODAL (GLASS POPUP) -->
+<div id="editCustomerModal" onclick="if(event.target === this) closeEditCustomerModal()" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="glass-panel rounded-3xl p-6 border border-slate-700/80 max-w-lg w-full relative shadow-2xl bg-[#0a1228]/95">
         
         <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
                 <i class="fa-solid fa-user-pen text-cyan-400"></i>
                 Edit Customer Details
             </h3>
-            <button type="button" onclick="closeEditCustomerModal()" class="text-slate-400 hover:text-white p-1 text-base">
+            <button type="button" onclick="closeEditCustomerModal()" class="text-slate-400 hover:text-white p-1 text-base cursor-pointer">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -294,8 +361,10 @@
         const rows = document.querySelectorAll('.customer-row');
         const noResultRow = document.getElementById('noSearchResultRow');
         const loadMoreContainer = document.getElementById('loadMoreContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const allLoadedMessage = document.getElementById('allLoadedMessage');
         const clearBtn = document.getElementById('clearSearchBtn');
-        const visibleCountEl = document.getElementById('visibleCount');
+        const visibleCountEls = document.querySelectorAll('.visibleCountDisplay');
 
         if (clearBtn) {
             clearBtn.classList.toggle('hidden', searchVal === '');
@@ -340,9 +409,10 @@
                 if (querySpan) querySpan.innerText = searchVal;
             }
 
-            // Hide load more button while searching
-            if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
-            if (visibleCountEl) visibleCountEl.innerText = matchCount;
+            // Hide load more button & loaded notice while searching
+            if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+            if (allLoadedMessage) allLoadedMessage.classList.add('hidden');
+            visibleCountEls.forEach(el => el.innerText = matchCount);
 
         } else {
             // Normal Pagination Mode (10 items per load)
@@ -358,17 +428,31 @@
                 }
             });
 
-            if (visibleCountEl) visibleCountEl.innerText = visibleCount;
+            visibleCountEls.forEach(el => el.innerText = visibleCount);
 
-            if (loadMoreContainer) {
-                loadMoreContainer.classList.toggle('hidden', currentLimit >= rows.length);
+            const hasMore = currentLimit < rows.length;
+            if (loadMoreBtn) {
+                loadMoreBtn.classList.toggle('hidden', !hasMore);
+            }
+            if (allLoadedMessage) {
+                allLoadedMessage.classList.toggle('hidden', hasMore || rows.length === 0);
             }
         }
     }
 
     function loadMoreCustomers() {
+        const tableContainer = document.querySelector('.clients-scrollbar');
         currentLimit += PAGE_SIZE;
         updateCustomerVisibility();
+
+        if (tableContainer) {
+            setTimeout(() => {
+                tableContainer.scrollBy({
+                    top: 140,
+                    behavior: 'smooth'
+                });
+            }, 60);
+        }
     }
 
     function clearCustomerSearch() {
@@ -388,7 +472,17 @@
         updateCustomerVisibility();
     });
 
-    // ========== EDIT CUSTOMER MODAL ==========
+    // ========== ADD & EDIT CUSTOMER MODALS ==========
+    function openAddCustomerModal() {
+        const modal = document.getElementById('addCustomerModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAddCustomerModal() {
+        const modal = document.getElementById('addCustomerModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     function openEditCustomerModal(customer) {
         document.getElementById('edit_company_name').value = customer.company_name;
         document.getElementById('edit_contact_person').value = customer.contact_person || '';
@@ -403,7 +497,10 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeEditCustomerModal();
+        if (e.key === 'Escape') {
+            closeAddCustomerModal();
+            closeEditCustomerModal();
+        }
     });
 </script>
 @endsection
