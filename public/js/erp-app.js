@@ -231,3 +231,204 @@ document.addEventListener('DOMContentLoaded', () => {
     initCategoryDonutChart();
 });
 
+// ==========================================================================
+// UNIVERSAL ERP TABLE MANAGER (PROGRESSIVE LOAD MORE & REAL-TIME SEARCH)
+// ==========================================================================
+window.initErpTableManager = function(options) {
+    if (!options) return null;
+
+    const id = options.id || '';
+    const tableBodySelector = options.tableBody || (id ? `#${id}TableBody` : null);
+    if (!tableBodySelector) return null;
+
+    const tbody = typeof tableBodySelector === 'string' 
+        ? document.querySelector(tableBodySelector) 
+        : tableBodySelector;
+    if (!tbody) return null;
+
+    const rowSelector = options.rowSelector || 'tr:not(.no-search-row):not(.table-header-row)';
+    const pageSize = options.pageSize || 10;
+    const scrollOffset = options.scrollOffset !== undefined ? options.scrollOffset : 140;
+
+    const searchInput = options.searchInput 
+        ? (typeof options.searchInput === 'string' ? document.querySelector(options.searchInput) : options.searchInput)
+        : (id ? document.querySelector(`#${id}SearchInput`) : null);
+
+    const clearSearchBtn = options.clearSearchBtn 
+        ? (typeof options.clearSearchBtn === 'string' ? document.querySelector(options.clearSearchBtn) : options.clearSearchBtn)
+        : (id ? document.querySelector(`#${id}ClearSearchBtn`) : null);
+
+    const loadMoreBtn = options.loadMoreBtn 
+        ? (typeof options.loadMoreBtn === 'string' ? document.querySelector(options.loadMoreBtn) : options.loadMoreBtn)
+        : (id ? document.querySelector(`#${id}LoadMoreBtn`) : null);
+
+    const loadMoreContainer = options.loadMoreContainer 
+        ? (typeof options.loadMoreContainer === 'string' ? document.querySelector(options.loadMoreContainer) : options.loadMoreContainer)
+        : (id ? document.querySelector(`#${id}LoadMoreContainer`) : null);
+
+    const allLoadedMsg = options.allLoadedMsg 
+        ? (typeof options.allLoadedMsg === 'string' ? document.querySelector(options.allLoadedMsg) : options.allLoadedMsg)
+        : (id ? document.querySelector(`#${id}AllLoadedMsg`) : null);
+
+    const noResultRow = options.noResultRow 
+        ? (typeof options.noResultRow === 'string' ? document.querySelector(options.noResultRow) : options.noResultRow)
+        : (id ? document.querySelector(`#${id}NoResultRow`) : null);
+
+    const scrollContainer = options.scrollContainer 
+        ? (typeof options.scrollContainer === 'string' ? document.querySelector(options.scrollContainer) : options.scrollContainer)
+        : (tbody.closest('.erp-table-scroll') || tbody.closest('.clients-scrollbar') || tbody.parentElement);
+
+    // Collect visible and total count elements
+    let visibleCountEls = [];
+    if (options.visibleCountEl) {
+        visibleCountEls = typeof options.visibleCountEl === 'string'
+            ? Array.from(document.querySelectorAll(options.visibleCountEl))
+            : [options.visibleCountEl];
+    } else if (id) {
+        const defaultEl = document.querySelector(`#${id}VisibleCount`);
+        if (defaultEl) visibleCountEls.push(defaultEl);
+    }
+
+    let totalCountEls = [];
+    if (options.totalCountEl) {
+        totalCountEls = typeof options.totalCountEl === 'string'
+            ? Array.from(document.querySelectorAll(options.totalCountEl))
+            : [options.totalCountEl];
+    } else if (id) {
+        const defaultEl = document.querySelector(`#${id}TotalCount`);
+        if (defaultEl) totalCountEls.push(defaultEl);
+    }
+
+    let currentLimit = pageSize;
+
+    function getSearchableText(row) {
+        const ds = row.getAttribute('data-search');
+        if (ds) return ds.toLowerCase();
+        return (row.innerText || row.textContent || '').toLowerCase();
+    }
+
+    function setCounts(visible, total) {
+        visibleCountEls.forEach(el => { if (el) el.textContent = visible; });
+        totalCountEls.forEach(el => { if (el) el.textContent = total; });
+    }
+
+    function applyVisibility() {
+        const rows = Array.from(tbody.querySelectorAll(rowSelector));
+        const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+        if (clearSearchBtn) {
+            clearSearchBtn.classList.toggle('hidden', searchVal === '');
+        }
+
+        if (searchVal !== '') {
+            const queryWords = searchVal.split(/\s+/).filter(w => w.length > 0);
+            let matched = 0;
+
+            rows.forEach(row => {
+                const text = getSearchableText(row);
+                const isMatch = queryWords.every(word => text.includes(word));
+                if (isMatch) {
+                    row.classList.remove('hidden');
+                    row.style.display = '';
+                    matched++;
+                } else {
+                    row.classList.add('hidden');
+                    row.style.display = 'none';
+                }
+            });
+
+            if (noResultRow) {
+                noResultRow.classList.toggle('hidden', matched > 0);
+                noResultRow.style.display = matched > 0 ? 'none' : '';
+                const queryTextDisplay = noResultRow.querySelector('.queryTextDisplay');
+                if (queryTextDisplay) queryTextDisplay.textContent = searchVal;
+            }
+
+            if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+            if (allLoadedMsg) allLoadedMsg.classList.add('hidden');
+            setCounts(matched, rows.length);
+
+        } else {
+            if (noResultRow) {
+                noResultRow.classList.add('hidden');
+                noResultRow.style.display = 'none';
+            }
+
+            let visibleCount = 0;
+            rows.forEach((row, index) => {
+                if (index < currentLimit) {
+                    row.classList.remove('hidden');
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                    row.style.display = 'none';
+                }
+            });
+
+            const hasMore = currentLimit < rows.length;
+            if (loadMoreBtn) {
+                loadMoreBtn.classList.toggle('hidden', !hasMore);
+            }
+            if (loadMoreContainer) {
+                loadMoreContainer.classList.remove('hidden');
+            }
+            if (allLoadedMsg) {
+                allLoadedMsg.classList.toggle('hidden', hasMore || rows.length === 0);
+            }
+
+            setCounts(visibleCount, rows.length);
+        }
+    }
+
+    function loadMore() {
+        currentLimit += pageSize;
+        applyVisibility();
+
+        if (scrollContainer && scrollOffset > 0) {
+            setTimeout(() => {
+                scrollContainer.scrollBy({
+                    top: scrollOffset,
+                    behavior: 'smooth'
+                });
+            }, 60);
+        }
+    }
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadMore();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyVisibility);
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            applyVisibility();
+        });
+    }
+
+    // Initial setup
+    applyVisibility();
+
+    return {
+        refresh: applyVisibility,
+        loadMore: loadMore,
+        reset: function() {
+            currentLimit = pageSize;
+            if (searchInput) searchInput.value = '';
+            applyVisibility();
+        }
+    };
+};
+
+

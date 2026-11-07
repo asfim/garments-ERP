@@ -109,16 +109,31 @@
 
     <!-- Advances Table -->
     <div class="glass-panel rounded-2xl border border-slate-700/60 overflow-hidden">
-        <div class="p-4 border-b border-slate-700/60 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-receipt text-rose-400"></i>
-                Advance Salary Records for <span class="font-mono text-rose-300">{{ \Carbon\Carbon::parse($month . '-01')->format('F Y') }}</span>
-            </h3>
+        <div class="p-4 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-rose-400"></i>
+                    Advance Salary Records for <span class="font-mono text-rose-300">{{ \Carbon\Carbon::parse($month . '-01')->format('F Y') }}</span>
+                </h3>
+                <span class="text-[11px] text-rose-300 font-mono">
+                    Showing <span id="advanceVisibleCount" class="font-bold">{{ min(10, $advances->count()) }}</span> of <span id="advanceTotalCount" class="font-bold">{{ $advances->count() }}</span> Records
+                </span>
+            </div>
+
+            <!-- Live Search Box (Emp ID, Name, Dept, Status, Reason) -->
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="advanceSearchInput" placeholder="Live search worker, ID, reason..." 
+                       class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-rose-400 focus:outline-none transition-all">
+                <button type="button" id="advanceClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-800/80 text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80">
+        <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="sticky top-0 z-10 bg-[#0c1429] text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80 backdrop-blur-md shadow-sm">
                     <tr>
                         <th class="py-3 px-3">Date</th>
                         <th class="py-3 px-3">Emp ID</th>
@@ -132,9 +147,23 @@
                         <th class="py-3 px-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80">
+                <tbody id="advanceTableBody" class="divide-y divide-slate-800/80">
                     @forelse($advances as $adv)
-                    <tr class="hover:bg-slate-800/40 transition-colors">
+                    @php
+                        $searchKeywords = strtolower(implode(' ', array_filter([
+                            $adv->employee->employee_code ?? '',
+                            $adv->employee->name ?? '',
+                            $adv->employee->department->name ?? '',
+                            $adv->employee->designation->title ?? '',
+                            $adv->amount,
+                            $adv->deduct_month,
+                            $adv->payment_method,
+                            $adv->reason ?? '',
+                            $adv->status
+                        ])));
+                    @endphp
+                    <tr class="advance-row hover:bg-slate-800/40 transition-colors"
+                        data-search="{{ $searchKeywords }}">
                         <td class="py-3 px-3 font-mono text-slate-300">
                             {{ $adv->advance_date->format('d M, Y') }}
                         </td>
@@ -223,9 +252,26 @@
                         </td>
                     </tr>
                     @endforelse
+
+                    <!-- No Search Results Row -->
+                    <tr id="advanceNoResultRow" class="hidden">
+                        <td colspan="10" class="py-8 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-receipt text-2xl text-slate-500 mb-2 block"></i>
+                            No advance records match your search query.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- Universal Load More Bar -->
+        @include('factory-erp.common.table-load-more', [
+            'id' => 'advance',
+            'total' => $advances->count(),
+            'pageSize' => 10,
+            'itemName' => 'Advance Records',
+            'color' => 'rose'
+        ])
     </div>
 
 </div>
@@ -306,6 +352,15 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initErpTableManager({
+            id: 'advance',
+            tableBody: '#advanceTableBody',
+            searchInput: '#advanceSearchInput',
+            pageSize: 10
+        });
+    });
+
     function openCreateAdvanceModal() {
         document.getElementById('createAdvanceModal').classList.remove('hidden');
     }

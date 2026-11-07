@@ -106,8 +106,8 @@
                     <i class="fa-solid fa-list-check text-indigo-400"></i>
                     <span>Supplier & Purchase Records</span>
                 </h3>
-                <span id="supplierCountDisplay" class="text-[11px] text-cyan-300 font-mono">
-                    Showing <span id="visibleSupplierCount">{{ min(10, $suppliers->count()) }}</span> of <span id="totalSupplierCount">{{ $suppliers->count() }}</span> Suppliers
+                <span class="text-[11px] text-cyan-300 font-mono">
+                    Showing <span id="supplierVisibleCount" class="font-bold">{{ min(10, $suppliers->count()) }}</span> of <span id="supplierTotalCount" class="font-bold">{{ $suppliers->count() }}</span> Suppliers
                 </span>
             </div>
 
@@ -116,15 +116,15 @@
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" id="supplierSearchInput" placeholder="Live search by Name, Phone, Product, Address..." 
                        class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-indigo-400 focus:outline-none transition-all">
-                <button type="button" id="clearSupplierSearchBtn" onclick="clearSupplierSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                <button type="button" id="supplierClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs min-w-[760px]">
-                <thead>
+        <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+            <table class="w-full text-left text-xs min-w-[760px] border-collapse">
+                <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
                     <tr class="text-slate-400 border-b border-slate-700/80 font-bold uppercase tracking-wider text-[11px]">
                         <th class="py-3 px-3.5">SL</th>
                         <th class="py-3 px-3.5">Supplier Name</th>
@@ -247,12 +247,11 @@
                     @endforelse
 
                     <!-- No Search Results Row -->
-                    <tr id="noSupplierSearchResultRow" class="hidden">
+                    <tr id="supplierNoResultRow" class="hidden">
                         <td colspan="6" class="py-8 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-magnifying-glass text-2xl text-slate-600"></i>
                                 <span class="text-xs">No suppliers match your search.</span>
-                                <button type="button" onclick="clearSupplierSearch()" class="text-indigo-400 text-xs underline mt-1">Clear search</button>
                             </div>
                         </td>
                     </tr>
@@ -260,14 +259,14 @@
             </table>
         </div>
 
-        <!-- Load More Suppliers Button -->
-        <div id="loadMoreSuppliersContainer" class="mt-4 pt-3 border-t border-slate-800 text-center {{ $suppliers->count() > 10 ? '' : 'hidden' }}">
-            <button type="button" onclick="loadMoreSuppliers()"
-                    class="px-5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 hover:border-indigo-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-angles-down text-indigo-400"></i>
-                <span>Load More Suppliers (+10)</span>
-            </button>
-        </div>
+        <!-- Universal Load More Bar -->
+        @include('factory-erp.common.table-load-more', [
+            'id' => 'supplier',
+            'total' => $suppliers->count(),
+            'pageSize' => 10,
+            'itemName' => 'Suppliers',
+            'color' => 'indigo'
+        ])
 
     </div>
 
@@ -627,22 +626,13 @@
     // ==========================================
     // 2. SUPPLIERS TABLE LIVE SEARCH & LOAD MORE
     // ==========================================
-    let allSupplierRows = [];
-    let supplierVisibleLimit = 10;
-    const batchSize = 10;
-
     document.addEventListener('DOMContentLoaded', () => {
-        allSupplierRows = Array.from(document.querySelectorAll('.supplier-row'));
-        applySupplierVisibility();
-
-        const searchInput = document.getElementById('supplierSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                document.getElementById('clearSupplierSearchBtn').classList.toggle('hidden', query === '');
-                filterSuppliersByQuery(query);
-            });
-        }
+        initErpTableManager({
+            id: 'supplier',
+            tableBody: '#suppliersTableBody',
+            searchInput: '#supplierSearchInput',
+            pageSize: 10
+        });
 
         // Restore old product selection on validation failure if exists
         const oldProdId = document.getElementById('createProductId').value;
@@ -653,64 +643,6 @@
             }
         }
     });
-
-    function applySupplierVisibility() {
-        allSupplierRows.forEach((row, index) => {
-            if (index < supplierVisibleLimit) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        const visibleCount = Math.min(supplierVisibleLimit, allSupplierRows.length);
-        const visibleEl = document.getElementById('visibleSupplierCount');
-        if (visibleEl) visibleEl.innerText = visibleCount;
-
-        const loadMoreContainer = document.getElementById('loadMoreSuppliersContainer');
-        if (loadMoreContainer) {
-            loadMoreContainer.classList.toggle('hidden', visibleCount >= allSupplierRows.length);
-        }
-    }
-
-    function loadMoreSuppliers() {
-        supplierVisibleLimit += batchSize;
-        applySupplierVisibility();
-    }
-
-    function filterSuppliersByQuery(query) {
-        if (!query) {
-            document.getElementById('noSupplierSearchResultRow').classList.add('hidden');
-            applySupplierVisibility();
-            return;
-        }
-
-        let matched = 0;
-        allSupplierRows.forEach(row => {
-            const text = (row.getAttribute('data-search') || '').toLowerCase();
-            if (text.includes(query)) {
-                row.style.display = '';
-                matched++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('noSupplierSearchResultRow').classList.toggle('hidden', matched > 0);
-        document.getElementById('loadMoreSuppliersContainer').classList.add('hidden');
-        document.getElementById('visibleSupplierCount').innerText = matched;
-    }
-
-    function clearSupplierSearch() {
-        const searchInput = document.getElementById('supplierSearchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            document.getElementById('clearSupplierSearchBtn').classList.add('hidden');
-            document.getElementById('noSupplierSearchResultRow').classList.add('hidden');
-            applySupplierVisibility();
-            searchInput.focus();
-        }
-    }
 
     // ==========================================
     // 3. CREATE & EDIT SUPPLIER MODAL HANDLERS

@@ -366,6 +366,39 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     }
 }
 
+/* ==========================================================================
+   ERP UNIVERSAL SCROLLABLE TABLE & SLEEK SCROLLBAR
+   ========================================================================== */
+.erp-table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 520px;
+}
+
+.erp-table-scroll::-webkit-scrollbar,
+.clients-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.erp-table-scroll::-webkit-scrollbar-track,
+.clients-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 8px;
+}
+
+.erp-table-scroll::-webkit-scrollbar-thumb,
+.clients-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+}
+
+.erp-table-scroll::-webkit-scrollbar-thumb:hover,
+.clients-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.5);
+}
+
+
 
 
 

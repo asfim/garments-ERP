@@ -137,21 +137,38 @@
             @csrf
             <input type="hidden" name="date" value="{{ $date }}">
 
-            <div class="p-4 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-amber-400"></i>
-                    Daily Roster for <span class="font-mono text-cyan-300">{{ \Carbon\Carbon::parse($date)->format('l, d M Y') }}</span>
-                </h3>
+            <div class="p-4 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-amber-400"></i>
+                        Daily Roster for <span class="font-mono text-cyan-300">{{ \Carbon\Carbon::parse($date)->format('l, d M Y') }}</span>
+                    </h3>
+                    <span class="text-[11px] text-amber-300 font-mono">
+                        Showing <span id="attendanceVisibleCount" class="font-bold">{{ min(15, $employees->count()) }}</span> of <span id="attendanceTotalCount" class="font-bold">{{ $employees->count() }}</span> Staff
+                    </span>
+                </div>
 
-                <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 self-start sm:self-auto">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span>Save All Changes</span>
-                </button>
+                <div class="flex items-center gap-3">
+                    <!-- Live Search Box -->
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="attendanceSearchInput" placeholder="Live search worker, code, dept..." 
+                               class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-amber-400 focus:outline-none transition-all">
+                        <button type="button" id="attendanceClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Save All Changes</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-800/80 text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80">
+            <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="sticky top-0 z-10 bg-[#0c1429] text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80 backdrop-blur-md shadow-sm">
                         <tr>
                             <th class="py-3 px-3">Emp ID</th>
                             <th class="py-3 px-3">Worker Name & Section</th>
@@ -163,7 +180,7 @@
                             <th class="py-3 px-3 text-center">Quick Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/80">
+                    <tbody id="attendanceTableBody" class="divide-y divide-slate-800/80">
                         @forelse($employees as $emp)
                         @php
                             $att = $attendances->get($emp->id);
@@ -172,8 +189,17 @@
                             $checkOut = $att && $att->check_out ? substr($att->check_out, 0, 5) : '17:00';
                             $ot = $att ? $att->overtime_hours : 0;
                             $notes = $att ? $att->notes : '';
+                            $searchKeywords = strtolower(implode(' ', array_filter([
+                                $emp->employee_code,
+                                $emp->name,
+                                $emp->department->name ?? '',
+                                $emp->designation->title ?? '',
+                                $status,
+                                $notes
+                            ])));
                         @endphp
-                        <tr class="hover:bg-slate-800/40 transition-colors">
+                        <tr class="attendance-row hover:bg-slate-800/40 transition-colors"
+                            data-search="{{ $searchKeywords }}">
                             <td class="py-2.5 px-3 font-mono font-bold text-cyan-400">
                                 {{ $emp->employee_code }}
                             </td>
@@ -230,13 +256,30 @@
                             </td>
                         </tr>
                         @endforelse
+
+                        <!-- No Search Results Row -->
+                        <tr id="attendanceNoResultRow" class="hidden">
+                            <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                                <i class="fa-solid fa-user-slash text-2xl text-slate-500 mb-2 block"></i>
+                                No staff found matching "<span class="queryTextDisplay text-amber-400 font-semibold"></span>"
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
+            <!-- Universal Load More Bar -->
+            @include('factory-erp.common.table-load-more', [
+                'id' => 'attendance',
+                'total' => $employees->count(),
+                'pageSize' => 15,
+                'itemName' => 'Staff Records',
+                'color' => 'amber'
+            ])
+
             <div class="p-4 border-t border-slate-700/60 flex items-center justify-between">
                 <span class="text-xs text-slate-400">Review attendance and overtime hours before saving.</span>
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-floppy-disk"></i>
                     <span>Save All Changes</span>
                 </button>
@@ -249,6 +292,15 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initErpTableManager({
+            id: 'attendance',
+            tableBody: '#attendanceTableBody',
+            searchInput: '#attendanceSearchInput',
+            pageSize: 15
+        });
+    });
+
     function triggerAttendanceAutoSync() {
         const btn = document.getElementById('btnAttAutoSync');
         const icon = document.getElementById('attAutoSyncIcon');

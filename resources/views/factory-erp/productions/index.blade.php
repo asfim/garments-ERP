@@ -203,8 +203,8 @@
                             <i class="fa-solid fa-clipboard-list text-purple-400"></i>
                             Factory Production Logs
                         </h3>
-                        <span id="prodCountDisplay" class="text-[11px] text-purple-300 font-mono">
-                            Showing <span id="visibleCount">{{ min(10, $productions->count()) }}</span> of <span id="totalCount">{{ $productions->count() }}</span> Batches
+                        <span class="text-[11px] text-purple-300 font-mono">
+                            Showing <span id="prodVisibleCount" class="font-bold">{{ min(10, $productions->count()) }}</span> of <span id="prodTotalCount" class="font-bold">{{ $productions->count() }}</span> Batches
                             @if($range === 'this_month')
                                 <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 font-sans font-semibold">This Month</span>
                             @elseif($range === 'today')
@@ -226,26 +226,26 @@
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <input type="text" id="prodSearchInput" placeholder="Search product name, notes..." 
                                class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-purple-400 focus:outline-none transition-all">
-                        <button type="button" id="clearProdSearchBtn" onclick="clearProdSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                        <button type="button" id="prodClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                                <th class="pb-2.5">Date</th>
-                                <th class="pb-2.5">Product Name</th>
-                                <th class="pb-2.5">Unit</th>
-                                <th class="pb-2.5 text-center">Target Qty</th>
-                                <th class="pb-2.5 text-center">Produced Qty</th>
-                                <th class="pb-2.5 text-center">Status</th>
-                                <th class="pb-2.5 text-right">Action</th>
+                <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
+                            <tr class="text-slate-400 border-b border-slate-700/80 font-semibold uppercase tracking-wider text-[11px]">
+                                <th class="py-3 px-3">Date</th>
+                                <th class="py-3 px-3">Product Name</th>
+                                <th class="py-3 px-3">Unit</th>
+                                <th class="py-3 px-3 text-center">Target Qty</th>
+                                <th class="py-3 px-3 text-center">Produced Qty</th>
+                                <th class="py-3 px-3 text-center">Status</th>
+                                <th class="py-3 px-3 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/80">
+                        <tbody id="prodTableBody" class="divide-y divide-slate-800/80">
                             @forelse($productions as $prod)
                             <tr class="prod-row hover:bg-slate-800/40 transition-colors"
                                 data-search="{{ strtolower($prod->product->name . ' ' . ($prod->unit->short_code ?? '') . ' ' . ($prod->unit->name ?? '') . ' ' . ($prod->notes ?? '') . ' ' . date('d M, Y', strtotime($prod->production_date))) }}">
@@ -316,7 +316,6 @@
                                     <div class="flex flex-col items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-box-open text-2xl text-slate-600"></i>
                                         <span class="text-xs">No batches match your product search.</span>
-                                        <button type="button" onclick="clearProdSearch()" class="text-purple-400 text-xs underline mt-1">Clear search</button>
                                     </div>
                                 </td>
                             </tr>
@@ -325,14 +324,14 @@
                 </div>
             </div>
 
-            <!-- Load More Batches Button -->
-            <div id="loadMoreContainer" class="mt-4 pt-3 border-t border-slate-800 text-center {{ $productions->count() > 10 ? '' : 'hidden' }}">
-                <button type="button" id="loadMoreBtn" onclick="loadMoreProductions()"
-                        class="px-5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-purple-300 hover:text-white border border-slate-700 hover:border-purple-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-angles-down text-purple-400"></i>
-                    <span>Load More Batches (+10)</span>
-                </button>
-            </div>
+            <!-- Universal Load More Bar -->
+            @include('factory-erp.common.table-load-more', [
+                'id' => 'prod',
+                'total' => $productions->count(),
+                'pageSize' => 10,
+                'itemName' => 'Batches',
+                'color' => 'purple'
+            ])
         </div>
 
     </div>
@@ -433,97 +432,14 @@
         if (e.key === 'Escape') closeEditProductionModal();
     });
 
-    // ==========================================
-    // Live Search & Load More Batches
-    // ==========================================
-    let allProdRows = [];
-    let prodVisibleLimit = 10;
-    const prodBatchSize = 10;
-
     document.addEventListener('DOMContentLoaded', () => {
-        allProdRows = Array.from(document.querySelectorAll('.prod-row'));
-        applyProdVisibility();
-
-        const searchInput = document.getElementById('prodSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const query = this.value.trim().toLowerCase();
-                const clearBtn = document.getElementById('clearProdSearchBtn');
-                if (clearBtn) {
-                    clearBtn.classList.toggle('hidden', query.length === 0);
-                }
-
-                if (query.length > 0) {
-                    let matchedCount = 0;
-                    allProdRows.forEach(row => {
-                        const searchText = (row.getAttribute('data-search') || '').toLowerCase();
-                        if (searchText.includes(query)) {
-                            row.style.display = '';
-                            matchedCount++;
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-
-                    const noResultRow = document.getElementById('noProdSearchResultRow');
-                    if (noResultRow) {
-                        noResultRow.classList.toggle('hidden', matchedCount > 0);
-                    }
-
-                    const loadMoreContainer = document.getElementById('loadMoreContainer');
-                    if (loadMoreContainer) {
-                        loadMoreContainer.classList.add('hidden');
-                    }
-
-                    const visibleCountEl = document.getElementById('visibleCount');
-                    if (visibleCountEl) {
-                        visibleCountEl.innerText = matchedCount;
-                    }
-                } else {
-                    const noResultRow = document.getElementById('noProdSearchResultRow');
-                    if (noResultRow) {
-                        noResultRow.classList.add('hidden');
-                    }
-                    applyProdVisibility();
-                }
-            });
-        }
-    });
-
-    function applyProdVisibility() {
-        allProdRows.forEach((row, idx) => {
-            row.style.display = idx < prodVisibleLimit ? '' : 'none';
+        initErpTableManager({
+            id: 'prod',
+            tableBody: '#prodTableBody',
+            searchInput: '#prodSearchInput',
+            pageSize: 10
         });
-
-        const currentVisible = Math.min(prodVisibleLimit, allProdRows.length);
-        const visibleCountEl = document.getElementById('visibleCount');
-        if (visibleCountEl) {
-            visibleCountEl.innerText = currentVisible;
-        }
-        
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        if (loadMoreContainer) {
-            loadMoreContainer.classList.toggle('hidden', prodVisibleLimit >= allProdRows.length);
-        }
-    }
-
-    function loadMoreProductions() {
-        prodVisibleLimit += prodBatchSize;
-        applyProdVisibility();
-    }
-
-    function clearProdSearch() {
-        const searchInput = document.getElementById('prodSearchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            const clearBtn = document.getElementById('clearProdSearchBtn');
-            if (clearBtn) clearBtn.classList.add('hidden');
-            const noResultRow = document.getElementById('noProdSearchResultRow');
-            if (noResultRow) noResultRow.classList.add('hidden');
-            applyProdVisibility();
-            searchInput.focus();
-        }
-    }
+    });
 </script>
 @endsection
 

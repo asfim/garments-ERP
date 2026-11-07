@@ -85,8 +85,8 @@
                     <i class="fa-solid fa-users text-rose-400"></i>
                     <span>Clients Having Outstanding Due</span>
                 </h3>
-                <span id="dueCustomerCountDisplay" class="text-[11px] text-rose-300 font-mono">
-                    Showing <span id="visibleDueCount">{{ min(10, $customers->count()) }}</span> of <span id="totalDueCount">{{ $customers->count() }}</span> Due Clients
+                <span class="text-[11px] text-rose-300 font-mono">
+                    Showing <span id="dueCustomerVisibleCount" class="font-bold">{{ min(10, $customers->count()) }}</span> of <span id="dueCustomerTotalCount" class="font-bold">{{ $customers->count() }}</span> Due Clients
                 </span>
             </div>
 
@@ -95,15 +95,15 @@
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" id="dueCustomerSearchInput" placeholder="Live search by Client, Phone, Address, Due..." 
                        class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-rose-400 focus:outline-none transition-all">
-                <button type="button" id="clearDueCustomerSearchBtn" onclick="clearDueCustomerSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                <button type="button" id="clearDueCustomerSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs min-w-[780px]">
-                <thead>
+        <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+            <table class="w-full text-left text-xs min-w-[780px] border-collapse">
+                <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
                     <tr class="text-slate-400 border-b border-slate-700/80 font-bold uppercase tracking-wider text-[11px]">
                         <th class="py-3 px-3.5">SL</th>
                         <th class="py-3 px-3.5">Customer / Company</th>
@@ -216,12 +216,11 @@
                     @endforelse
 
                     <!-- No Search Results Row -->
-                    <tr id="noDueCustomerSearchResultRow" class="hidden">
+                    <tr id="dueCustomerNoResultRow" class="hidden">
                         <td colspan="9" class="py-8 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-magnifying-glass text-2xl text-slate-600"></i>
                                 <span class="text-xs">No due clients match your search query.</span>
-                                <button type="button" onclick="clearDueCustomerSearch()" class="text-rose-400 text-xs underline mt-1">Clear search</button>
                             </div>
                         </td>
                     </tr>
@@ -229,14 +228,14 @@
             </table>
         </div>
 
-        <!-- Load More Button -->
-        <div id="loadMoreDueCustomersContainer" class="mt-4 pt-3 border-t border-slate-800 text-center {{ $customers->count() > 10 ? '' : 'hidden' }}">
-            <button type="button" onclick="loadMoreDueCustomers()"
-                    class="px-5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-rose-300 hover:text-white border border-slate-700 hover:border-rose-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-angles-down text-rose-400"></i>
-                <span>Load More Due Clients (+10)</span>
-            </button>
-        </div>
+        <!-- Universal Load More Bar -->
+        @include('factory-erp.common.table-load-more', [
+            'id' => 'dueCustomer',
+            'total' => $customers->count(),
+            'pageSize' => 10,
+            'itemName' => 'Due Clients',
+            'color' => 'rose'
+        ])
 
     </div>
 
@@ -244,81 +243,14 @@
 
 @push('scripts')
 <script>
-    let allDueRows = [];
-    let dueVisibleLimit = 10;
-    const batchSize = 10;
-
     document.addEventListener('DOMContentLoaded', () => {
-        allDueRows = Array.from(document.querySelectorAll('.due-customer-row'));
-        applyDueVisibility();
-
-        const searchInput = document.getElementById('dueCustomerSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                document.getElementById('clearDueCustomerSearchBtn').classList.toggle('hidden', query === '');
-                filterDueCustomers(query);
-            });
-        }
+        initErpTableManager({
+            id: 'dueCustomer',
+            tableBody: '#dueCustomersTableBody',
+            searchInput: '#dueCustomerSearchInput',
+            pageSize: 10
+        });
     });
-
-    function applyDueVisibility() {
-        allDueRows.forEach((row, index) => {
-            if (index < dueVisibleLimit) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        const visibleCount = Math.min(dueVisibleLimit, allDueRows.length);
-        const visibleEl = document.getElementById('visibleDueCount');
-        if (visibleEl) visibleEl.innerText = visibleCount;
-
-        const loadMoreContainer = document.getElementById('loadMoreDueCustomersContainer');
-        if (loadMoreContainer) {
-            loadMoreContainer.classList.toggle('hidden', visibleCount >= allDueRows.length);
-        }
-    }
-
-    function loadMoreDueCustomers() {
-        dueVisibleLimit += batchSize;
-        applyDueVisibility();
-    }
-
-    function filterDueCustomers(query) {
-        if (!query) {
-            document.getElementById('noDueCustomerSearchResultRow').classList.add('hidden');
-            applyDueVisibility();
-            return;
-        }
-
-        let matched = 0;
-        allDueRows.forEach(row => {
-            const text = (row.getAttribute('data-search') || '').toLowerCase();
-            if (text.includes(query)) {
-                row.style.display = '';
-                matched++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('noDueCustomerSearchResultRow').classList.toggle('hidden', matched > 0);
-        document.getElementById('loadMoreDueCustomersContainer').classList.add('hidden');
-        document.getElementById('visibleDueCount').innerText = matched;
-    }
-
-    function clearDueCustomerSearch() {
-        const searchInput = document.getElementById('dueCustomerSearchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            document.getElementById('clearDueCustomerSearchBtn').classList.add('hidden');
-            document.getElementById('noDueCustomerSearchResultRow').classList.add('hidden');
-            applyDueVisibility();
-            searchInput.focus();
-        }
-    }
 </script>
 @endpush
 @endsection

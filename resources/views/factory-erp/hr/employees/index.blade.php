@@ -125,16 +125,31 @@
 
     <!-- Employees Table -->
     <div class="glass-panel rounded-2xl border border-slate-700/60 overflow-hidden">
-        <div class="p-4 border-b border-slate-700/60 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-list-check text-cyan-400"></i>
-                Total Employees: <span class="font-mono text-cyan-300 font-extrabold">{{ $employees->count() }}</span>
-            </h3>
+        <div class="p-4 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-cyan-400"></i>
+                    Employee Directory
+                </h3>
+                <span class="text-[11px] text-cyan-300 font-mono">
+                    Showing <span id="employeeVisibleCount" class="font-bold">{{ min(10, $employees->count()) }}</span> of <span id="employeeTotalCount" class="font-bold">{{ $employees->count() }}</span> Employees
+                </span>
+            </div>
+
+            <!-- Live Search Box (Worker ID, Name, Phone, Department, Designation) -->
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="employeeSearchInput" placeholder="Live search employee, ID, phone..." 
+                       class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-cyan-400 focus:outline-none transition-all">
+                <button type="button" id="employeeClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-800/80 text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80">
+        <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="sticky top-0 z-10 bg-[#0c1429] text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80 backdrop-blur-md shadow-sm">
                     <tr>
                         <th class="py-3 px-3">Worker ID</th>
                         <th class="py-3 px-3">Employee Name</th>
@@ -146,9 +161,10 @@
                         <th class="py-3 px-3 text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80">
+                <tbody id="employeeTableBody" class="divide-y divide-slate-800/80">
                     @forelse($employees as $emp)
-                    <tr class="hover:bg-slate-800/40 transition-colors">
+                    <tr class="employee-row hover:bg-slate-800/40 transition-colors"
+                        data-search="{{ strtolower($emp->employee_code . ' ' . $emp->name . ' ' . $emp->phone . ' ' . ($emp->emergency_phone ?? '') . ' ' . ($emp->department->name ?? '') . ' ' . ($emp->designation->title ?? '') . ' ' . ($emp->shift ?? '') . ' ' . ($emp->status ?? '')) }}">
                         <td class="py-3 px-3 font-mono font-bold text-cyan-400">
                             <div>{{ $emp->employee_code }}</div>
                             @if($emp->device_user_id)
@@ -249,9 +265,26 @@
                         </td>
                     </tr>
                     @endforelse
+
+                    <!-- No Search Results Row -->
+                    <tr id="employeeNoResultRow" class="hidden">
+                        <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-users-slash text-2xl text-slate-500 mb-2 block"></i>
+                            No employees match your search query.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- Universal Load More Bar -->
+        @include('factory-erp.common.table-load-more', [
+            'id' => 'employee',
+            'total' => $employees->count(),
+            'pageSize' => 10,
+            'itemName' => 'Employees',
+            'color' => 'cyan'
+        ])
     </div>
 
 </div>
@@ -1087,6 +1120,15 @@
     function closeViewEmployeeModal() {
         document.getElementById('viewEmployeeModal').classList.add('hidden');
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initErpTableManager({
+            id: 'employee',
+            tableBody: '#employeeTableBody',
+            searchInput: '#employeeSearchInput',
+            pageSize: 10
+        });
+    });
 </script>
 @endpush
 @endsection

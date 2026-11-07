@@ -107,17 +107,31 @@
 
     <!-- Payroll Table -->
     <div class="glass-panel rounded-2xl border border-slate-700/60 overflow-hidden">
-        <div class="p-4 border-b border-slate-700/60 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-list-ol text-emerald-400"></i>
-                Salary Slips for <span class="font-mono text-cyan-300">{{ \Carbon\Carbon::parse($month . '-01')->format('F Y') }}</span>
-                <span class="text-xs text-slate-400 font-normal">({{ $payrolls->count() }} Staff)</span>
-            </h3>
+        <div class="p-4 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-ol text-emerald-400"></i>
+                    Salary Slips for <span class="font-mono text-cyan-300">{{ \Carbon\Carbon::parse($month . '-01')->format('F Y') }}</span>
+                </h3>
+                <span class="text-[11px] text-emerald-300 font-mono">
+                    Showing <span id="payrollVisibleCount" class="font-bold">{{ min(10, $payrolls->count()) }}</span> of <span id="payrollTotalCount" class="font-bold">{{ $payrolls->count() }}</span> Slips
+                </span>
+            </div>
+
+            <!-- Live Search Box (Slip ID, Worker Name, Code, Dept, Designation) -->
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="payrollSearchInput" placeholder="Live search worker, code, slip #..." 
+                       class="w-full bg-[#070d1e] text-xs text-white placeholder-slate-500 rounded-xl pl-8 pr-7 py-2 border border-slate-700 focus:border-emerald-400 focus:outline-none transition-all">
+                <button type="button" id="payrollClearSearchBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-800/80 text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80">
+        <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="sticky top-0 z-10 bg-[#0c1429] text-slate-300 uppercase text-[10px] font-bold border-b border-slate-700/80 backdrop-blur-md shadow-sm">
                     <tr>
                         <th class="py-3 px-3">Slip ID</th>
                         <th class="py-3 px-3">Worker Name & Section</th>
@@ -131,9 +145,20 @@
                         <th class="py-3 px-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80">
+                <tbody id="payrollTableBody" class="divide-y divide-slate-800/80">
                     @forelse($payrolls as $p)
-                    <tr class="hover:bg-slate-800/40 transition-colors">
+                    @php
+                        $searchKeywords = strtolower(implode(' ', array_filter([
+                            $p->payroll_code,
+                            $p->employee->name ?? '',
+                            $p->employee->employee_code ?? '',
+                            $p->employee->department->name ?? '',
+                            $p->employee->designation->title ?? '',
+                            $p->payment_status
+                        ])));
+                    @endphp
+                    <tr class="payroll-row hover:bg-slate-800/40 transition-colors"
+                        data-search="{{ $searchKeywords }}">
                         <td class="py-3 px-3 font-mono font-bold text-cyan-400">
                             {{ $p->payroll_code }}
                         </td>
@@ -216,9 +241,27 @@
                         </td>
                     </tr>
                     @endforelse
+                    @if($payrolls->isNotEmpty())
+                    <tr id="payrollNoResultRow" class="hidden">
+                        <td colspan="10" class="py-8 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-file-invoice-dollar text-2xl text-slate-500 mb-2 block"></i>
+                            No salary slips match your search query.
+                        </td>
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
+
+        @if($payrolls->isNotEmpty())
+        @include('factory-erp.common.table-load-more', [
+            'id' => 'payroll',
+            'total' => $payrolls->count(),
+            'pageSize' => 10,
+            'itemName' => 'Salary Slips',
+            'color' => 'emerald'
+        ])
+        @endif
     </div>
 
 </div>
@@ -311,6 +354,15 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initErpTableManager({
+            id: 'payroll',
+            tableBody: '#payrollTableBody',
+            searchInput: '#payrollSearchInput',
+            pageSize: 10
+        });
+    });
+
     function recalcDeductions() {
         const abs = parseFloat(document.getElementById('payAbsDed').value) || 0;
         const adv = parseFloat(document.getElementById('payAdvDed').value) || 0;

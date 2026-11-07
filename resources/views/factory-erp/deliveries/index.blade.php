@@ -188,20 +188,20 @@
                 </span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                            <th class="pb-2.5">Order #</th>
-                            <th class="pb-2.5">Customer Name</th>
-                            <th class="pb-2.5">Order Date</th>
-                            <th class="pb-2.5">Items & Remaining Due Qty</th>
-                            <th class="pb-2.5 text-right">Order Amount</th>
-                            <th class="pb-2.5 text-center">Status</th>
-                            <th class="pb-2.5 text-right">Action</th>
+            <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
+                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold uppercase tracking-wider text-[11px]">
+                            <th class="py-3 px-3">Order #</th>
+                            <th class="py-3 px-3">Customer Name</th>
+                            <th class="py-3 px-3">Order Date</th>
+                            <th class="py-3 px-3">Items & Remaining Due Qty</th>
+                            <th class="py-3 px-3 text-right">Order Amount</th>
+                            <th class="py-3 px-3 text-center">Status</th>
+                            <th class="py-3 px-3 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/80">
+                    <tbody id="pendingOrdersTableBody" class="divide-y divide-slate-800/80">
                         @forelse($pendingOrders as $ord)
                         @php
                             $searchItemString = '';
@@ -269,12 +269,11 @@
                         @endforelse
 
                         <!-- No Search Results Row -->
-                        <tr id="noOrdersSearchResultRow" class="hidden">
+                        <tr id="ordersNoResultRow" class="hidden">
                             <td colspan="7" class="py-8 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-box-open text-2xl text-slate-600"></i>
                                     <span class="text-xs">No pending orders match your search.</span>
-                                    <button type="button" onclick="clearDeliverySearch()" class="text-amber-400 text-xs underline mt-1">Clear search</button>
                                 </div>
                             </td>
                         </tr>
@@ -282,14 +281,14 @@
                 </table>
             </div>
 
-            <!-- Load More Pending Orders Button -->
-            <div id="loadMoreOrdersContainer" class="mt-4 pt-3 border-t border-slate-800 text-center {{ $pendingOrders->count() > 10 ? '' : 'hidden' }}">
-                <button type="button" onclick="loadMoreOrders()"
-                        class="px-5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 hover:text-white border border-slate-700 hover:border-amber-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-angles-down text-amber-400"></i>
-                    <span>Load More Orders (+10)</span>
-                </button>
-            </div>
+            <!-- Universal Load More Bar -->
+            @include('factory-erp.common.table-load-more', [
+                'id' => 'orders',
+                'total' => $pendingOrders->count(),
+                'pageSize' => 10,
+                'itemName' => 'Pending Orders',
+                'color' => 'amber'
+            ])
         </div>
     </div>
 
@@ -321,20 +320,20 @@
                 </span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold">
-                            <th class="pb-2.5">Challan #</th>
-                            <th class="pb-2.5">Order Ref</th>
-                            <th class="pb-2.5">Customer Name</th>
-                            <th class="pb-2.5">Date</th>
-                            <th class="pb-2.5">Delivered Products & Quantities</th>
-                            <th class="pb-2.5 text-right">Delivered Value</th>
-                            <th class="pb-2.5 text-right">Action</th>
+            <div class="erp-table-scroll rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="sticky top-0 z-10 bg-[#0c1429] backdrop-blur-md shadow-sm">
+                        <tr class="text-slate-400 border-b border-slate-700/80 font-semibold uppercase tracking-wider text-[11px]">
+                            <th class="py-3 px-3">Challan #</th>
+                            <th class="py-3 px-3">Order Ref</th>
+                            <th class="py-3 px-3">Customer Name</th>
+                            <th class="py-3 px-3">Date</th>
+                            <th class="py-3 px-3">Delivered Products & Quantities</th>
+                            <th class="py-3 px-3 text-right">Delivered Value</th>
+                            <th class="py-3 px-3 text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/80">
+                    <tbody id="challansTableBody" class="divide-y divide-slate-800/80">
                         @forelse($deliveries as $del)
                         @php
                             $searchChallanItemString = '';
@@ -400,12 +399,11 @@
                         @endforelse
 
                         <!-- No Search Results Row -->
-                        <tr id="noChallansSearchResultRow" class="hidden">
+                        <tr id="challansNoResultRow" class="hidden">
                             <td colspan="7" class="py-8 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-file-circle-xmark text-2xl text-slate-600"></i>
                                     <span class="text-xs">No delivery challans match your search.</span>
-                                    <button type="button" onclick="clearDeliverySearch()" class="text-emerald-400 text-xs underline mt-1">Clear search</button>
                                 </div>
                             </td>
                         </tr>
@@ -413,56 +411,42 @@
                 </table>
             </div>
 
-            <!-- Load More Challans Button -->
-            <div id="loadMoreChallansContainer" class="mt-4 pt-3 border-t border-slate-800 text-center {{ $deliveries->count() > 10 ? '' : 'hidden' }}">
-                <button type="button" onclick="loadMoreChallans()"
-                        class="px-5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-emerald-300 hover:text-white border border-slate-700 hover:border-emerald-500/40 text-xs font-semibold transition-all inline-flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-angles-down text-emerald-400"></i>
-                    <span>Load More Challans (+10)</span>
-                </button>
-            </div>
+            <!-- Universal Load More Challans Bar -->
+            @include('factory-erp.common.table-load-more', [
+                'id' => 'challans',
+                'total' => $deliveries->count(),
+                'pageSize' => 10,
+                'itemName' => 'Challans',
+                'color' => 'emerald'
+            ])
         </div>
     </div>
 
 </div>
 
 <script>
-    // Global State
     let activeTab = '{{ $tab }}';
-    const batchSize = 10;
-
-    // Orders state
-    let allOrderRows = [];
-    let ordersVisibleLimit = 10;
-
-    // Challans state
-    let allChallanRows = [];
-    let challansVisibleLimit = 10;
+    let ordersTableManager = null;
+    let challansTableManager = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-        allOrderRows = Array.from(document.querySelectorAll('.order-ship-row'));
-        allChallanRows = Array.from(document.querySelectorAll('.challan-row'));
+        ordersTableManager = initErpTableManager({
+            id: 'orders',
+            tableBody: '#pendingOrdersTableBody',
+            searchInput: '#deliverySearchInput',
+            clearSearchBtn: '#clearDeliverySearchBtn',
+            noResultRow: '#ordersNoResultRow',
+            pageSize: 10
+        });
 
-        applyOrdersVisibility();
-        applyChallansVisibility();
-
-        // Search Input Handler
-        const searchInput = document.getElementById('deliverySearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const query = this.value.trim().toLowerCase();
-                const clearBtn = document.getElementById('clearDeliverySearchBtn');
-                if (clearBtn) {
-                    clearBtn.classList.toggle('hidden', query.length === 0);
-                }
-
-                if (activeTab === 'orders') {
-                    filterOrdersByQuery(query);
-                } else {
-                    filterChallansByQuery(query);
-                }
-            });
-        }
+        challansTableManager = initErpTableManager({
+            id: 'challans',
+            tableBody: '#challansTableBody',
+            searchInput: '#deliverySearchInput',
+            clearSearchBtn: '#clearDeliverySearchBtn',
+            noResultRow: '#challansNoResultRow',
+            pageSize: 10
+        });
     });
 
     // ==========================================
@@ -505,6 +489,7 @@
                 searchInput.placeholder = "Search by Order #, Customer, Phone, Items...";
                 searchInput.focus();
             }
+            if (ordersTableManager) ordersTableManager.refresh();
         } else {
             btnChallans.className = "px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25";
             btnOrders.className = "px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700";
@@ -516,124 +501,7 @@
                 searchInput.placeholder = "Search by Challan #, Order Ref, Customer...";
                 searchInput.focus();
             }
-        }
-
-        // Re-run search for newly active tab
-        if (searchInput && searchInput.value.trim().length > 0) {
-            const query = searchInput.value.trim().toLowerCase();
-            if (activeTab === 'orders') filterOrdersByQuery(query);
-            else filterChallansByQuery(query);
-        } else {
-            if (activeTab === 'orders') applyOrdersVisibility();
-            else applyChallansVisibility();
-        }
-    }
-
-    // ==========================================
-    // ORDERS: Visibility, Search & Load More
-    // ==========================================
-    function applyOrdersVisibility() {
-        allOrderRows.forEach((row, idx) => {
-            row.style.display = idx < ordersVisibleLimit ? '' : 'none';
-        });
-
-        const currentVisible = Math.min(ordersVisibleLimit, allOrderRows.length);
-        const countEl = document.getElementById('ordersVisibleCount');
-        if (countEl) countEl.innerText = currentVisible;
-
-        const loadMore = document.getElementById('loadMoreOrdersContainer');
-        if (loadMore) {
-            loadMore.classList.toggle('hidden', ordersVisibleLimit >= allOrderRows.length);
-        }
-    }
-
-    function loadMoreOrders() {
-        ordersVisibleLimit += batchSize;
-        applyOrdersVisibility();
-    }
-
-    function filterOrdersByQuery(query) {
-        if (!query) {
-            document.getElementById('noOrdersSearchResultRow').classList.add('hidden');
-            applyOrdersVisibility();
-            return;
-        }
-
-        let matched = 0;
-        allOrderRows.forEach(row => {
-            const text = (row.getAttribute('data-search') || '').toLowerCase();
-            if (text.includes(query)) {
-                row.style.display = '';
-                matched++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('noOrdersSearchResultRow').classList.toggle('hidden', matched > 0);
-        document.getElementById('loadMoreOrdersContainer').classList.add('hidden');
-        document.getElementById('ordersVisibleCount').innerText = matched;
-    }
-
-    // ==========================================
-    // CHALLANS: Visibility, Search & Load More
-    // ==========================================
-    function applyChallansVisibility() {
-        allChallanRows.forEach((row, idx) => {
-            row.style.display = idx < challansVisibleLimit ? '' : 'none';
-        });
-
-        const currentVisible = Math.min(challansVisibleLimit, allChallanRows.length);
-        const countEl = document.getElementById('challansVisibleCount');
-        if (countEl) countEl.innerText = currentVisible;
-
-        const loadMore = document.getElementById('loadMoreChallansContainer');
-        if (loadMore) {
-            loadMore.classList.toggle('hidden', challansVisibleLimit >= allChallanRows.length);
-        }
-    }
-
-    function loadMoreChallans() {
-        challansVisibleLimit += batchSize;
-        applyChallansVisibility();
-    }
-
-    function filterChallansByQuery(query) {
-        if (!query) {
-            document.getElementById('noChallansSearchResultRow').classList.add('hidden');
-            applyChallansVisibility();
-            return;
-        }
-
-        let matched = 0;
-        allChallanRows.forEach(row => {
-            const text = (row.getAttribute('data-search') || '').toLowerCase();
-            if (text.includes(query)) {
-                row.style.display = '';
-                matched++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('noChallansSearchResultRow').classList.toggle('hidden', matched > 0);
-        document.getElementById('loadMoreChallansContainer').classList.add('hidden');
-        document.getElementById('challansVisibleCount').innerText = matched;
-    }
-
-    // Clear Search Input
-    function clearDeliverySearch() {
-        const searchInput = document.getElementById('deliverySearchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            document.getElementById('clearDeliverySearchBtn').classList.add('hidden');
-            document.getElementById('noOrdersSearchResultRow').classList.add('hidden');
-            document.getElementById('noChallansSearchResultRow').classList.add('hidden');
-            
-            if (activeTab === 'orders') applyOrdersVisibility();
-            else applyChallansVisibility();
-
-            searchInput.focus();
+            if (challansTableManager) challansTableManager.refresh();
         }
     }
 </script>
