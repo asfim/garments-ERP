@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-file-signature text-blue-400"></i>
-                Journal Vouchers (জাবেদা ভাউচার)
+                Journal Vouchers
             </h2>
             <p class="text-xs text-slate-400">Multi-line double-entry journal vouchers with audit trail and reversal tracking</p>
         </div>

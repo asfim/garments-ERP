@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-book-bookmark text-indigo-400"></i>
-                Chart of Accounts & Banks (হিসাবের প্রধান খাত ও ব্যাংক)
+                Chart of Accounts & Banks
             </h2>
             <p class="text-xs text-slate-400">Organized structure of Assets, Liabilities, Equity, Revenue, and Expense heads</p>
         </div>
@@ -19,12 +19,12 @@
             <a href="{{ route('factory.accounts.mappings.index') }}" 
                class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-sliders"></i>
-                <span>System Mappings (ম্যাপিং সেটিংস)</span>
+                <span>System Mappings</span>
             </a>
             <button type="button" onclick="openAddAccountModal()" 
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
-                <span>+ Add Account / Bank (নতুন খাত)</span>
+                <span>+ Add Account / Bank</span>
             </button>
             <a href="{{ route('factory.accounts.dashboard') }}" 
                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
@@ -54,7 +54,7 @@
         <a href="{{ route('factory.accounts.chart.index', ['type' => 'asset']) }}" 
            class="glass-panel p-3.5 rounded-2xl border {{ request('type') == 'asset' ? 'border-cyan-400 bg-cyan-950/30' : 'border-slate-800 hover:border-cyan-500/40' }} transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">1. Assets (সম্পদ)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">1. Assets</span>
                 <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-coins"></i>
                 </span>
@@ -69,7 +69,7 @@
         <a href="{{ route('factory.accounts.chart.index', ['type' => 'liability']) }}" 
            class="glass-panel p-3.5 rounded-2xl border {{ request('type') == 'liability' ? 'border-rose-400 bg-rose-950/30' : 'border-slate-800 hover:border-rose-500/40' }} transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-rose-400">2. Liabilities (দায়)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-rose-400">2. Liabilities</span>
                 <span class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                 </span>
@@ -84,7 +84,7 @@
         <a href="{{ route('factory.accounts.chart.index', ['type' => 'equity']) }}" 
            class="glass-panel p-3.5 rounded-2xl border {{ request('type') == 'equity' ? 'border-purple-400 bg-purple-950/30' : 'border-slate-800 hover:border-purple-500/40' }} transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">3. Equity (মূলধন)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">3. Equity</span>
                 <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-vault"></i>
                 </span>
@@ -99,7 +99,7 @@
         <a href="{{ route('factory.accounts.chart.index', ['type' => 'income']) }}" 
            class="glass-panel p-3.5 rounded-2xl border {{ request('type') == 'income' ? 'border-emerald-400 bg-emerald-950/30' : 'border-slate-800 hover:border-emerald-500/40' }} transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">4. Income (আয়)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">4. Income</span>
                 <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-arrow-trend-up"></i>
                 </span>
@@ -114,7 +114,7 @@
         <a href="{{ route('factory.accounts.chart.index', ['type' => 'expense']) }}" 
            class="glass-panel p-3.5 rounded-2xl border {{ request('type') == 'expense' ? 'border-amber-400 bg-amber-950/30' : 'border-slate-800 hover:border-amber-500/40' }} transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">5. Expenses (ব্যয়)</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">5. Expenses</span>
                 <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-arrow-trend-down"></i>
                 </span>
@@ -176,7 +176,7 @@
                 <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
                     <tr>
                         <th class="py-3.5 px-4">Code</th>
-                        <th class="py-3.5 px-4">Account Name (হিসাবের নাম)</th>
+                        <th class="py-3.5 px-4">Account Name</th>
                         <th class="py-3.5 px-4">Type</th>
                         <th class="py-3.5 px-4">Category</th>
                         <th class="py-3.5 px-4">Bank / A/C Info</th>
@@ -273,7 +273,7 @@
                 <i class="fa-solid fa-book-bookmark text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Create Account Head / Bank (নতুন হিসাবের খাত)</h3>
+                <h3 class="text-base font-extrabold text-white">Create Account Head / Bank</h3>
                 <p class="text-xs text-slate-400">Add asset, liability, equity, income, or expense accounts</p>
             </div>
         </div>
@@ -284,28 +284,28 @@
             <div class="grid grid-cols-2 gap-4">
                 <!-- Account Code -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Account Code (কোড) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Account Code <span class="text-rose-400">*</span></label>
                     <input type="text" name="account_code" placeholder="e.g. 1012 or 5012" required
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 font-mono font-bold focus:outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Account Type -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Account Type (প্রধান ধরণ) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Account Type <span class="text-rose-400">*</span></label>
                     <select name="type" id="newAccountType" onchange="toggleBankFields()" required
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <option value="asset">Asset (সম্পদ - ক্যাশ/ব্যাংক/প্রাপ্য)</option>
-                        <option value="liability">Liability (দায় - দেনা/ঋণ/প্রদেয়)</option>
-                        <option value="equity">Equity (মালিকানাস্বত্ব / মূলধন)</option>
-                        <option value="income">Income (আয় / বিক্রয় / রাজস্ব)</option>
-                        <option value="expense">Expense (ব্যয় / খরচ / বিল)</option>
+                        <option value="asset">Asset (Cash / Bank / Receivable)</option>
+                        <option value="liability">Liability (Payable / Loan)</option>
+                        <option value="equity">Equity (Owner Capital / Retained)</option>
+                        <option value="income">Income (Revenue / Sales)</option>
+                        <option value="expense">Expense (Operating / Direct Bills)</option>
                     </select>
                 </div>
             </div>
 
             <!-- Account Name -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1">Account Name (খাত বা অ্যাকাউন্টের নাম) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1">Account Name <span class="text-rose-400">*</span></label>
                 <input type="text" name="name" placeholder="e.g. Brac Bank CD A/C or Printing Maintenance" required
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
             </div>
@@ -313,14 +313,14 @@
             <div class="grid grid-cols-2 gap-4">
                 <!-- Category -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Category (উপ-শ্রেণী) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1">Category <span class="text-rose-400">*</span></label>
                     <input type="text" name="category" placeholder="e.g. Bank Account or Direct Expense" required
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Opening Balance -->
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1">Opening Balance (প্রারম্ভিক স্থিতি ৳)</label>
+                    <label class="block text-slate-300 font-bold mb-1">Opening Balance (৳)</label>
                     <input type="number" step="0.01" name="opening_balance" value="0.00"
                            class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
                 </div>
@@ -328,7 +328,7 @@
 
             <!-- Bank Specific Fields (Optional) -->
             <div id="bankFieldsSection" class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
-                <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">Bank Details (ব্যাংক অ্যাকাউন্টের বিবরণ - যদি ব্যাংক হয়)</span>
+                <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">Bank Details (if Bank Account)</span>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Bank Name</label>
@@ -386,7 +386,7 @@
                 <i class="fa-solid fa-pen-to-square text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Edit Account Head (খাত পরিবর্তন করুন)</h3>
+                <h3 class="text-base font-extrabold text-white">Edit Account Head</h3>
                 <p class="text-xs text-slate-400" id="editAccountCodeBadge">Editing Account</p>
             </div>
         </div>
@@ -415,8 +415,8 @@
                     <label class="block text-slate-300 font-bold mb-1">Status <span class="text-rose-400">*</span></label>
                     <select name="status" id="editStatus" required
                             class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-amber-500">
-                        <option value="active">Active (সক্রিয়)</option>
-                        <option value="inactive">Inactive (নিষ্ক্রিয়)</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                 </div>
             </div>

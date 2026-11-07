@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-money-bill-transfer text-cyan-400"></i>
-                Internal Fund Transfers (তহবিল স্থানান্তর - Contra Vouchers)
+                Internal Fund Transfers
             </h2>
             <p class="text-xs text-slate-400">Move funds between Cash in Hand, Bank Accounts, and Mobile Wallets without affecting profit & loss</p>
         </div>
@@ -19,7 +19,7 @@
             <button type="button" onclick="openTransferModal()" 
                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-plus-circle"></i>
-                <span>+ New Fund Transfer (নতুন স্থানান্তর)</span>
+                <span>+ New Fund Transfer</span>
             </button>
             <a href="{{ route('factory.accounts.dashboard') }}" 
                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5">
@@ -187,7 +187,7 @@
                 <i class="fa-solid fa-money-bill-transfer text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Transfer Funds (তহবিল স্থানান্তর)</h3>
+                <h3 class="text-base font-extrabold text-white">Transfer Funds</h3>
                 <p class="text-xs text-slate-400">Transfer money from Cash to Bank, Bank to Cash, or between accounts</p>
             </div>
         </div>
@@ -204,7 +204,7 @@
 
             <!-- From Account -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1">From Account (টাকা যেখান থেকে কাটা হবে) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1">From Account <span class="text-rose-400">*</span></label>
                 <select name="from_account_id" required
                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-500">
                     <option value="">Select Sending Account</option>
@@ -218,7 +218,7 @@
 
             <!-- To Account -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1">To Account (টাকা যেখানে জমা হবে) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1">To Account <span class="text-rose-400">*</span></label>
                 <select name="to_account_id" required
                         class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-500">
                     <option value="">Select Receiving Account</option>
@@ -232,7 +232,7 @@
 
             <!-- Amount -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1">Transfer Amount (পরিমাণ ৳) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1">Transfer Amount (৳) <span class="text-rose-400">*</span></label>
                 <div class="relative">
                     <span class="absolute left-3 top-2.5 text-slate-400 font-bold">৳</span>
                     <input type="number" step="0.01" min="0.01" name="amount" placeholder="0.00" required

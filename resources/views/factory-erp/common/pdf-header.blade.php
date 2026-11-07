@@ -12,7 +12,7 @@
         }
     }
 
-    // 2. Watermark Logo Base64 (জলছাপ - Bound to /factory/settings)
+    // 2. Watermark Logo Base64 (Bound to /factory/settings)
     $watermarkBase64 = $watermarkBase64 ?? null;
     if (!$watermarkBase64) {
         $wmFile = !empty($company?->print_logo) && file_exists(public_path('storage/' . $company->print_logo))

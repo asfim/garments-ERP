@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-chart-pie text-amber-400"></i>
-                Accounts & Financial Dashboard (হিসাব ও আর্থিক ড্যাশবোর্ড)
+                Accounts & Financial Dashboard
             </h2>
             <p class="text-xs text-slate-400">Complete double-entry accounting, income & expenses, bank/cash balances, and financial health</p>
         </div>
@@ -20,21 +20,21 @@
             <a href="{{ route('factory.accounts.income.index') }}" 
                class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-plus-circle"></i>
-                <span>+ Income (আয়)</span>
+                <span>+ Income</span>
             </a>
 
             <!-- Quick Link: New Expense -->
             <a href="{{ route('factory.accounts.expense.index') }}" 
                class="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-minus-circle"></i>
-                <span>+ Expense (ব্যয়)</span>
+                <span>+ Expense</span>
             </a>
 
             <!-- Quick Link: Transfer -->
             <a href="{{ route('factory.accounts.transfers.index') }}" 
                class="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-1.5">
                 <i class="fa-solid fa-money-bill-transfer"></i>
-                <span>Transfer (স্থানান্তর)</span>
+                <span>Transfer</span>
             </a>
 
             <!-- Quick Link: Reports -->
@@ -102,7 +102,7 @@
         <div class="glass-panel rounded-2xl p-4 border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-slate-900/40 relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-400/90 block">Liquid Funds (ক্যাশ ও ব্যাংক)</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-400/90 block">Liquid Funds</span>
                     <h3 class="text-2xl font-black text-white mt-1 font-mono">৳ {{ number_format($totalLiquidBalance, 2) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
@@ -119,7 +119,7 @@
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-slate-900/40 relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400/90 block">Total Income (মোট আয়)</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400/90 block">Total Income</span>
                     <h3 class="text-2xl font-black text-emerald-400 mt-1 font-mono">৳ {{ number_format($monthIncome, 2) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -136,7 +136,7 @@
         <div class="glass-panel rounded-2xl p-4 border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-slate-900/40 relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400/90 block">Total Expense (মোট খরচ)</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400/90 block">Total Expense</span>
                     <h3 class="text-2xl font-black text-rose-400 mt-1 font-mono">৳ {{ number_format($monthExpense, 2) }}</h3>
                 </div>
                 <div class="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
@@ -154,7 +154,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-bold uppercase tracking-wider {{ $netProfit >= 0 ? 'text-amber-400' : 'text-rose-400' }} block">
-                        Net {{ $netProfit >= 0 ? 'Profit (নিট লাভ)' : 'Loss (নিট ক্ষতি)' }}
+                        Net {{ $netProfit >= 0 ? 'Profit' : 'Loss' }}
                     </span>
                     <h3 class="text-2xl font-black {{ $netProfit >= 0 ? 'text-amber-300' : 'text-rose-400' }} mt-1 font-mono">
                         {{ $netProfit >= 0 ? '৳ ' . number_format($netProfit, 2) : '- ৳ ' . number_format(abs($netProfit), 2) }}
@@ -180,7 +180,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Cash & Bank Accounts (তহবিল বিবরণী)</h3>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Cash & Bank Accounts</h3>
                 </div>
                 <a href="{{ route('factory.accounts.chart.index') }}" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1">
                     <span>Manage Accounts</span>
@@ -219,7 +219,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div class="p-3.5 rounded-xl border border-rose-500/20 bg-rose-950/10 flex items-center justify-between">
                     <div>
-                        <span class="text-[11px] text-rose-300 font-bold uppercase block">Customer Due (মার্কেট বাকি)</span>
+                        <span class="text-[11px] text-rose-300 font-bold uppercase block">Customer Due</span>
                         <h4 class="text-lg font-black text-rose-400 font-mono mt-0.5">৳ {{ number_format($totalReceivable, 2) }}</h4>
                     </div>
                     <a href="{{ route('factory.customers.due.index') }}" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold">
@@ -229,7 +229,7 @@
 
                 <div class="p-3.5 rounded-xl border border-indigo-500/20 bg-indigo-950/10 flex items-center justify-between">
                     <div>
-                        <span class="text-[11px] text-indigo-300 font-bold uppercase block">Supplier Payable (সাপ্লায়ার দেনা)</span>
+                        <span class="text-[11px] text-indigo-300 font-bold uppercase block">Supplier Payable</span>
                         <h4 class="text-lg font-black text-indigo-400 font-mono mt-0.5">৳ {{ number_format($totalPayable, 2) }}</h4>
                     </div>
                     <a href="{{ route('factory.suppliers.index') }}" class="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold">
@@ -245,7 +245,7 @@
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-chart-simple text-rose-400"></i>
-                        Top Expenses (শীর্ষ খরচসমূহ)
+                        Top Expenses
                     </h3>
                     <a href="{{ route('factory.accounts.expense.index') }}" class="text-xs text-rose-400 hover:text-rose-300 font-semibold">View All</a>
                 </div>
@@ -289,7 +289,7 @@
             <div>
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice text-amber-400"></i>
-                    Recent Vouchers & Transactions (সাম্প্রতিক ভাউচারসমূহ)
+                    Recent Vouchers & Transactions
                 </h3>
                 <p class="text-[11px] text-slate-400 mt-0.5">Real-time audited transaction history with instant print and verification</p>
             </div>

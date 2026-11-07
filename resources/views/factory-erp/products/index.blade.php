@@ -20,7 +20,7 @@
             <button type="button" onclick="openAddProductModal()" 
                     class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-circle-plus text-sm"></i>
-                <span>Add New Product (নতুন পণ্য)</span>
+                <span>+ Add New Product</span>
             </button>
 
             <!-- PDF Download Button (Bound to Company Settings) -->
@@ -99,9 +99,9 @@
                         <th class="py-3 px-3 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80">
+                <tbody class="divide-y divide-slate-800/80" id="productsTableBody">
                     @forelse($products as $idx => $prod)
-                    <tr class="hover:bg-slate-800/40 transition-colors product-row">
+                    <tr class="hover:bg-slate-800/40 transition-colors product-row {{ $idx >= 15 ? 'hidden' : '' }}" data-index="{{ $idx }}">
                         <td class="py-3.5 px-3 text-slate-400 font-mono">{{ $idx + 1 }}</td>
                         <td class="py-3.5 px-3">
                             <span class="font-bold text-white text-sm block product-name">{{ $prod->name }}</span>
@@ -164,6 +164,29 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- PRODUCT LOAD MORE CONTAINER -->
+        @if($products->count() > 0)
+        <div id="productLoadMoreContainer" class="p-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-400 font-mono">
+                Showing <span id="productShowingCount" class="text-cyan-400 font-bold">{{ min(15, $products->count()) }}</span> of <span id="productTotalCount" class="text-white font-bold">{{ $products->count() }}</span> products
+            </div>
+
+            @if($products->count() > 15)
+            <button type="button" 
+                    id="productLoadMoreBtn"
+                    onclick="loadMoreProducts()"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-950/50 flex items-center gap-2 transition-all cursor-pointer">
+                <i class="fa-solid fa-circle-down"></i>
+                <span id="productLoadText">Load More Products</span>
+            </button>
+            @else
+            <div id="productAllLoaded" class="text-xs text-slate-500 font-semibold italic flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400"></i> All products loaded
+            </div>
+            @endif
+        </div>
+        @endif
     </div>
 
 </div>
@@ -180,7 +203,7 @@
                 <i class="fa-solid fa-circle-plus text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Add New Product (নতুন পণ্য যুক্ত করুন)</h3>
+                <h3 class="text-base font-extrabold text-white">Add New Product</h3>
                 <p class="text-xs text-slate-400">Register new item with unit, production cost, and selling price</p>
             </div>
         </div>
@@ -190,7 +213,7 @@
 
             <!-- Product Name -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Product Name (পণ্যের নাম) <span class="text-rose-400">*</span></label>
+                <label class="block text-slate-300 font-bold mb-1.5">Product Name <span class="text-rose-400">*</span></label>
                 <input type="text" name="name" placeholder="e.g. Jumbo straw With your branding" required
                        class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-400">
             </div>
@@ -198,7 +221,7 @@
             <!-- Unit -->
             <div>
                 <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-slate-300 font-bold">Measurement Unit (পরিমাপ একক) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold">Measurement Unit <span class="text-rose-400">*</span></label>
                     <a href="{{ route('factory.units.index') }}" target="_blank" class="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-semibold">
                         <i class="fa-solid fa-plus text-[10px]"></i> Add / Manage Units
                     </a>
@@ -215,7 +238,7 @@
             <!-- Production Cost & Selling Price -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1.5">Production Cost (উৎপাদন খরচ ৳) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1.5">Production Cost (৳) <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-slate-400 font-bold">৳</span>
                         <input type="number" step="0.01" min="0" name="production_price" placeholder="0.00" required
@@ -223,7 +246,7 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-slate-300 font-bold mb-1.5">Selling Price (বিক্রয় মূল্য ৳) <span class="text-rose-400">*</span></label>
+                    <label class="block text-slate-300 font-bold mb-1.5">Selling Price (৳) <span class="text-rose-400">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-cyan-400 font-bold">৳</span>
                         <input type="number" step="0.01" min="0" name="sell_price" placeholder="0.00" required
@@ -234,7 +257,7 @@
 
             <!-- Description / Specifications -->
             <div>
-                <label class="block text-slate-300 font-bold mb-1.5">Description / Specifications (বিবরণ / স্পেসিফিকেশন)</label>
+                <label class="block text-slate-300 font-bold mb-1.5">Description / Specifications</label>
                 <textarea name="description" rows="3" placeholder="e.g. Food-grade PLA, 8mm diameter, customized wrapper"
                           class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-cyan-400"></textarea>
             </div>
@@ -268,7 +291,7 @@
                 <i class="fa-solid fa-pen-to-square text-lg"></i>
             </div>
             <div>
-                <h3 class="text-base font-extrabold text-white">Edit Product Details (পণ্য বিবরণী সম্পাদনা)</h3>
+                <h3 class="text-base font-extrabold text-white">Edit Product Details</h3>
                 <p class="text-xs text-slate-400">Update product name, unit, cost and selling rates</p>
             </div>
         </div>
@@ -366,24 +389,73 @@
         if (m) m.classList.add('hidden');
     }
 
-    // 3. Live Search Filter in Table
+    // 3. Live Search Filter in Table (with Load More support)
+    let productPageSize = 15;
+    let currentProductVisible = Math.min(productPageSize, {{ $products->count() }});
+    const totalProducts = {{ $products->count() }};
+
     function filterProductsTable() {
         const input = document.getElementById('productSearchInput');
-        const filter = input.value.toLowerCase();
+        const filter = input.value.toLowerCase().trim();
         const rows = document.querySelectorAll('.product-row');
+        const container = document.getElementById('productLoadMoreContainer');
 
-        rows.forEach(row => {
-            const name = row.querySelector('.product-name')?.textContent?.toLowerCase() || '';
-            const desc = row.querySelector('.product-desc')?.textContent?.toLowerCase() || '';
-            if (name.includes(filter) || desc.includes(filter)) {
+        if (filter.length > 0) {
+            // When actively searching, hide the load more button and search across all products
+            if (container) container.classList.add('hidden');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.product-name')?.textContent?.toLowerCase() || '';
+                const desc = row.querySelector('.product-desc')?.textContent?.toLowerCase() || '';
+                if (name.includes(filter) || desc.includes(filter)) {
+                    row.classList.remove('hidden');
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        } else {
+            // When search is cleared, restore progressive load more visibility
+            if (container) container.classList.remove('hidden');
+
+            rows.forEach((row, idx) => {
                 row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
+                if (idx < currentProductVisible) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        }
     }
 
-    // 4. Close modals on Escape key
+    // 4. Progressive Load More Products
+    function loadMoreProducts() {
+        const hiddenRows = document.querySelectorAll('.product-row.hidden');
+        let toShow = Math.min(productPageSize, hiddenRows.length);
+        for (let i = 0; i < toShow; i++) {
+            hiddenRows[i].classList.remove('hidden');
+        }
+        currentProductVisible += toShow;
+
+        const countEl = document.getElementById('productShowingCount');
+        if (countEl) countEl.textContent = currentProductVisible;
+
+        if (currentProductVisible >= totalProducts || hiddenRows.length <= toShow) {
+            const btn = document.getElementById('productLoadMoreBtn');
+            if (btn) btn.remove();
+            const container = document.getElementById('productLoadMoreContainer');
+            if (container && !document.getElementById('productAllLoaded')) {
+                const doneDiv = document.createElement('div');
+                doneDiv.id = 'productAllLoaded';
+                doneDiv.className = 'text-xs text-slate-500 font-semibold italic flex items-center gap-1.5';
+                doneDiv.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> All products loaded';
+                container.appendChild(doneDiv);
+            }
+        }
+    }
+
+    // 5. Close modals on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeAddProductModal();

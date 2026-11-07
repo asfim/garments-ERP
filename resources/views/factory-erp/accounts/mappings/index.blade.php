@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-sliders text-amber-400"></i>
-                Accounting System Mappings (স্বয়ংক্রিয় হিসাব ম্যাপিং)
+                Accounting System Mappings
             </h2>
             <p class="text-xs text-slate-400">Configure which Chart of Accounts ledger accounts are automatically debited or credited by ERP operations (Production, Sales, Payroll, Advances).</p>
         </div>
@@ -44,7 +44,7 @@
                     <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
                         <tr>
                             <th class="py-3 px-4 w-4/12">Transaction Event</th>
-                            <th class="py-3 px-4 w-5/12">Mapped Account (হিসাব খাত)</th>
+                            <th class="py-3 px-4 w-5/12">Mapped Account</th>
                             <th class="py-3 px-4 w-3/12">Current Account Code</th>
                         </tr>
                     </thead>

@@ -12,7 +12,7 @@
         }
     }
 
-    // Watermark Logo Base64 (জলছাপ - Bound to /factory/settings)
+    // Watermark Logo Base64 (Bound to /factory/settings)
     $watermarkSrc = null;
     $wmFile = !empty($cmp?->print_logo) && file_exists(public_path('storage/' . $cmp->print_logo))
         ? public_path('storage/' . $cmp->print_logo)

@@ -10,7 +10,7 @@
         <div>
             <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
                 <i class="fa-solid fa-file-signature text-blue-400"></i>
-                New Double-Entry Journal Voucher (নতুন জাবেদা ভাউচার)
+                New Double-Entry Journal Voucher
             </h2>
             <p class="text-xs text-slate-400">Record compound multi-line double-entry accounting transactions. Total Debit must equal Total Credit.</p>
         </div>

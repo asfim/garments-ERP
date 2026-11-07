@@ -311,7 +311,7 @@
             }
         }
 
-        // Watermark Logo Base64 (জলছাপ - Bound to /factory/settings)
+        // Watermark Logo Base64 (Bound to /factory/settings)
         $watermarkSrc = null;
         $wmFile = !empty($company?->print_logo) && file_exists(public_path('storage/' . $company->print_logo))
             ? public_path('storage/' . $company->print_logo)
@@ -337,7 +337,7 @@
         <!-- Top Left Cyan Geometric Accent Triangle (Exact Image 2 Match) -->
         <div class="header-accent-triangle" aria-hidden="true"></div>
 
-        <!-- Background Watermark / Jolchap (জলছাপ - Bound to /factory/settings) -->
+        <!-- Background Watermark (Bound to /factory/settings) -->
         @if($watermarkSrc)
         <div class="watermark-container">
             <img src="{{ $watermarkSrc }}" alt="Company Watermark" class="watermark-img">
@@ -368,7 +368,7 @@
 
             <div class="receipt-header-row">
                 <div>
-                    <span class="receipt-badge">Money Receipt (অর্থ প্রাপ্তি রসিদ)</span>
+                    <span class="receipt-badge">Money Receipt</span>
                 </div>
                 <div class="voucher-no-text">
                     Voucher No: <span style="color: #00adef;">{{ $voucher->voucher_no }}</span>
@@ -384,7 +384,7 @@
                     <strong>Payment Method:</strong> {{ $voucher->payment_method_label }}
                 </div>
                 <div class="meta-item">
-                    <strong>Deposit To A/C:</strong> {{ $voucher->debitAccount?->name ?? 'Cash in Hand (প্রধান ক্যাশ)' }}
+                    <strong>Deposit To A/C:</strong> {{ $voucher->debitAccount?->name ?? 'Cash in Hand' }}
                 </div>
                 <div class="meta-item">
                     <strong>Ref / Cheque No:</strong> {{ $voucher->reference_no ?: 'N/A' }}
@@ -405,7 +405,7 @@
                     <tr>
                         <td>1</td>
                         <td>
-                            <strong>{{ $voucher->creditAccount?->name ?? 'Product Sales Revenue (পণ্য বিক্রয় আয়)' }}</strong>
+                            <strong>{{ $voucher->creditAccount?->name ?? 'Product Sales Revenue' }}</strong>
                             @if($voucher->notes)
                             <div style="color: #64748b; font-size: 11px; margin-top: 3px;">{{ $voucher->notes }}</div>
                             @endif
